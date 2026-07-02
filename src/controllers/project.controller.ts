@@ -13,6 +13,7 @@ const projectSchema = z.object({
   advisor: z.string().optional().nullable(),
   executionTime: z.string().optional().nullable(),
   budget: z.string().optional().nullable(),
+  laborBudget: z.number().optional().nullable(),
   generalObjective: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   status: z.enum(['PLANNING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD']).optional(),

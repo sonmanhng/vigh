@@ -35,6 +35,7 @@ model Project {
   advisor          String?
   executionTime    String?
   budget           String?
+  laborBudget      Float?    @default(0)
   generalObjective String?
   description      String?
   status           String    @default("PLANNING") // PLANNING, IN_PROGRESS, COMPLETED, ON_HOLD

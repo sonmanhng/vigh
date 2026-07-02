@@ -99,6 +99,7 @@ export const ProjectDetail: React.FC = () => {
       advisor: project.advisor || '',
       executionTime: project.executionTime || '',
       budget: project.budget || '',
+      laborBudget: project.laborBudget || 0,
       generalObjective: project.generalObjective || project.description || '',
       memberIds: project.members?.map((m: any) => m.id) || []
     });
@@ -460,6 +461,28 @@ export const ProjectDetail: React.FC = () => {
     }
   };
 
+  const handleUpdateTaskAccounting = async (taskId: number, field: 'workDays' | 'paymentPercentage', value: number) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      let descObj: any = {};
+      try {
+        descObj = typeof task.description === 'string' ? JSON.parse(task.description) : (task.description || {});
+      } catch (e) {}
+      
+      descObj[field] = value;
+      
+      await apiClient.put(`/tasks/${taskId}`, {
+        description: JSON.stringify(descObj)
+      });
+      fetchProjectDetails(); // Sync with backend
+    } catch (error) {
+      console.error('Error saving accounting data', error);
+      alert('Có lỗi khi lưu thông tin tính công');
+    }
+  };
+
+
   const todoTasks = tasks.filter(t => t.status === 'TODO');
   const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS' || t.status === 'REVIEW');
   const doneTasks = tasks.filter(t => t.status === 'DONE');
@@ -790,6 +813,7 @@ export const ProjectDetail: React.FC = () => {
                       ) : '')}
                       {renderRow('Thời gian', project.executionTime)}
                       {renderRow('Kinh phí', project.budget)}
+                      {renderRow('Kinh phí nhân công (ước tính)', project.laborBudget ? project.laborBudget.toLocaleString('vi-VN') + ' VNĐ' : '0 VNĐ')}
                       {renderRow('Mục tiêu tổng quát', project.generalObjective || project.description)}
                     </div>
                   </div>
@@ -1802,16 +1826,176 @@ export const ProjectDetail: React.FC = () => {
                 </div>
               ) : (
                 /* SUB-TAB: TÍNH CÔNG & THÙ LAO */
-                <div className="card" style={{ padding: '4rem 2rem', textAlign: 'center', backgroundColor: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)' }}>
-                  <div style={{ display: 'inline-block', padding: '0.5rem 1rem', borderRadius: '20px', backgroundColor: 'rgba(52, 144, 139, 0.1)', color: 'var(--primary)', fontWeight: 700, fontSize: '0.85rem', marginBottom: '1rem' }}>
-                    MODULE TÍNH CÔNG & THÙ LAO
-                  </div>
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
-                    Chức Năng Đang Được Tích Hợp
-                  </h3>
-                  <p style={{ color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto', fontSize: '0.95rem' }}>
-                    Tính năng đang được thiết lập để định mức thù lao khoa học và chi trả thù lao. Vui lòng quay lại sau!
-                  </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {(() => {
+                    const memberStats = (project.members || []).map((m: any) => {
+                      const mTasks = tasks.filter(t => t.assigneeId === m.id);
+                      let totalWorkDays = 0;
+                      let totalPaymentPercent = 0;
+                      mTasks.forEach(t => {
+                        let descObj: any = {};
+                        try {
+                          descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
+                        } catch(e) {}
+                        totalWorkDays += (descObj.workDays || 0);
+                        totalPaymentPercent += (descObj.paymentPercentage || 0);
+                      });
+                      const estimatedCost = ((project.laborBudget || 0) * totalPaymentPercent) / 100;
+                      return { member: m, totalWorkDays, totalPaymentPercent, estimatedCost, mTasks };
+                    });
+
+                    // Tính tổng tất cả phần trăm để cảnh báo nếu vượt quá 100%
+                    const globalTotalPercent = memberStats.reduce((sum, ms) => sum + ms.totalPaymentPercent, 0);
+
+                    return (
+                      <>
+                        {/* Summary Card */}
+                        <div className="card" style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
+                            <div>
+                              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--primary)' }}>
+                                Bảng Tổng Hợp Tính Công & Thù Lao
+                              </h3>
+                              <p style={{ margin: '0.25rem 0 0', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                                Tổng kinh phí nhân công của đề tài: <strong style={{ color: 'var(--text-main)' }}>{(project.laborBudget || 0).toLocaleString('vi-VN')} VNĐ</strong>
+                              </p>
+                            </div>
+                            {globalTotalPercent > 100 && (
+                              <span style={{ fontSize: '0.85rem', fontWeight: 600, padding: '0.35rem 0.85rem', borderRadius: '20px', backgroundColor: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
+                                Cảnh báo: Tổng % thanh toán vượt 100% ({globalTotalPercent}%)
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                              <thead>
+                                <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid var(--border-color)' }}>
+                                  <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)' }}>Thành viên</th>
+                                  <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)' }}>Số công</th>
+                                  <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)' }}>% Thanh toán</th>
+                                  <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, color: 'var(--text-muted)' }}>Ước tính chi phí (VNĐ)</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {memberStats.map((stat, idx) => (
+                                  <tr key={stat.member.id} style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
+                                    <td style={{ padding: '0.75rem' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        {stat.member.avatar ? (
+                                          <img src={stat.member.avatar} alt={stat.member.name} style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
+                                        ) : (
+                                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700 }}>
+                                            {getInitials(stat.member.name)}
+                                          </div>
+                                        )}
+                                        <div>
+                                          <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{stat.member.name}</div>
+                                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{stat.member.role}</div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>
+                                      {stat.totalWorkDays}
+                                    </td>
+                                    <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--accent-green)' }}>
+                                      {stat.totalPaymentPercent}%
+                                    </td>
+                                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 700, color: 'var(--text-main)' }}>
+                                      {stat.estimatedCost.toLocaleString('vi-VN')}
+                                    </td>
+                                  </tr>
+                                ))}
+                                {memberStats.length === 0 && (
+                                  <tr>
+                                    <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                                      Chưa có thành viên nào trong đề tài.
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Detailed Member Accounting List */}
+                        {memberStats.map(stat => (
+                          <div key={stat.member.id} className="card" style={{ padding: '1.25rem', backgroundColor: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
+                              {stat.member.avatar ? (
+                                <img src={stat.member.avatar} alt={stat.member.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                              ) : (
+                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 700 }}>
+                                  {getInitials(stat.member.name)}
+                                </div>
+                              )}
+                              <div>
+                                <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>{stat.member.name}</h4>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Tổng giao việc: {stat.mTasks.length} nhiệm vụ</div>
+                              </div>
+                            </div>
+
+                            {stat.mTasks.length === 0 ? (
+                              <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                                Chưa được giao công việc nào.
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {stat.mTasks.map(t => {
+                                  let descObj: any = {};
+                                  try {
+                                    descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
+                                  } catch(e) {}
+
+                                  return (
+                                    <div key={t.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '1.5rem', alignItems: 'center', backgroundColor: '#F8FAFC', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                      <div>
+                                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: '0.2rem' }}>{t.title}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                          {descObj.activityCode ? `Mã ND: ${descObj.activityCode}` : 'Không có mã nội dung'}
+                                          {' • '}
+                                          <span style={{ color: t.status === 'DONE' ? 'var(--accent-green)' : 'var(--primary)' }}>
+                                            {t.status === 'DONE' ? 'Đã hoàn thành' : 'Đang xử lý'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>Số công</label>
+                                        <input 
+                                          type="number" 
+                                          step="0.1"
+                                          min="0"
+                                          className="input-field" 
+                                          style={{ width: '80px', padding: '0.35rem 0.5rem', fontSize: '0.9rem', textAlign: 'center' }}
+                                          defaultValue={descObj.workDays || 0}
+                                          onBlur={(e) => handleUpdateTaskAccounting(t.id, 'workDays', Number(e.target.value))}
+                                          disabled={!canAssignTasks}
+                                        />
+                                      </div>
+                                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>% Thanh toán</label>
+                                        <input 
+                                          type="number" 
+                                          step="0.1"
+                                          min="0"
+                                          max="100"
+                                          className="input-field" 
+                                          style={{ width: '80px', padding: '0.35rem 0.5rem', fontSize: '0.9rem', textAlign: 'center' }}
+                                          defaultValue={descObj.paymentPercentage || 0}
+                                          onBlur={(e) => handleUpdateTaskAccounting(t.id, 'paymentPercentage', Number(e.target.value))}
+                                          disabled={!canAssignTasks}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -1924,15 +2108,28 @@ export const ProjectDetail: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="input-group">
-                  <label className="input-label">Kinh phí đề tài</label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    placeholder="VD: 1.037.000.000 đồng (737.000.000 đ khoán...)" 
-                    value={editForm.budget || ''} 
-                    onChange={(e) => setEditForm({ ...editForm, budget: e.target.value })} 
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Kinh phí đề tài</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="VD: 1.037.000.000 đồng (737.000.000 đ khoán...)" 
+                      value={editForm.budget || ''} 
+                      onChange={(e) => setEditForm({ ...editForm, budget: e.target.value })} 
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Kinh phí nhân công (VNĐ)</label>
+                    <input 
+                      type="number" 
+                      className="input-field" 
+                      placeholder="VD: 100000000" 
+                      value={editForm.laborBudget || ''} 
+                      onChange={(e) => setEditForm({ ...editForm, laborBudget: Number(e.target.value) })} 
+                    />
+                  </div>
                 </div>
 
                 <div className="input-group">
