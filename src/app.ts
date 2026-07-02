@@ -29,7 +29,11 @@ app.use('/api/tasks', taskRoutes);
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
   const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+  
+  // Phục vụ assets cho cả base '/' và base '/vigh-backend/'
   app.use(express.static(frontendDist));
+  app.use('/vigh-backend', express.static(frontendDist));
+  
   // SPA fallback — serve index.html for all non-API routes (Express 5 compatible)
   app.use((req: express.Request, res: express.Response) => {
     res.sendFile(path.join(frontendDist, 'index.html'));
