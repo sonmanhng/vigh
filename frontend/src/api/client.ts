@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// VITE_API_URL is injected by GitHub Actions for GitHub Pages
+// In PROD on Render, it falls back to '/api' which uses the same origin
+// In DEV, it falls back to 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api');
 
 export const apiClient = axios.create({
   baseURL: API_URL,
