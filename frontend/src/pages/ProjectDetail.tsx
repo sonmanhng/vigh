@@ -348,6 +348,7 @@ export const ProjectDetail: React.FC = () => {
                 </div>
               )}
             </div>
+          ) : (
             hasValue ? (
               <span style={{ fontWeight: label === 'Chủ nhiệm' ? 700 : 400, color: 'var(--text-main)', lineHeight: 1.5 }}>
                 {value}
