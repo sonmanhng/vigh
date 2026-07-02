@@ -3,9 +3,9 @@ import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 const ALL_ROLES = [
-  { value: 'SuperAdmin', label: 'SuperAdmin - Quản Trị Cấp Cao' },
   { value: 'VienTruong', label: 'Viện Trưởng - Ban Lãnh Đạo Viện' },
   { value: 'VienPho', label: 'Viện Phó - Ban Lãnh Đạo Viện' },
+  { value: 'SuperAdmin', label: 'SuperAdmin - Quản Trị Cấp Cao' },
   { value: 'TruongPhong', label: 'Trưởng Phòng - Quản Lý Đơn Vị' },
   { value: 'ChuyenVien', label: 'Chuyên Viên - Nghiên Cứu Viên' },
 ];
@@ -27,6 +27,7 @@ export const PersonnelManagement: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [avatar, setAvatar] = useState('');
   const [creating, setCreating] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
 
   const isManagerOrAdmin = user && ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'].includes(user.role);
   const isTopAdmin = user && ['SuperAdmin', 'VienTruong', 'VienPho', 'ADMIN'].includes(user.role);
@@ -48,22 +49,30 @@ export const PersonnelManagement: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const handleSubmitUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
     try {
-      await apiClient.post('/users', {
+      const payload: any = {
         name,
-        email,
-        password,
         role,
         department,
         phone,
         avatar,
         affiliations: affiliations.split(',').map(a => a.trim()).filter(a => a.length > 0),
-      });
+      };
+
+      if (editingUserId) {
+        await apiClient.put(`/users/${editingUserId}`, payload);
+      } else {
+        payload.email = email;
+        payload.password = password;
+        await apiClient.post('/users', payload);
+      }
+      
       setShowModal(false);
       // Reset form
+      setEditingUserId(null);
       setName('');
       setEmail('');
       setPassword('vigh123456');
@@ -74,10 +83,36 @@ export const PersonnelManagement: React.FC = () => {
       setAvatar('');
       fetchUsers();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra khi tạo tài khoản nhân sự');
+      alert(err.response?.data?.message || 'Có lỗi xảy ra khi lưu thông tin nhân sự');
     } finally {
       setCreating(false);
     }
+  };
+
+  const openCreateModal = () => {
+    setEditingUserId(null);
+    setName('');
+    setEmail('');
+    setPassword('vigh123456');
+    setRole('ChuyenVien');
+    setDepartment('');
+    setAffiliations('');
+    setPhone('');
+    setAvatar('');
+    setShowModal(true);
+  };
+
+  const openEditModal = (userToEdit: any) => {
+    setEditingUserId(userToEdit.id);
+    setName(userToEdit.name || '');
+    setEmail(userToEdit.email || '');
+    setPassword('');
+    setRole(userToEdit.role || 'ChuyenVien');
+    setDepartment(userToEdit.department || '');
+    setAffiliations(userToEdit.affiliations?.join(', ') || '');
+    setPhone(userToEdit.phone || '');
+    setAvatar(userToEdit.avatar || '');
+    setShowModal(true);
   };
 
   const handleRoleChange = async (userId: number, newRole: string) => {
@@ -129,7 +164,7 @@ export const PersonnelManagement: React.FC = () => {
         </div>
 
         {isManagerOrAdmin && (
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <button className="btn btn-primary" onClick={openCreateModal}>
             Thêm Nhân Sự Mới
           </button>
         )}
@@ -144,7 +179,7 @@ export const PersonnelManagement: React.FC = () => {
           <table className="modern-table">
             <thead>
               <tr>
-                <th style={{ width: '25%' }}>Cán bộ</th>
+                <th style={{ width: '25%' }}>Nhân sự</th>
                 <th style={{ width: '15%' }}>Tài khoản Email</th>
                 <th style={{ width: '15%' }}>Cơ quan</th>
                 <th style={{ width: '15%' }}>Phòng Ban / Đơn vị</th>
@@ -223,13 +258,22 @@ export const PersonnelManagement: React.FC = () => {
                     {isManagerOrAdmin && (
                       <td style={{ textAlign: 'right' }}>
                         {isTopAdmin && u.id !== user?.id && (
-                          <button 
-                            className="btn btn-danger btn-sm" 
-                            onClick={() => handleDeleteUser(u.id, u.name)}
-                            title="Xóa nhân sự"
-                          >
-                            Xóa
-                          </button>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button 
+                              className="btn btn-secondary btn-sm" 
+                              onClick={() => openEditModal(u)}
+                              title="Sửa thông tin"
+                            >
+                              Sửa
+                            </button>
+                            <button 
+                              className="btn btn-danger btn-sm" 
+                              onClick={() => handleDeleteUser(u.id, u.name)}
+                              title="Xóa nhân sự"
+                            >
+                              Xóa
+                            </button>
+                          </div>
                         )}
                       </td>
                     )}
@@ -246,11 +290,11 @@ export const PersonnelManagement: React.FC = () => {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">Thêm Nhân Sự Mới Viện VIGH</div>
+              <div className="modal-title">{editingUserId ? 'Chỉnh Sửa Nhân Sự' : 'Thêm Nhân Sự Mới Viện VIGH'}</div>
               <button type="button" className="modal-close-btn" onClick={() => setShowModal(false)}>Đóng</button>
             </div>
             
-            <form onSubmit={handleCreateUser}>
+            <form onSubmit={handleSubmitUser}>
               <div className="modal-body">
                 <div className="input-group">
                   <label className="input-label">Họ và tên cán bộ (*)</label>
@@ -259,14 +303,16 @@ export const PersonnelManagement: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Email đăng nhập (*)</label>
-                  <input type="email" className="input-field" placeholder="nguyenvana@vigh.org" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <input type="email" className="input-field" placeholder="nguyenvana@vigh.org" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={!!editingUserId} style={{ backgroundColor: editingUserId ? '#f0f0f0' : 'white' }} />
                 </div>
 
-                <div className="input-group">
-                  <label className="input-label">Mật khẩu khởi tạo (*)</label>
-                  <input type="text" className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mặc định là vigh123456</span>
-                </div>
+                {!editingUserId && (
+                  <div className="input-group">
+                    <label className="input-label">Mật khẩu khởi tạo (*)</label>
+                    <input type="text" className="input-field" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mặc định là vigh123456</span>
+                  </div>
+                )}
 
                 <div className="input-group">
                   <label className="input-label">Chức vụ / Quyền hạn (*)</label>
@@ -301,7 +347,7 @@ export const PersonnelManagement: React.FC = () => {
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={creating}>Hủy</button>
-                <button type="submit" className="btn btn-primary" disabled={creating}>{creating ? 'Đang thêm...' : 'Thêm Nhân Sự'}</button>
+                <button type="submit" className="btn btn-primary" disabled={creating}>{creating ? 'Đang lưu...' : (editingUserId ? 'Lưu Thay Đổi' : 'Thêm Nhân Sự')}</button>
               </div>
             </form>
           </div>

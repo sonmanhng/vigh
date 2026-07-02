@@ -27,6 +27,8 @@ const updateUserRoleSchema = z.object({
   role: z.string().optional(),
   department: z.string().optional(),
   name: z.string().optional(),
+  phone: z.string().optional(),
+  avatar: z.string().optional(),
   affiliations: z.array(z.string()).optional(),
 });
 
