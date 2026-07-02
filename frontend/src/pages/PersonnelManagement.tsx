@@ -23,6 +23,7 @@ export const PersonnelManagement: React.FC = () => {
   const [password, setPassword] = useState('vigh123456');
   const [role, setRole] = useState('ChuyenVien');
   const [department, setDepartment] = useState('');
+  const [affiliations, setAffiliations] = useState('');
   const [phone, setPhone] = useState('');
   const [avatar, setAvatar] = useState('');
   const [creating, setCreating] = useState(false);
@@ -59,6 +60,7 @@ export const PersonnelManagement: React.FC = () => {
         department,
         phone,
         avatar,
+        affiliations: affiliations.split(',').map(a => a.trim()).filter(a => a.length > 0),
       });
       setShowModal(false);
       // Reset form
@@ -67,6 +69,7 @@ export const PersonnelManagement: React.FC = () => {
       setPassword('vigh123456');
       setRole('ChuyenVien');
       setDepartment('');
+      setAffiliations('');
       setPhone('');
       setAvatar('');
       fetchUsers();
@@ -143,6 +146,7 @@ export const PersonnelManagement: React.FC = () => {
               <tr>
                 <th>Cán bộ / Avatar</th>
                 <th>Tài khoản Email</th>
+                <th>Cơ quan (Affiliations)</th>
                 <th>Phòng Ban / Đơn vị</th>
                 <th>Số Điện Thoại</th>
                 <th>Chức Vụ (Role)</th>
@@ -175,6 +179,27 @@ export const PersonnelManagement: React.FC = () => {
                       </div>
                     </td>
                     <td><span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>{u.email}</span></td>
+                    <td>
+                      {u.affiliations && u.affiliations.length > 0 ? (
+                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                          {u.affiliations.map((aff: string, idx: number) => (
+                            <span key={idx} style={{ 
+                              backgroundColor: 'rgba(0, 114, 229, 0.1)', 
+                              color: 'var(--primary)', 
+                              padding: '2px 8px', 
+                              borderRadius: '12px', 
+                              fontSize: '0.75rem', 
+                              fontWeight: 600,
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {aff}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.85rem' }}>---</span>
+                      )}
+                    </td>
                     <td>{u.department || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Chưa cập nhật</span>}</td>
                     <td>{u.phone || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>---</span>}</td>
                     <td>
@@ -250,6 +275,12 @@ export const PersonnelManagement: React.FC = () => {
                       <option key={r.value} value={r.value}>{r.label}</option>
                     ))}
                   </select>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Cơ quan / Tổ chức công tác (Affiliations)</label>
+                  <input type="text" className="input-field" placeholder="VD: Đại học Bách Khoa, Viện VIGH" value={affiliations} onChange={(e) => setAffiliations(e.target.value)} />
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Các cơ quan cách nhau bằng dấu phẩy (,)</span>
                 </div>
 
                 <div className="input-group">

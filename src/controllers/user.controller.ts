@@ -9,6 +9,7 @@ const updateProfileSchema = z.object({
   department: z.string().optional(),
   phone: z.string().optional(),
   password: z.string().min(6).optional(),
+  affiliations: z.array(z.string()).optional(),
 });
 
 const createUserSchema = z.object({
@@ -19,12 +20,14 @@ const createUserSchema = z.object({
   department: z.string().optional(),
   phone: z.string().optional(),
   avatar: z.string().optional(),
+  affiliations: z.array(z.string()).optional(),
 });
 
 const updateUserRoleSchema = z.object({
   role: z.string().optional(),
   department: z.string().optional(),
   name: z.string().optional(),
+  affiliations: z.array(z.string()).optional(),
 });
 
 export const getProfile = async (req: Request, res: Response) => {
@@ -39,6 +42,7 @@ export const getProfile = async (req: Request, res: Response) => {
         avatar: true,
         department: true,
         phone: true,
+        affiliations: true,
         createdAt: true,
       },
     });
@@ -65,6 +69,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         avatar: data.avatar,
         department: data.department,
         phone: data.phone,
+        ...(data.affiliations !== undefined && { affiliations: data.affiliations }),
         ...(passwordHash && { passwordHash }),
       },
       select: {
@@ -75,6 +80,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         avatar: true,
         department: true,
         phone: true,
+        affiliations: true,
       },
     });
 
@@ -98,6 +104,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
         avatar: true,
         department: true,
         phone: true,
+        affiliations: true,
         createdAt: true,
       },
       orderBy: { id: 'asc' },
@@ -128,6 +135,7 @@ export const createUser = async (req: Request, res: Response) => {
         department: data.department,
         phone: data.phone,
         avatar: data.avatar,
+        affiliations: data.affiliations || [],
       },
       select: {
         id: true,
@@ -137,6 +145,7 @@ export const createUser = async (req: Request, res: Response) => {
         avatar: true,
         department: true,
         phone: true,
+        affiliations: true,
       },
     });
 
@@ -165,6 +174,7 @@ export const updateUser = async (req: Request, res: Response) => {
         avatar: true,
         department: true,
         phone: true,
+        affiliations: true,
       },
     });
     res.json(updated);

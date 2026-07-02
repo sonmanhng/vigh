@@ -16,6 +16,7 @@ model User {
   avatar       String?
   department   String?
   phone        String?
+  affiliations String[]  @default([])
   projects       Project[] @relation("ManagerProjects")
   memberProjects Project[] @relation("ProjectMembers")
   tasks          Task[]    @relation("AssigneeTasks")

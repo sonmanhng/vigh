@@ -14,6 +14,7 @@ const registerSchema = z.object({
   avatar: z.string().optional(),
   department: z.string().optional(),
   phone: z.string().optional(),
+  affiliations: z.array(z.string()).optional(),
 });
 
 const loginSchema = z.object({
@@ -24,7 +25,7 @@ const loginSchema = z.object({
 export const register = async (req: Request, res: Response) => {
   try {
     const parsedData = registerSchema.parse(req.body);
-    const { email, password, name, role, avatar, department, phone } = parsedData;
+    const { email, password, name, role, avatar, department, phone, affiliations } = parsedData;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -43,6 +44,7 @@ export const register = async (req: Request, res: Response) => {
         avatar,
         department,
         phone,
+        affiliations: affiliations || [],
       },
     });
 
@@ -56,6 +58,7 @@ export const register = async (req: Request, res: Response) => {
         avatar: newUser.avatar,
         department: newUser.department,
         phone: newUser.phone,
+        affiliations: newUser.affiliations,
       },
     });
   } catch (error: any) {
@@ -115,6 +118,7 @@ export const login = async (req: Request, res: Response) => {
         avatar: user.avatar,
         department: user.department,
         phone: user.phone,
+        affiliations: user.affiliations,
       },
     });
   } catch (error: any) {

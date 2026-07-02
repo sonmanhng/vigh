@@ -11,6 +11,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   const [name, setName] = useState(user?.name || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [department, setDepartment] = useState(user?.department || '');
+  const [affiliations, setAffiliations] = useState(user?.affiliations?.join(', ') || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     setSuccess(null);
 
     try {
-      const payload: any = { name, avatar, department, phone };
+      const payload: any = { 
+        name, 
+        avatar, 
+        department, 
+        phone,
+        affiliations: affiliations.split(',').map(a => a.trim()).filter(a => a.length > 0)
+      };
       if (password.trim() !== '') {
         payload.password = password;
       }
@@ -100,6 +107,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 value={department} 
                 onChange={(e) => setDepartment(e.target.value)} 
               />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Cơ quan / Tổ chức liên kết (Affiliations)</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="VD: Đại học Bách Khoa, Viện VIGH" 
+                value={affiliations} 
+                onChange={(e) => setAffiliations(e.target.value)} 
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Các cơ quan cách nhau bằng dấu phẩy (,)</span>
             </div>
 
             <div className="input-group">
