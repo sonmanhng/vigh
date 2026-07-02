@@ -37,7 +37,7 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         env:
-          VITE_API_URL: https://vigh-backend.onrender.com/api
+          VITE_API_URL: https://api.sonnm.site/api
         run: npm run build
 
       - name: Setup Pages
