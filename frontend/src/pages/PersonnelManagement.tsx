@@ -32,12 +32,29 @@ export const PersonnelManagement: React.FC = () => {
   const isManagerOrAdmin = user && ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'].includes(user.role);
   const isTopAdmin = user && ['SuperAdmin', 'VienTruong', 'VienPho', 'ADMIN'].includes(user.role);
 
+  const ROLE_SORT_ORDER: Record<string, number> = {
+    'VienTruong': 1,
+    'VienPho': 2,
+    'SuperAdmin': 3,
+    'TruongPhong': 4,
+    'ChuyenVien': 5,
+    'ADMIN': 3,
+    'MANAGER': 4,
+    'USER': 5,
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await apiClient.get('/users');
-      setUsers(res.data);
+      const sortedUsers = res.data.sort((a: any, b: any) => {
+        const rankA = ROLE_SORT_ORDER[a.role] || 99;
+        const rankB = ROLE_SORT_ORDER[b.role] || 99;
+        if (rankA !== rankB) return rankA - rankB;
+        return a.id - b.id; // Nếu cùng cấp bậc thì xếp theo ID
+      });
+      setUsers(sortedUsers);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Không thể tải danh sách nhân sự');
     } finally {
