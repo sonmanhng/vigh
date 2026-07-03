@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { Navbar } from '../components/Navbar';
-import logo from '../assets/vigh_logo.png';
 
 export const PersonalProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,7 +58,7 @@ export const PersonalProfile: React.FC = () => {
       <aside className="sidebar">
         <div className="sidebar-header" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
           <img 
-            src={logo} 
+            src="/logo.png" 
             alt="VIGH Logo" 
             style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'contain', backgroundColor: 'white', padding: '2px' }} 
           />
@@ -222,9 +221,8 @@ export const PersonalProfile: React.FC = () => {
           )}
         </div>
       </div>
-          </div>
-        </div>
-      </div>
     </div>
+  </div>
+</div>
   );
 };
