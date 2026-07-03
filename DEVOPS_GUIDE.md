@@ -69,8 +69,8 @@ Tài liệu này lưu lại toàn bộ quy trình cấu hình để chạy hệ 
 
 2. Tải mã nguồn Backend và cài đặt thư viện:
    ```bash
-   git clone https://github.com/sonmanhng/vigh-backend.git
-   cd vigh-backend
+   git clone https://github.com/sonmanhng/vigh.git
+   cd vigh
    npm install
    ```
 
