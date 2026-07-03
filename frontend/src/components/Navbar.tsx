@@ -21,7 +21,7 @@ export const Navbar: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img src="/logo.png" alt="VIGH Logo" style={{ height: '36px', objectFit: 'contain' }} />
           <div className="navbar-title">HỆ THỐNG QUẢN LÝ ĐỀ TÀI & NHÂN SỰ VIGH</div>
-          <span className="badge badge-success">v2.0 PRO</span>
+
         </div>
 
         <div className="user-profile-trigger" onClick={() => setShowProfile(true)} title="Chỉnh sửa hồ sơ cá nhân">
