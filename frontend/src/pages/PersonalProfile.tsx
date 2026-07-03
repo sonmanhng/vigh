@@ -48,7 +48,7 @@ export const PersonalProfile: React.FC<{ userId?: string, onBack?: () => void }>
   };
 
   const contentArea = (
-    <div className={userId ? "" : "content-area"} style={userId ? { paddingTop: '1rem' } : { padding: '1.5rem 2rem' }}>
+    <div className="content-area" style={{ padding: '1.5rem 2rem' }}>
       <button 
         className="btn btn-secondary btn-sm" 
         style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }} 
