@@ -10,6 +10,9 @@ const updateProfileSchema = z.object({
   phone: z.string().optional(),
   password: z.string().min(6).optional(),
   affiliations: z.array(z.string()).optional(),
+  orcid: z.string().optional(),
+  bio: z.string().optional(),
+  researchInterests: z.array(z.string()).optional(),
 });
 
 const createUserSchema = z.object({
@@ -21,6 +24,9 @@ const createUserSchema = z.object({
   phone: z.string().optional(),
   avatar: z.string().optional(),
   affiliations: z.array(z.string()).optional(),
+  orcid: z.string().optional(),
+  bio: z.string().optional(),
+  researchInterests: z.array(z.string()).optional(),
 });
 
 const updateUserRoleSchema = z.object({
@@ -30,6 +36,9 @@ const updateUserRoleSchema = z.object({
   phone: z.string().optional(),
   avatar: z.string().optional(),
   affiliations: z.array(z.string()).optional(),
+  orcid: z.string().optional(),
+  bio: z.string().optional(),
+  researchInterests: z.array(z.string()).optional(),
 });
 
 export const getProfile = async (req: Request, res: Response) => {
@@ -45,6 +54,9 @@ export const getProfile = async (req: Request, res: Response) => {
         department: true,
         phone: true,
         affiliations: true,
+        orcid: true,
+        bio: true,
+        researchInterests: true,
         createdAt: true,
       },
     });
@@ -72,6 +84,9 @@ export const updateProfile = async (req: Request, res: Response) => {
         department: data.department,
         phone: data.phone,
         ...(data.affiliations !== undefined && { affiliations: data.affiliations }),
+        ...(data.orcid !== undefined && { orcid: data.orcid }),
+        ...(data.bio !== undefined && { bio: data.bio }),
+        ...(data.researchInterests !== undefined && { researchInterests: data.researchInterests }),
         ...(passwordHash && { passwordHash }),
       },
       select: {
@@ -83,6 +98,9 @@ export const updateProfile = async (req: Request, res: Response) => {
         department: true,
         phone: true,
         affiliations: true,
+        orcid: true,
+        bio: true,
+        researchInterests: true,
       },
     });
 
@@ -107,6 +125,9 @@ export const getAllUsers = async (req: Request, res: Response) => {
         department: true,
         phone: true,
         affiliations: true,
+        orcid: true,
+        bio: true,
+        researchInterests: true,
         createdAt: true,
       },
       orderBy: { id: 'asc' },
@@ -201,6 +222,53 @@ export const deleteUser = async (req: Request, res: Response) => {
     const id = parseInt(req.params.id as string);
     await prisma.user.delete({ where: { id } });
     res.json({ message: 'User deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        avatar: true,
+        department: true,
+        phone: true,
+        affiliations: true,
+        orcid: true,
+        bio: true,
+        researchInterests: true,
+        createdAt: true,
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            status: true,
+          }
+        },
+        memberProjects: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            status: true,
+          }
+        }
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
   } catch (error: any) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

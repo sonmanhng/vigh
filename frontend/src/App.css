@@ -1,1 +1,8 @@
 /* Empty - using index.css for design system */
+
+.hover-primary:hover {
+  color: var(--primary) !important;
+}
+.hover-primary:hover div {
+  color: var(--primary) !important;
+}

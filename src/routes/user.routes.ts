@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getProfile, updateProfile, getAllUsers, createUser, updateUser, deleteUser } from '../controllers/user.controller';
+import { getProfile, updateProfile, getAllUsers, createUser, updateUser, deleteUser, getUserById } from '../controllers/user.controller';
 import { authenticateToken, authorizeRoles } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -14,6 +14,7 @@ router.put('/profile', updateProfile);
 router.get('/assignable', getAllUsers);
 
 // Personnel management routes
+router.get('/:id', getUserById);
 router.get('/', getAllUsers);
 router.post('/', authorizeRoles('ADMIN', 'MANAGER'), createUser);
 router.put('/:id', authorizeRoles('ADMIN', 'MANAGER'), updateUser);

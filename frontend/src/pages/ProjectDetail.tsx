@@ -291,7 +291,7 @@ export const ProjectDetail: React.FC = () => {
           </div>
         );
       }
-    } catch (e) {}
+    } catch (e) { }
     return (
       <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem', lineHeight: 1.4 }}>
         {desc}
@@ -323,9 +323,9 @@ export const ProjectDetail: React.FC = () => {
   const renderRow = (label: string, value: React.ReactNode | null | undefined, isTitle = false, subValue?: string | null) => {
     const hasValue = value !== undefined && value !== null && value !== '';
     return (
-      <div style={{ 
-        display: 'flex', 
-        padding: '1.1rem 1.5rem', 
+      <div style={{
+        display: 'flex',
+        padding: '1.1rem 1.5rem',
         borderBottom: '1px solid var(--border-color)',
         alignItems: 'flex-start',
         gap: '1.5rem'
@@ -390,7 +390,7 @@ export const ProjectDetail: React.FC = () => {
       let descObj: any = {};
       try {
         descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
-      } catch(e) {}
+      } catch (e) { }
 
       descObj.reportFile = {
         name: fileInfo.name,
@@ -414,7 +414,7 @@ export const ProjectDetail: React.FC = () => {
         });
         fetchProjectDetails();
       }
-    } catch(e: any) {
+    } catch (e: any) {
       alert(`Lỗi nộp báo cáo: ${e.message || 'Không xác định'}`);
     } finally {
       setSubmittingReportTaskId(null);
@@ -432,7 +432,7 @@ export const ProjectDetail: React.FC = () => {
         alert('Đã nghiệm thu hoàn thành công việc!');
         fetchProjectDetails();
       }
-    } catch(e: any) {
+    } catch (e: any) {
       alert(`Lỗi nghiệm thu: ${e.message || 'Không xác định'}`);
     }
   };
@@ -444,7 +444,7 @@ export const ProjectDetail: React.FC = () => {
       let descObj: any = {};
       try {
         descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
-      } catch(e) {}
+      } catch (e) { }
 
       descObj.rejectReason = reason || 'Yêu cầu bổ sung báo cáo';
 
@@ -456,7 +456,7 @@ export const ProjectDetail: React.FC = () => {
         alert('Đã gửi yêu cầu chỉnh sửa báo cáo!');
         fetchProjectDetails();
       }
-    } catch(e: any) {
+    } catch (e: any) {
       alert(`Lỗi: ${e.message || 'Không xác định'}`);
     }
   };
@@ -468,10 +468,10 @@ export const ProjectDetail: React.FC = () => {
       let descObj: any = {};
       try {
         descObj = typeof task.description === 'string' ? JSON.parse(task.description) : (task.description || {});
-      } catch (e) {}
-      
+      } catch (e) { }
+
       descObj[field] = value;
-      
+
       await apiClient.put(`/tasks/${taskId}`, {
         description: JSON.stringify(descObj)
       });
@@ -492,23 +492,23 @@ export const ProjectDetail: React.FC = () => {
       {/* Left Sidebar Menu */}
       <aside className="sidebar">
         <div className="sidebar-header" style={{ backgroundColor: '#FFFFFF', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'center', borderBottom: '1px solid var(--border-color)' }}>
-          <img 
-            src="/logo.png" 
-            alt="Viện VIGH Logo" 
-            style={{ maxHeight: '54px', maxWidth: '100%', objectFit: 'contain', cursor: 'pointer' }} 
+          <img
+            src="/logo.png"
+            alt="Viện VIGH Logo"
+            style={{ maxHeight: '54px', maxWidth: '100%', objectFit: 'contain', cursor: 'pointer' }}
             onClick={() => navigate('/dashboard')}
           />
         </div>
 
         <nav className="sidebar-menu">
-          <button 
+          <button
             className="menu-item active"
             onClick={() => navigate('/dashboard')}
           >
             <span>Tiến độ đề tài</span>
           </button>
 
-          <button 
+          <button
             className="menu-item"
             onClick={() => navigate('/dashboard?tab=personnel')}
           >
@@ -518,8 +518,8 @@ export const ProjectDetail: React.FC = () => {
 
         <div className="sidebar-footer">
           <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.7)' }}>
-            <div style={{ fontWeight: 600, color: '#fff' }}>Hệ Thống VIGH Portal</div>
-            <div>Phiên bản 2.0 - 2026</div>
+            <div style={{ fontWeight: 600, color: '#fff' }}>Hệ Thống Nội Bộ VIGH</div>
+            <div>2026</div>
           </div>
         </div>
       </aside>
@@ -531,16 +531,16 @@ export const ProjectDetail: React.FC = () => {
         <div className="content-area" style={{ padding: '1.5rem 2rem' }}>
           {/* Back button & Top header info */}
           <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <button 
+            <button
               type="button"
-              onClick={() => navigate('/dashboard')} 
-              style={{ 
-                background: '#FFFFFF', 
-                border: '1px solid var(--border-color)', 
-                padding: '0.55rem 1.15rem', 
-                borderRadius: 'var(--radius-md)', 
-                cursor: 'pointer', 
-                fontWeight: 600, 
+              onClick={() => navigate('/dashboard')}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid var(--border-color)',
+                padding: '0.55rem 1.15rem',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+                fontWeight: 600,
                 color: 'var(--primary)',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -562,9 +562,9 @@ export const ProjectDetail: React.FC = () => {
             </button>
 
             {isManagerOrAdmin && project && (
-              <button 
-                type="button" 
-                className="btn btn-danger btn-sm" 
+              <button
+                type="button"
+                className="btn btn-danger btn-sm"
                 onClick={handleDeleteProject}
                 style={{ padding: '0.55rem 1.15rem', fontSize: '0.88rem', fontWeight: 600 }}
               >
@@ -584,19 +584,19 @@ export const ProjectDetail: React.FC = () => {
           ) : project ? (
             <div>
               {/* TOP TABS & SUB-TABS CONTAINER */}
-              <div style={{ 
-                backgroundColor: '#FFFFFF', 
-                border: '1px solid var(--border-color)', 
-                borderRadius: 'var(--radius-lg)', 
-                boxShadow: 'var(--shadow-sm)', 
+              <div style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-sm)',
                 marginBottom: '1.5rem',
                 overflow: 'hidden'
               }}>
                 {/* 1. Main Header Tabs */}
-                <div style={{ 
-                  backgroundColor: 'rgba(52, 144, 139, 0.06)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <div style={{
+                  backgroundColor: 'rgba(52, 144, 139, 0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
                   padding: '0.6rem 1.25rem 0 1.25rem',
                   gap: '0.5rem',
                   borderBottom: '1px solid var(--border-color)'
@@ -622,13 +622,13 @@ export const ProjectDetail: React.FC = () => {
                     }}
                   >
                     <span>Chuyên môn</span>
-                    <span style={{ 
-                      backgroundColor: mainTab === 'professional' ? '#FFFFFF' : 'rgba(0, 0, 0, 0.08)', 
-                      color: mainTab === 'professional' ? 'var(--primary)' : 'var(--text-main)', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 700, 
-                      padding: '0.1rem 0.55rem', 
-                      borderRadius: '12px' 
+                    <span style={{
+                      backgroundColor: mainTab === 'professional' ? '#FFFFFF' : 'rgba(0, 0, 0, 0.08)',
+                      color: mainTab === 'professional' ? 'var(--primary)' : 'var(--text-main)',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      padding: '0.1rem 0.55rem',
+                      borderRadius: '12px'
                     }}>
                       {tasks.length || 5}
                     </span>
@@ -660,10 +660,10 @@ export const ProjectDetail: React.FC = () => {
 
                 {/* 2. Sub Tabs (Only when Chuyên môn is selected) */}
                 {mainTab === 'professional' && (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    padding: '0 1.5rem', 
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0 1.5rem',
                     backgroundColor: '#FFFFFF',
                     borderBottom: '1px solid var(--border-color)',
                     overflowX: 'auto',
@@ -723,17 +723,17 @@ export const ProjectDetail: React.FC = () => {
                 /* SUB-TAB 1: TỔNG QUAN */
                 <div>
                   {/* CARD 1: THÔNG TIN CHUNG */}
-                  <div style={{ 
-                    backgroundColor: '#FFFFFF', 
-                    border: '1px solid var(--border-color)', 
-                    borderRadius: 'var(--radius-lg)', 
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-lg)',
                     boxShadow: 'var(--shadow-sm)',
                     overflow: 'hidden'
                   }}>
                     {/* Card Header */}
-                    <div style={{ 
-                      padding: '1.25rem 1.5rem', 
-                      backgroundColor: '#FFFFFF', 
+                    <div style={{
+                      padding: '1.25rem 1.5rem',
+                      backgroundColor: '#FFFFFF',
                       borderBottom: '1px solid var(--border-color)',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -787,14 +787,14 @@ export const ProjectDetail: React.FC = () => {
                       {renderRow('Thành viên tham gia', project.members && project.members.length > 0 ? (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                           {project.members.map((m: any) => (
-                            <span key={m.id} style={{ 
-                              display: 'inline-flex', 
-                              alignItems: 'center', 
-                              gap: '0.4rem', 
-                              backgroundColor: 'var(--bg-light)', 
-                              border: '1px solid var(--border-color)', 
-                              padding: '0.25rem 0.6rem', 
-                              borderRadius: '20px', 
+                            <span key={m.id} style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              backgroundColor: 'var(--bg-light)',
+                              border: '1px solid var(--border-color)',
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: '20px',
                               fontSize: '0.85rem',
                               fontWeight: 500,
                               color: 'var(--text-main)'
@@ -819,18 +819,18 @@ export const ProjectDetail: React.FC = () => {
                   </div>
 
                   {/* CARD 2: MỤC TIÊU & NỘI DUNG NGHIÊN CỨU (HOẠT ĐỘNG & MỤC TIÊU) */}
-                  <div style={{ 
-                    backgroundColor: '#FFFFFF', 
-                    border: '1px solid var(--border-color)', 
-                    borderRadius: 'var(--radius-lg)', 
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-lg)',
                     boxShadow: 'var(--shadow-sm)',
                     overflow: 'hidden',
                     marginTop: '1.5rem'
                   }}>
                     {/* Card Header */}
-                    <div style={{ 
-                      padding: '1.25rem 1.5rem', 
-                      backgroundColor: '#FFFFFF', 
+                    <div style={{
+                      padding: '1.25rem 1.5rem',
+                      backgroundColor: '#FFFFFF',
                       borderBottom: '1px solid var(--border-color)',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -903,13 +903,13 @@ export const ProjectDetail: React.FC = () => {
                                 {/* Top Row: Code, Title, Status, Edit/Delete */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                    <span style={{ 
-                                      backgroundColor: '#FFFFFF', 
-                                      color: 'var(--primary)', 
-                                      fontWeight: 700, 
-                                      fontSize: '0.85rem', 
-                                      padding: '0.25rem 0.65rem', 
-                                      borderRadius: '6px', 
+                                    <span style={{
+                                      backgroundColor: '#FFFFFF',
+                                      color: 'var(--primary)',
+                                      fontWeight: 700,
+                                      fontSize: '0.85rem',
+                                      padding: '0.25rem 0.65rem',
+                                      borderRadius: '6px',
                                       border: '1px solid rgba(52, 144, 139, 0.3)',
                                       letterSpacing: '0.5px'
                                     }}>
@@ -989,11 +989,11 @@ export const ProjectDetail: React.FC = () => {
                                       </div>
                                     </div>
                                     {parsedActivities.map((item: any, idx: number) => (
-                                      <div key={idx} style={{ 
-                                        display: 'grid', 
-                                        gridTemplateColumns: '1fr 1fr', 
-                                        gap: '1.5rem', 
-                                        padding: '0.75rem 0', 
+                                      <div key={idx} style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr',
+                                        gap: '1.5rem',
+                                        padding: '0.75rem 0',
                                         borderBottom: idx === parsedActivities.length - 1 ? 'none' : '1px solid rgba(226, 232, 240, 0.6)',
                                         fontSize: '0.92rem',
                                         color: 'var(--text-main)',
@@ -1001,9 +1001,9 @@ export const ProjectDetail: React.FC = () => {
                                       }}>
                                         <div>
                                           {item.id ? (
-                                            <span style={{ 
-                                              fontWeight: 700, 
-                                              color: 'var(--primary)', 
+                                            <span style={{
+                                              fontWeight: 700,
+                                              color: 'var(--primary)',
                                               marginRight: '0.5rem',
                                               backgroundColor: 'rgba(52, 144, 139, 0.08)',
                                               padding: '0.15rem 0.45rem',
@@ -1013,9 +1013,9 @@ export const ProjectDetail: React.FC = () => {
                                               {item.id}
                                             </span>
                                           ) : (
-                                            <span style={{ 
-                                              fontWeight: 700, 
-                                              color: 'var(--primary)', 
+                                            <span style={{
+                                              fontWeight: 700,
+                                              color: 'var(--primary)',
                                               marginRight: '0.5rem',
                                               backgroundColor: 'rgba(52, 144, 139, 0.08)',
                                               padding: '0.15rem 0.45rem',
@@ -1064,7 +1064,7 @@ export const ProjectDetail: React.FC = () => {
                         try {
                           const d = typeof t.description === 'string' ? JSON.parse(t.description) : t.description;
                           deadline = d?.deadline || t.dueDate || '';
-                        } catch(e) {}
+                        } catch (e) { }
 
                         if (deadline) {
                           if (deadline < nowStr) {
@@ -1166,7 +1166,7 @@ export const ProjectDetail: React.FC = () => {
                           let actList: any[] = [];
                           try {
                             actList = typeof rc.activities === 'string' ? JSON.parse(rc.activities) : (rc.activities || []);
-                          } catch(e) {}
+                          } catch (e) { }
 
                           const totalActivities = actList.length || 1;
 
@@ -1176,7 +1176,7 @@ export const ProjectDetail: React.FC = () => {
                             try {
                               const d = typeof t.description === 'string' ? JSON.parse(t.description) : t.description;
                               actCode = d?.activityCode || '';
-                            } catch(e) {}
+                            } catch (e) { }
                             return actCode.startsWith(rc.code) || t.title?.startsWith(rc.code) || (actCode && rc.code && actCode.split('.')[0] === rc.code);
                           });
 
@@ -1189,7 +1189,7 @@ export const ProjectDetail: React.FC = () => {
                               try {
                                 const d = typeof t.description === 'string' ? JSON.parse(t.description) : t.description;
                                 actCode = d?.activityCode || '';
-                              } catch(e) {}
+                              } catch (e) { }
                               return actCode === actId || actCode === `${rc.code}.${idx + 1}` || t.title === actId || t.title?.includes(act.activity?.slice(0, 20));
                             });
 
@@ -1251,7 +1251,7 @@ export const ProjectDetail: React.FC = () => {
                                         try {
                                           const d = typeof t.description === 'string' ? JSON.parse(t.description) : t.description;
                                           actCode = d?.activityCode || '';
-                                        } catch(e) {}
+                                        } catch (e) { }
                                         return actCode === actId || actCode === `${rc.code}.${idx + 1}` || t.title === actId || t.title?.includes(act.activity?.slice(0, 20));
                                       });
 
@@ -1345,7 +1345,7 @@ export const ProjectDetail: React.FC = () => {
                           let parsed: any[] = [];
                           try {
                             parsed = typeof rc.activities === 'string' ? JSON.parse(rc.activities) : rc.activities;
-                          } catch(e) {}
+                          } catch (e) { }
                           if (Array.isArray(parsed)) {
                             parsed.forEach((act: any, idx: number) => {
                               const actId = act.id || `${rc.code}.${idx + 1}`;
@@ -1661,8 +1661,8 @@ export const ProjectDetail: React.FC = () => {
                           {canManageReports ? 'Theo dõi & Kiểm duyệt Tiến độ Báo cáo (Lãnh đạo / Chủ nhiệm)' : 'Tiến độ Công việc Cá nhân (Chuyên viên / Thành viên)'}
                         </h3>
                         <p style={{ margin: '0.25rem 0 0', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                          {canManageReports 
-                            ? 'Danh sách toàn bộ công việc và tệp báo cáo do thành viên tải lên để nghiệm thu' 
+                          {canManageReports
+                            ? 'Danh sách toàn bộ công việc và tệp báo cáo do thành viên tải lên để nghiệm thu'
                             : 'Danh sách công việc được phân công cho cá nhân bạn trong đề tài này'}
                         </p>
                       </div>
@@ -1687,7 +1687,7 @@ export const ProjectDetail: React.FC = () => {
                             let descObj: any = {};
                             try {
                               descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
-                            } catch(e) {}
+                            } catch (e) { }
 
                             const isDone = t.status === 'DONE';
                             const isReview = t.status === 'REVIEW';
@@ -1751,9 +1751,9 @@ export const ProjectDetail: React.FC = () => {
                                       </div>
 
                                       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        <a 
-                                          href={descObj.reportFile.dataUrl || `data:text/plain;charset=utf-8,Noi%20dung%20bao%20cao:%20${encodeURIComponent(descObj.reportFile.name)}`} 
-                                          download={descObj.reportFile.name} 
+                                        <a
+                                          href={descObj.reportFile.dataUrl || `data:text/plain;charset=utf-8,Noi%20dung%20bao%20cao:%20${encodeURIComponent(descObj.reportFile.name)}`}
+                                          download={descObj.reportFile.name}
                                           className="btn btn-secondary btn-sm"
                                           style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
                                         >
@@ -1762,17 +1762,17 @@ export const ProjectDetail: React.FC = () => {
 
                                         {canManageReports && !isDone && (
                                           <>
-                                            <button 
-                                              type="button" 
-                                              className="btn btn-primary btn-sm" 
+                                            <button
+                                              type="button"
+                                              className="btn btn-primary btn-sm"
                                               style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 700 }}
                                               onClick={() => handleApproveReport(t.id)}
                                             >
                                               Nghiệm thu hoàn thành
                                             </button>
-                                            <button 
-                                              type="button" 
-                                              className="btn btn-secondary btn-sm" 
+                                            <button
+                                              type="button"
+                                              className="btn btn-secondary btn-sm"
                                               style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600, color: '#DC2626', borderColor: '#FECACA' }}
                                               onClick={() => handleRequestRevision(t)}
                                             >
@@ -1789,12 +1789,12 @@ export const ProjectDetail: React.FC = () => {
                                         Nộp file báo cáo công việc (PDF, Word, Excel, ZIP...):
                                       </label>
                                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        <input 
-                                          type="file" 
+                                        <input
+                                          type="file"
                                           onChange={(e) => handleFileChange(t.id, e)}
                                           style={{ fontSize: '0.88rem', flex: 1 }}
                                         />
-                                        <button 
+                                        <button
                                           type="button"
                                           className="btn btn-primary btn-sm"
                                           disabled={!uploadFiles[t.id] || submittingReportTaskId === t.id}
@@ -1836,7 +1836,7 @@ export const ProjectDetail: React.FC = () => {
                         let descObj: any = {};
                         try {
                           descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
-                        } catch(e) {}
+                        } catch (e) { }
                         totalWorkDays += (descObj.workDays || 0);
                         totalPaymentPercent += (descObj.paymentPercentage || 0);
                       });
@@ -1945,7 +1945,7 @@ export const ProjectDetail: React.FC = () => {
                                   let descObj: any = {};
                                   try {
                                     descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
-                                  } catch(e) {}
+                                  } catch (e) { }
 
                                   return (
                                     <div key={t.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '1.5rem', alignItems: 'center', backgroundColor: '#F8FAFC', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
@@ -1961,11 +1961,11 @@ export const ProjectDetail: React.FC = () => {
                                       </div>
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                         <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>Số công</label>
-                                        <input 
-                                          type="number" 
+                                        <input
+                                          type="number"
                                           step="0.1"
                                           min="0"
-                                          className="input-field" 
+                                          className="input-field"
                                           style={{ width: '80px', padding: '0.35rem 0.5rem', fontSize: '0.9rem', textAlign: 'center' }}
                                           defaultValue={descObj.workDays || 0}
                                           onBlur={(e) => handleUpdateTaskAccounting(t.id, 'workDays', Number(e.target.value))}
@@ -1974,12 +1974,12 @@ export const ProjectDetail: React.FC = () => {
                                       </div>
                                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                         <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>% Thanh toán</label>
-                                        <input 
-                                          type="number" 
+                                        <input
+                                          type="number"
                                           step="0.1"
                                           min="0"
                                           max="100"
-                                          className="input-field" 
+                                          className="input-field"
                                           style={{ width: '80px', padding: '0.35rem 0.5rem', fontSize: '0.9rem', textAlign: 'center' }}
                                           defaultValue={descObj.paymentPercentage || 0}
                                           onBlur={(e) => handleUpdateTaskAccounting(t.id, 'paymentPercentage', Number(e.target.value))}
@@ -2016,46 +2016,46 @@ export const ProjectDetail: React.FC = () => {
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div className="input-group">
                   <label className="input-label">Tên đề tài (Tiếng Việt) (*)</label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    value={editForm.name || ''} 
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} 
-                    required 
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={editForm.name || ''}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    required
                   />
                 </div>
 
                 <div className="input-group">
                   <label className="input-label">Tên đề tài tiếng Anh / Phụ đề</label>
-                  <textarea 
-                    className="textarea-field" 
-                    rows={2} 
-                    placeholder="VD: Ethno-herbal medicine screening for dementia treatment..." 
-                    value={editForm.nameEn || ''} 
-                    onChange={(e) => setEditForm({ ...editForm, nameEn: e.target.value })} 
+                  <textarea
+                    className="textarea-field"
+                    rows={2}
+                    placeholder="VD: Ethno-herbal medicine screening for dementia treatment..."
+                    value={editForm.nameEn || ''}
+                    onChange={(e) => setEditForm({ ...editForm, nameEn: e.target.value })}
                   />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className="input-group">
                     <label className="input-label">Mã số đề tài</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: 108.05-2023.20" 
-                      value={editForm.code || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, code: e.target.value })} 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: 108.05-2023.20"
+                      value={editForm.code || ''}
+                      onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
                     />
                   </div>
 
                   <div className="input-group">
                     <label className="input-label">Loại đề tài</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: Nghiên cứu cơ bản trong KHTN & KT" 
-                      value={editForm.projectType || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, projectType: e.target.value })} 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: Nghiên cứu cơ bản trong KHTN & KT"
+                      value={editForm.projectType || ''}
+                      onChange={(e) => setEditForm({ ...editForm, projectType: e.target.value })}
                     />
                   </div>
                 </div>
@@ -2063,23 +2063,23 @@ export const ProjectDetail: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className="input-group">
                     <label className="input-label">Đơn vị quản lý</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: Quỹ Phát triển KH&CN Quốc gia (NAFOSTED)" 
-                      value={editForm.managementUnit || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, managementUnit: e.target.value })} 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: Quỹ Phát triển KH&CN Quốc gia (NAFOSTED)"
+                      value={editForm.managementUnit || ''}
+                      onChange={(e) => setEditForm({ ...editForm, managementUnit: e.target.value })}
                     />
                   </div>
 
                   <div className="input-group">
                     <label className="input-label">Tổ chức chủ trì</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: Trường Đại học Phenikaa" 
-                      value={editForm.hostOrganization || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, hostOrganization: e.target.value })} 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: Trường Đại học Phenikaa"
+                      value={editForm.hostOrganization || ''}
+                      onChange={(e) => setEditForm({ ...editForm, hostOrganization: e.target.value })}
                     />
                   </div>
                 </div>
@@ -2087,23 +2087,23 @@ export const ProjectDetail: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className="input-group">
                     <label className="input-label">Cố vấn chuyên môn</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: PGS.TS. Trần Văn Ơn" 
-                      value={editForm.advisor || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, advisor: e.target.value })} 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: PGS.TS. Trần Văn Ơn"
+                      value={editForm.advisor || ''}
+                      onChange={(e) => setEditForm({ ...editForm, advisor: e.target.value })}
                     />
                   </div>
 
                   <div className="input-group">
                     <label className="input-label">Thời gian thực hiện</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: 36 tháng · 08/2024 – 08/2027" 
-                      value={editForm.executionTime || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, executionTime: e.target.value })} 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: 36 tháng · 08/2024 – 08/2027"
+                      value={editForm.executionTime || ''}
+                      onChange={(e) => setEditForm({ ...editForm, executionTime: e.target.value })}
                     />
                   </div>
                 </div>
@@ -2111,35 +2111,35 @@ export const ProjectDetail: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className="input-group">
                     <label className="input-label">Kinh phí đề tài</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: 1.037.000.000 đồng (737.000.000 đ khoán...)" 
-                      value={editForm.budget || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, budget: e.target.value })} 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: 1.037.000.000 đồng (737.000.000 đ khoán...)"
+                      value={editForm.budget || ''}
+                      onChange={(e) => setEditForm({ ...editForm, budget: e.target.value })}
                     />
                   </div>
 
                   <div className="input-group">
                     <label className="input-label">Kinh phí nhân công (VNĐ)</label>
-                    <input 
-                      type="number" 
-                      className="input-field" 
-                      placeholder="VD: 100000000" 
-                      value={editForm.laborBudget || ''} 
-                      onChange={(e) => setEditForm({ ...editForm, laborBudget: Number(e.target.value) })} 
+                    <input
+                      type="number"
+                      className="input-field"
+                      placeholder="VD: 100000000"
+                      value={editForm.laborBudget || ''}
+                      onChange={(e) => setEditForm({ ...editForm, laborBudget: Number(e.target.value) })}
                     />
                   </div>
                 </div>
 
                 <div className="input-group">
                   <label className="input-label">Mục tiêu tổng quát</label>
-                  <textarea 
-                    className="textarea-field" 
-                    rows={3} 
-                    placeholder="Mục tiêu nghiên cứu, phạm vi ứng dụng của đề tài..." 
-                    value={editForm.generalObjective || ''} 
-                    onChange={(e) => setEditForm({ ...editForm, generalObjective: e.target.value })} 
+                  <textarea
+                    className="textarea-field"
+                    rows={3}
+                    placeholder="Mục tiêu nghiên cứu, phạm vi ứng dụng của đề tài..."
+                    value={editForm.generalObjective || ''}
+                    onChange={(e) => setEditForm({ ...editForm, generalObjective: e.target.value })}
                   />
                 </div>
 
@@ -2150,8 +2150,8 @@ export const ProjectDetail: React.FC = () => {
                       const isChecked = (editForm.memberIds || []).includes(u.id);
                       return (
                         <label key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-main)' }}>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={isChecked}
                             onChange={(e) => {
                               const currentIds = editForm.memberIds || [];
@@ -2198,25 +2198,25 @@ export const ProjectDetail: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 180px', gap: '1rem' }}>
                   <div className="input-group">
                     <label className="input-label">Mã nội dung (*)</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: ND1, ND2..." 
-                      value={researchForm.code || ''} 
-                      onChange={(e) => setResearchForm({ ...researchForm, code: e.target.value })} 
-                      required 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: ND1, ND2..."
+                      value={researchForm.code || ''}
+                      onChange={(e) => setResearchForm({ ...researchForm, code: e.target.value })}
+                      required
                     />
                   </div>
 
                   <div className="input-group">
                     <label className="input-label">Tiêu đề nội dung (*)</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: Điều tra dân tộc học cây thuốc SSTT..." 
-                      value={researchForm.title || ''} 
-                      onChange={(e) => setResearchForm({ ...researchForm, title: e.target.value })} 
-                      required 
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: Điều tra dân tộc học cây thuốc SSTT..."
+                      value={researchForm.title || ''}
+                      onChange={(e) => setResearchForm({ ...researchForm, title: e.target.value })}
+                      required
                     />
                   </div>
 
@@ -2236,12 +2236,12 @@ export const ProjectDetail: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Mô tả tổng quan nội dung</label>
-                  <textarea 
-                    className="textarea-field" 
-                    rows={2} 
-                    placeholder="VD: Thu thập tri thức bản địa người Dao về cây thuốc trị SSTT..." 
-                    value={researchForm.description || ''} 
-                    onChange={(e) => setResearchForm({ ...researchForm, description: e.target.value })} 
+                  <textarea
+                    className="textarea-field"
+                    rows={2}
+                    placeholder="VD: Thu thập tri thức bản địa người Dao về cây thuốc trị SSTT..."
+                    value={researchForm.description || ''}
+                    onChange={(e) => setResearchForm({ ...researchForm, description: e.target.value })}
                   />
                 </div>
 

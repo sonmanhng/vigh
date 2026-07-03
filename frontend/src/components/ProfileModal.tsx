@@ -13,6 +13,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   const [department, setDepartment] = useState(user?.department || '');
   const [affiliations, setAffiliations] = useState(user?.affiliations?.join(', ') || '');
   const [phone, setPhone] = useState(user?.phone || '');
+  const [orcid, setOrcid] = useState(user?.orcid || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [researchInterests, setResearchInterests] = useState(user?.researchInterests?.join(', ') || '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +33,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
         avatar, 
         department, 
         phone,
-        affiliations: affiliations.split(',').map(a => a.trim()).filter(a => a.length > 0)
+        orcid,
+        bio,
+        affiliations: affiliations.split(',').map(a => a.trim()).filter(a => a.length > 0),
+        researchInterests: researchInterests.split(',').map(a => a.trim()).filter(a => a.length > 0)
       };
       if (password.trim() !== '') {
         payload.password = password;
@@ -130,6 +136,40 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 value={phone} 
                 onChange={(e) => setPhone(e.target.value)} 
               />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Mã số nhà khoa học (ORCID)</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="VD: 0000-0002-1825-0097" 
+                value={orcid} 
+                onChange={(e) => setOrcid(e.target.value)} 
+              />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Lý lịch khoa học / Giới thiệu bản thân</label>
+              <textarea 
+                className="input-field" 
+                style={{ minHeight: '80px', resize: 'vertical' }}
+                placeholder="Viết một đoạn ngắn giới thiệu về bản thân..." 
+                value={bio} 
+                onChange={(e) => setBio(e.target.value)} 
+              />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Các hướng nghiên cứu chính</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="VD: Dược lý học, Hóa thực vật, Sinh học phân tử..." 
+                value={researchInterests} 
+                onChange={(e) => setResearchInterests(e.target.value)} 
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ngăn cách các hướng nghiên cứu bằng dấu phẩy (,)</span>
             </div>
 
             <div className="input-group">

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const ALL_ROLES = [
   { value: 'VienTruong', label: 'Viện Trưởng - Ban Lãnh Đạo Viện' },
@@ -13,6 +14,7 @@ const ALL_ROLES = [
 
 export const PersonnelManagement: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -217,7 +219,11 @@ export const PersonnelManagement: React.FC = () => {
                 users.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                      <div 
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', cursor: 'pointer' }}
+                        onClick={() => navigate(`/personnel/${u.id}`)}
+                        title="Xem hồ sơ chi tiết"
+                      >
                         {u.avatar ? (
                           <img src={u.avatar} alt={u.name} style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', flexShrink: 0, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--primary)' }} />
                         ) : (
@@ -225,7 +231,7 @@ export const PersonnelManagement: React.FC = () => {
                             {getInitials(u.name)}
                           </div>
                         )}
-                        <div>
+                        <div style={{ transition: 'color 0.2s ease' }} className="hover-primary">
                           <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{u.name}</div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: #{u.id}</div>
                         </div>

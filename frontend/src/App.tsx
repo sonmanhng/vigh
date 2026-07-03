@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { ProjectDetail } from './pages/ProjectDetail';
+import { PersonalProfile } from './pages/PersonalProfile';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
@@ -32,6 +33,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProjectDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/personnel/:id" 
+            element={
+              <ProtectedRoute>
+                <PersonalProfile />
               </ProtectedRoute>
             } 
           />
