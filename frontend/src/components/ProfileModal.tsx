@@ -155,6 +155,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
               <label className="input-label">Google Scholar ID (Nếu có)</label>
               <input 
                 type="text" 
+                name="scholarId"
+                autoComplete="off"
                 className="input-field" 
                 placeholder="VD: uB2d8iMAAAAJ" 
                 value={scholar} 
@@ -201,8 +203,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
               <label className="input-label">Đổi mật khẩu mới (Bỏ trống nếu không đổi)</label>
               <input 
                 type="password" 
+                name="new-password"
+                autoComplete="new-password"
                 className="input-field" 
-                placeholder="Nhập mật khẩu mới từ 6 ký tự..." 
+                placeholder="Để trống nếu không muốn đổi mật khẩu" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
               />
