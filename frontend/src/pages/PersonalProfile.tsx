@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
+import { Navbar } from '../components/Navbar';
+import logo from '../assets/vigh_logo.png';
 
 export const PersonalProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,12 +54,49 @@ export const PersonalProfile: React.FC = () => {
   };
 
   return (
-    <div className="content-area">
-      <button className="btn btn-secondary btn-sm" style={{ marginBottom: '1.5rem' }} onClick={() => navigate('/dashboard')}>
-        ← Quay lại Bảng Điều Khiển
-      </button>
+    <div className="layout">
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-header" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
+          <img 
+            src={logo} 
+            alt="VIGH Logo" 
+            style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'contain', backgroundColor: 'white', padding: '2px' }} 
+          />
+        </div>
 
-      <div className="card" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+        <nav className="sidebar-menu">
+          <button className="menu-item" onClick={() => navigate('/dashboard')}>
+            <span>Tiến độ đề tài</span>
+          </button>
+          <button className="menu-item active" onClick={() => navigate('/dashboard?tab=personnel')}>
+            <span>Quản lý nhân sự</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+            <div style={{ fontWeight: 600, color: '#fff' }}>Hệ Thống Nội Bộ VIGH</div>
+            <div>2026</div>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Area */}
+      <div className="main-area">
+        <Navbar />
+
+        <div className="content-area" style={{ padding: '1.5rem 2rem' }}>
+          <button 
+            className="btn btn-secondary btn-sm" 
+            style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }} 
+            onClick={() => navigate('/dashboard?tab=personnel')}
+          >
+            <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Quay lại Quản lý nhân sự
+          </button>
+
+          <div className="card" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
         <div style={{ flexShrink: 0, textAlign: 'center' }}>
           {user.avatar ? (
             <img src={user.avatar} alt={user.name} style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary-light)' }} />
@@ -108,7 +147,7 @@ export const PersonalProfile: React.FC = () => {
                   <svg style={{ width: '16px', height: '16px' }} viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z" />
                   </svg>
-                  Trang Học Giả
+                  {user.name}
                 </a>
               </div>
             )}
@@ -181,6 +220,9 @@ export const PersonalProfile: React.FC = () => {
           {(!user.projects || user.projects.length === 0) && (!user.memberProjects || user.memberProjects.length === 0) && (
             <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', gridColumn: '1 / -1' }}>Cán bộ chưa tham gia đề tài nào.</div>
           )}
+        </div>
+      </div>
+          </div>
         </div>
       </div>
     </div>
