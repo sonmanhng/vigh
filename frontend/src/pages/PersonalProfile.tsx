@@ -52,48 +52,6 @@ export const PersonalProfile: React.FC = () => {
     return n.charAt(0).toUpperCase();
   };
 
-  const renderRow = (label: string, value: React.ReactNode | null | undefined) => {
-    const hasValue = value !== undefined && value !== null && value !== '';
-    return (
-      <div style={{
-        display: 'flex',
-        padding: '1.1rem 1.5rem',
-        borderBottom: '1px solid var(--border-color)',
-        alignItems: 'flex-start',
-        gap: '1.5rem'
-      }}>
-        <div style={{ width: '220px', minWidth: '180px', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.92rem', paddingTop: '0.15rem' }}>
-          {label}
-        </div>
-        <div style={{ flex: 1, fontSize: '0.95rem', color: hasValue ? 'var(--text-main)' : 'var(--text-muted)' }}>
-          {hasValue ? (
-            <span style={{ fontWeight: 400, color: 'var(--text-main)', lineHeight: 1.5 }}>
-              {value}
-            </span>
-          ) : (
-            <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>Chưa cập nhật</span>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const avatarValue = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-      {user.avatar ? (
-        <img src={user.avatar} alt={user.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-light)' }} />
-      ) : (
-        <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700 }}>
-          {getInitials(user.name)}
-        </div>
-      )}
-      <div>
-        <div style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-main)' }}>{user.name}</div>
-        <span className="badge badge-primary" style={{ fontSize: '0.8rem', padding: '0.2rem 0.6rem', marginTop: '0.25rem', display: 'inline-block' }}>{user.role}</span>
-      </div>
-    </div>
-  );
-
   return (
     <div className="layout">
       {/* Sidebar */}
@@ -128,107 +86,109 @@ export const PersonalProfile: React.FC = () => {
         <Navbar />
 
         <div className="content-area" style={{ padding: '1.5rem 2rem' }}>
-          <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard?tab=personnel')}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid var(--border-color)',
-                padding: '0.55rem 1.15rem',
-                borderRadius: 'var(--radius-md)',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: 'var(--primary)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: 'var(--shadow-sm)',
-                transition: 'all 0.2s ease',
-                fontSize: '0.9rem'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--primary)';
-                e.currentTarget.style.backgroundColor = 'rgba(52, 144, 139, 0.04)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-color)';
-                e.currentTarget.style.backgroundColor = '#FFFFFF';
-              }}
-            >
-              Quay lại danh sách nhân sự
-            </button>
-          </div>
+          <button 
+            className="btn btn-secondary btn-sm" 
+            style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }} 
+            onClick={() => navigate('/dashboard?tab=personnel')}
+          >
+            <svg style={{ width: '16px', height: '16px' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Quay lại Quản lý nhân sự
+          </button>
 
-          <div style={{
-            backgroundColor: '#FFFFFF',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            boxShadow: 'var(--shadow-sm)',
-            overflow: 'hidden'
-          }}>
-            {/* Card Header */}
-            <div style={{
-              padding: '1.25rem 1.5rem',
-              backgroundColor: '#FFFFFF',
-              borderBottom: '1px solid var(--border-color)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '1rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: '4px', height: '22px', backgroundColor: 'var(--primary)', borderRadius: '2px' }}></div>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Thông tin chung
-                </h3>
-              </div>
+          <div className="card" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+        <div style={{ flexShrink: 0, textAlign: 'center' }}>
+          {user.avatar ? (
+            <img src={user.avatar} alt={user.name} style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary-light)' }} />
+          ) : (
+            <div style={{ width: '150px', height: '150px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 700, margin: '0 auto' }}>
+              {getInitials(user.name)}
             </div>
+          )}
+          <div style={{ marginTop: '1rem' }}>
+            <span className="badge badge-primary" style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}>{user.role}</span>
+          </div>
+        </div>
 
-            {/* Table Rows */}
-            <div>
-              {renderRow('Nhân sự', avatarValue)}
-              {renderRow('Đơn vị công tác', user.department)}
-              {renderRow('Cơ quan liên kết', user.affiliations && user.affiliations.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ flexGrow: 1 }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem' }}>{user.name}</h1>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+            {user.department && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-muted)', width: '120px' }}>Đơn vị công tác:</span>
+                {user.department}
+              </div>
+            )}
+            {user.email && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-muted)', width: '120px' }}>Email:</span>
+                <a href={`mailto:${user.email}`} style={{ color: 'var(--primary)' }}>{user.email}</a>
+              </div>
+            )}
+            {user.phone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-muted)', width: '120px' }}>Số điện thoại:</span>
+                {user.phone}
+              </div>
+            )}
+            {user.orcid && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-muted)', width: '120px' }}>Mã ORCID:</span>
+                <a href={`https://orcid.org/${user.orcid}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <img src="https://orcid.org/assets/vectors/orcid.logo.icon.svg" alt="ORCID iD icon" style={{ width: '16px' }} />
+                  {user.orcid}
+                </a>
+              </div>
+            )}
+            {user.scholar && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-muted)', width: '120px' }}>Google Scholar:</span>
+                <a href={`https://scholar.google.com/citations?user=${user.scholar}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <svg style={{ width: '16px', height: '16px' }} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z" />
+                  </svg>
+                  {user.name}
+                </a>
+              </div>
+            )}
+            {user.affiliations && user.affiliations.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-muted)', width: '120px' }}>Cơ quan liên kết:</span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {user.affiliations.map((aff: string, idx: number) => (
                     <span key={idx} style={{ backgroundColor: 'rgba(0, 114, 229, 0.1)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
                       {aff}
                     </span>
                   ))}
                 </div>
-              ) : null)}
-              {renderRow('Email', user.email ? <a href={`mailto:${user.email}`} style={{ color: 'var(--primary)' }}>{user.email}</a> : null)}
-              {renderRow('Số điện thoại', user.phone)}
-              {renderRow('Mã ORCID', user.orcid ? (
-                <a href={`https://orcid.org/${user.orcid}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <img src="https://orcid.org/assets/vectors/orcid.logo.icon.svg" alt="ORCID iD icon" style={{ width: '16px' }} />
-                  {user.orcid}
-                </a>
-              ) : null)}
-              {renderRow('Google Scholar', user.scholar ? (
-                <a href={`https://scholar.google.com/citations?user=${user.scholar}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <svg style={{ width: '16px', height: '16px' }} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z" />
-                  </svg>
-                  {user.name}
-                </a>
-              ) : null)}
-              {renderRow('Hướng nghiên cứu chính', user.researchInterests && user.researchInterests.length > 0 ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {user.researchInterests.map((interest: string, idx: number) => (
-                    <span key={idx} className="badge badge-success" style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}>
-                      {interest}
-                    </span>
-                  ))}
-                </div>
-              ) : null)}
-              {renderRow('Lý lịch khoa học / Giới thiệu', user.bio ? (
-                <div style={{ whiteSpace: 'pre-wrap' }}>{user.bio}</div>
-              ) : null)}
-            </div>
+              </div>
+            )}
           </div>
+
+          {(user.bio || (user.researchInterests && user.researchInterests.length > 0)) && (
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+              {user.bio && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Lý Lịch Khoa Học / Giới Thiệu</h3>
+                  <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{user.bio}</p>
+                </div>
+              )}
+              
+              {user.researchInterests && user.researchInterests.length > 0 && (
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Hướng Nghiên Cứu Chính</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    {user.researchInterests.map((interest: string, idx: number) => (
+                      <span key={idx} className="badge badge-success" style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}>
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       <div style={{ marginTop: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', color: 'var(--primary)', marginBottom: '1rem' }}>Các Đề Tài / Dự Án Đang Tham Gia</h2>
