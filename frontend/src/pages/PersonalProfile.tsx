@@ -65,98 +65,162 @@ export const PersonalProfile: React.FC<{ userId?: string, onBack?: () => void }>
         </div>
       ) : (
         <>
-          <div className="card" style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-            <div style={{ flexShrink: 0, textAlign: 'center' }}>
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary-light)' }} />
-              ) : (
-                <div style={{ width: '150px', height: '150px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 700, margin: '0 auto' }}>
-                  {getInitials(user.name)}
-                </div>
-              )}
-              <div style={{ marginTop: '1rem' }}>
-                <span className="badge badge-primary" style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}>{user.role}</span>
-              </div>
-            </div>
-
-            <div style={{ flexGrow: 1 }}>
-              <h1 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem' }}>{user.name}</h1>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-                {user.department && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                    <span style={{ color: 'var(--text-muted)', width: '120px' }}>Đơn vị công tác:</span>
-                    {user.department}
-                  </div>
-                )}
-                {user.email && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                    <span style={{ color: 'var(--text-muted)', width: '120px' }}>Email:</span>
-                    <a href={`mailto:${user.email}`} style={{ color: 'var(--primary)' }}>{user.email}</a>
-                  </div>
-                )}
-                {user.phone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                    <span style={{ color: 'var(--text-muted)', width: '120px' }}>Số điện thoại:</span>
-                    {user.phone}
-                  </div>
-                )}
-                {user.orcid && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                    <span style={{ color: 'var(--text-muted)', width: '120px' }}>Mã ORCID:</span>
-                    <a href={`https://orcid.org/${user.orcid}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <img src="https://orcid.org/assets/vectors/orcid.logo.icon.svg" alt="ORCID iD icon" style={{ width: '16px' }} />
-                      {user.orcid}
-                    </a>
-                  </div>
-                )}
-                {user.scholar && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                    <span style={{ color: 'var(--text-muted)', width: '120px' }}>Google Scholar:</span>
-                    <a href={`https://scholar.google.com/citations?user=${user.scholar}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <svg style={{ width: '16px', height: '16px' }} viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z" />
-                      </svg>
-                      {user.name}
-                    </a>
-                  </div>
-                )}
-                {user.affiliations && user.affiliations.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
-                    <span style={{ color: 'var(--text-muted)', width: '120px' }}>Cơ quan liên kết:</span>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {user.affiliations.map((aff: string, idx: number) => (
-                        <span key={idx} style={{ backgroundColor: 'rgba(0, 114, 229, 0.1)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>
-                          {aff}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {(user.bio || (user.researchInterests && user.researchInterests.length > 0)) && (
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
-                  {user.bio && (
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Lý Lịch Khoa Học / Giới Thiệu</h3>
-                      <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{user.bio}</p>
+          <div className="card" style={{ padding: '2rem' }}>
+            <div style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              {/* Left Column: Avatar & Role */}
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '200px' }}>
+                <div style={{ padding: '4px', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', borderRadius: '50%', marginBottom: '1.25rem' }}>
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} style={{ width: '160px', height: '160px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #fff', backgroundColor: '#fff' }} />
+                  ) : (
+                    <div style={{ width: '160px', height: '160px', borderRadius: '50%', backgroundColor: '#fff', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5rem', fontWeight: 700, border: '4px solid #fff' }}>
+                      {getInitials(user.name)}
                     </div>
                   )}
+                </div>
+                <span style={{ 
+                  backgroundColor: 'rgba(0, 114, 229, 0.1)', 
+                  color: 'var(--primary)', 
+                  padding: '0.5rem 1rem', 
+                  borderRadius: '20px', 
+                  fontSize: '0.85rem', 
+                  fontWeight: 700,
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase'
+                }}>
+                  {user.role}
+                </span>
+              </div>
+
+              {/* Right Column: Info */}
+              <div style={{ flexGrow: 1, minWidth: '300px' }}>
+                <h1 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '1.5rem', lineHeight: 1.2 }}>
+                  {user.name}
+                </h1>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, max-content) 1fr', gap: '1rem 1.5rem', alignItems: 'center', fontSize: '0.95rem' }}>
+                  {user.department && (
+                    <>
+                      <div style={{ color: 'var(--text-muted)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <svg style={{width: '18px', height: '18px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        Đơn vị công tác
+                      </div>
+                      <div style={{ color: 'var(--text-main)', fontWeight: 600 }}>{user.department}</div>
+                    </>
+                  )}
                   
-                  {user.researchInterests && user.researchInterests.length > 0 && (
-                    <div>
-                      <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>Hướng Nghiên Cứu Chính</h3>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        {user.researchInterests.map((interest: string, idx: number) => (
-                          <span key={idx} className="badge badge-success" style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}>
-                            {interest}
+                  {user.email && (
+                    <>
+                      <div style={{ color: 'var(--text-muted)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <svg style={{width: '18px', height: '18px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        Email
+                      </div>
+                      <div>
+                        <a href={`mailto:${user.email}`} style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none' }} className="hover-underline">{user.email}</a>
+                      </div>
+                    </>
+                  )}
+                  
+                  {user.phone && (
+                    <>
+                      <div style={{ color: 'var(--text-muted)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <svg style={{width: '18px', height: '18px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                        Số điện thoại
+                      </div>
+                      <div style={{ color: 'var(--text-main)', fontWeight: 500 }}>{user.phone}</div>
+                    </>
+                  )}
+                  
+                  {user.orcid && (
+                    <>
+                      <div style={{ color: 'var(--text-muted)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <img src="https://orcid.org/assets/vectors/orcid.logo.icon.svg" alt="ORCID" style={{ width: '18px' }} />
+                        Mã ORCID
+                      </div>
+                      <div>
+                        <a href={`https://orcid.org/${user.orcid}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none' }} className="hover-underline">{user.orcid}</a>
+                      </div>
+                    </>
+                  )}
+                  
+                  {user.scholar && (
+                    <>
+                      <div style={{ color: 'var(--text-muted)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <svg style={{ width: '18px', height: '18px' }} viewBox="0 0 24 24" fill="currentColor"><path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z" /></svg>
+                        Google Scholar
+                      </div>
+                      <div>
+                        <a href={`https://scholar.google.com/citations?user=${user.scholar}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none' }} className="hover-underline">Xem hồ sơ Scholar</a>
+                      </div>
+                    </>
+                  )}
+                  
+                  {user.affiliations && user.affiliations.length > 0 && (
+                    <>
+                      <div style={{ color: 'var(--text-muted)', fontWeight: 500, display: 'flex', alignItems: 'flex-start', gap: '0.5rem', paddingTop: '4px' }}>
+                        <svg style={{width: '18px', height: '18px', marginTop: '2px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        Cơ quan liên kết
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {user.affiliations.map((aff: string, idx: number) => (
+                          <span key={idx} style={{ 
+                            backgroundColor: 'var(--bg-color)', 
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-main)', 
+                            padding: '4px 10px', 
+                            borderRadius: '6px', 
+                            fontSize: '0.85rem',
+                            fontWeight: 500
+                          }}>
+                            {aff}
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
-              )}
+
+                {(user.bio || (user.researchInterests && user.researchInterests.length > 0)) && (
+                  <div style={{ 
+                    marginTop: '2.5rem', 
+                    paddingTop: '2rem', 
+                    borderTop: '1px solid var(--border-color)' 
+                  }}>
+                    {user.bio && (
+                      <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <svg style={{width: '20px', height: '20px', color: 'var(--primary)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
+                          Lý Lịch Khoa Học / Giới Thiệu
+                        </h3>
+                        <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontSize: '0.95rem' }}>{user.bio}</p>
+                      </div>
+                    )}
+                    
+                    {user.researchInterests && user.researchInterests.length > 0 && (
+                      <div>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <svg style={{width: '20px', height: '20px', color: 'var(--secondary)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                          Hướng Nghiên Cứu Chính
+                        </h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {user.researchInterests.map((interest: string, idx: number) => (
+                            <span key={idx} style={{ 
+                              backgroundColor: 'rgba(52, 199, 89, 0.1)', 
+                              color: 'var(--accent-green)', 
+                              padding: '0.5rem 1rem', 
+                              borderRadius: '20px', 
+                              fontSize: '0.85rem',
+                              fontWeight: 600
+                            }}>
+                              {interest}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
