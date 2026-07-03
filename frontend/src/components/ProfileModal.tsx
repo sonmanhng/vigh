@@ -14,6 +14,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
   const [affiliations, setAffiliations] = useState(user?.affiliations?.join(', ') || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [orcid, setOrcid] = useState(user?.orcid || '');
+  const [scholar, setScholar] = useState(user?.scholar || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [researchInterests, setResearchInterests] = useState(user?.researchInterests?.join(', ') || '');
   const [password, setPassword] = useState('');
@@ -34,6 +35,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
         department, 
         phone,
         orcid,
+        scholar,
         bio,
         affiliations: affiliations.split(',').map(a => a.trim()).filter(a => a.length > 0),
         researchInterests: researchInterests.split(',').map(a => a.trim()).filter(a => a.length > 0)
@@ -147,6 +149,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
                 value={orcid} 
                 onChange={(e) => setOrcid(e.target.value)} 
               />
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Google Scholar ID (Nếu có)</label>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="VD: uB2d8iMAAAAJ" 
+                value={scholar} 
+                onChange={(e) => setScholar(e.target.value)} 
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Chỉ cần nhập ID cuối đường link. Ví dụ link là: scholar.google.com/citations?user=uB2d8iMAAAAJ thì nhập phần "uB2d8iMAAAAJ"</span>
             </div>
 
             <div className="input-group">

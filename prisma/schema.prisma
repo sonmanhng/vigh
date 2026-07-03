@@ -21,6 +21,7 @@ model User {
   memberProjects Project[] @relation("ProjectMembers")
   tasks          Task[]    @relation("AssigneeTasks")
   orcid          String?
+  scholar        String?
   bio            String?
   researchInterests String[] @default([])
   createdAt      DateTime  @default(now())

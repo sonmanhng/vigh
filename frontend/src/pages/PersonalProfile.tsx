@@ -101,6 +101,17 @@ export const PersonalProfile: React.FC = () => {
                 </a>
               </div>
             )}
+            {user.scholar && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text-muted)', width: '120px' }}>Google Scholar:</span>
+                <a href={`https://scholar.google.com/citations?user=${user.scholar}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <svg style={{ width: '16px', height: '16px' }} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z" />
+                  </svg>
+                  Trang Học Giả
+                </a>
+              </div>
+            )}
             {user.affiliations && user.affiliations.length > 0 && (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: 'var(--text-main)', fontWeight: 500 }}>
                 <span style={{ color: 'var(--text-muted)', width: '120px' }}>Cơ quan liên kết:</span>
