@@ -53,14 +53,15 @@ export const PersonalProfile: React.FC = () => {
   };
 
   return (
-    <div className="layout">
+    <div className="app-container">
       {/* Sidebar */}
       <aside className="sidebar">
-        <div className="sidebar-header" onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}>
-          <img 
-            src="/logo.png" 
-            alt="VIGH Logo" 
-            style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'contain', backgroundColor: 'white', padding: '2px' }} 
+        <div className="sidebar-header" style={{ backgroundColor: '#FFFFFF', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'center', borderBottom: '1px solid var(--border-color)' }}>
+          <img
+            src="/logo.png"
+            alt="Viện VIGH Logo"
+            style={{ maxHeight: '54px', maxWidth: '100%', objectFit: 'contain', cursor: 'pointer' }}
+            onClick={() => navigate('/dashboard')}
           />
         </div>
 
@@ -75,8 +76,8 @@ export const PersonalProfile: React.FC = () => {
 
         <div className="sidebar-footer">
           <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.7)' }}>
-            <div style={{ fontWeight: 600, color: '#fff' }}>Hệ Thống Nội Bộ VIGH</div>
-            <div>2026</div>
+            <div style={{ fontWeight: 600, color: '#fff' }}>Hệ Thống VIGH Portal</div>
+            <div>Phiên bản 2.0 - 2026</div>
           </div>
         </div>
       </aside>
