@@ -9,6 +9,10 @@ interface User {
   department?: string;
   phone?: string;
   affiliations?: string[];
+  orcid?: string;
+  scholar?: string;
+  bio?: string;
+  researchInterests?: string[];
 }
 
 interface AuthContextType {

@@ -59,6 +59,10 @@ export const register = async (req: Request, res: Response) => {
         department: newUser.department,
         phone: newUser.phone,
         affiliations: newUser.affiliations,
+        orcid: newUser.orcid,
+        scholar: newUser.scholar,
+        bio: newUser.bio,
+        researchInterests: newUser.researchInterests,
       },
     });
   } catch (error: any) {
@@ -116,6 +120,10 @@ export const login = async (req: Request, res: Response) => {
         department: user.department,
         phone: user.phone,
         affiliations: user.affiliations,
+        orcid: user.orcid,
+        scholar: user.scholar,
+        bio: user.bio,
+        researchInterests: user.researchInterests,
       },
     });
   } catch (error: any) {
