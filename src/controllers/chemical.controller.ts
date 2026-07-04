@@ -90,7 +90,7 @@ export const createChemical = async (req: Request, res: Response) => {
       return res.status(409).json({ error: `Mã hoá chất "${req.body.code}" đã tồn tại` });
     }
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: err.errors });
+      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: (err as any).errors });
     }
     console.error(err);
     res.status(500).json({ error: 'Lỗi server khi nhập hoá chất' });
@@ -100,7 +100,7 @@ export const createChemical = async (req: Request, res: Response) => {
 // PUT /api/chemicals/:id — Cập nhật hoá chất
 export const updateChemical = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const data = chemicalSchema.parse(req.body);
     const unitPrice = data.invoicePrice / data.specification;
 
@@ -128,7 +128,7 @@ export const updateChemical = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Không tìm thấy hoá chất' });
     }
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: err.errors });
+      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: (err as any).errors });
     }
     console.error(err);
     res.status(500).json({ error: 'Lỗi server khi cập nhật hoá chất' });
@@ -138,7 +138,7 @@ export const updateChemical = async (req: Request, res: Response) => {
 // DELETE /api/chemicals/:id — Xoá hoá chất
 export const deleteChemical = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     await prisma.chemical.delete({ where: { id } });
     res.json({ message: 'Đã xoá hoá chất thành công' });
   } catch (err: any) {
@@ -153,7 +153,7 @@ export const deleteChemical = async (req: Request, res: Response) => {
 // POST /api/chemicals/:id/export — Xuất hoá chất
 export const exportChemical = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const data = exportSchema.parse(req.body);
 
     const chemical = await prisma.chemical.findUnique({ where: { id } });
@@ -198,7 +198,7 @@ export const exportChemical = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: err.errors });
+      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: (err as any).errors });
     }
     console.error(err);
     res.status(500).json({ error: 'Lỗi server khi xuất hoá chất' });
