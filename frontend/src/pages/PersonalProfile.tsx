@@ -285,7 +285,7 @@ export const PersonalProfile: React.FC<{ userId?: string, onBack?: () => void }>
             <span>Quản lý nhân sự</span>
           </button>
           <button className="menu-item" onClick={() => navigate('/dashboard?tab=chemicals')}>
-            <span>Quản lý hoá chất 🧪</span>
+            <span>Quản lý hoá chất</span>
           </button>
         </nav>
 

@@ -518,7 +518,7 @@ export const ProjectDetail: React.FC = () => {
             className="menu-item"
             onClick={() => navigate('/dashboard?tab=chemicals')}
           >
-            <span>Quản lý hoá chất 🧪</span>
+            <span>Quản lý hoá chất</span>
           </button>
         </nav>
 

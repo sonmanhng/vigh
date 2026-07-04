@@ -30,6 +30,9 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.11.0",
     "prisma": "^5.22.0",
+    "socket.io": "^4.8.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "zod": "^4.4.3"

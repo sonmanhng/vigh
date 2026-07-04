@@ -124,7 +124,7 @@ export const Dashboard: React.FC = () => {
             className={`menu-item ${activeTab === 'chemicals' ? 'active' : ''}`}
             onClick={() => setActiveTab('chemicals')}
           >
-            <span>Quản lý hoá chất 🧪</span>
+            <span>Quản lý hoá chất</span>
           </button>
         </nav>
 

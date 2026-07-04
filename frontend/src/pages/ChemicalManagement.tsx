@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
+import { useSocket } from '../context/SocketContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Chemical {
@@ -72,6 +73,8 @@ export const ChemicalManagement: React.FC = () => {
   const [alertBanner, setAlertBanner] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
+  const { socket } = useSocket();
+
   // Modal state
   const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -106,10 +109,31 @@ export const ChemicalManagement: React.FC = () => {
     try {
       const res = await apiClient.get<Transaction[]>('/chemicals/transactions');
       setTransactions(res.data);
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
-  useEffect(() => { fetchChemicals(); }, [fetchChemicals]);
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleSync = () => {
+      console.log('🔄 Real-time update received! Reloading chemicals...');
+      fetchChemicals();
+      fetchTransactions();
+    };
+
+    socket.on('sync_chemicals', handleSync);
+    
+    return () => {
+      socket.off('sync_chemicals', handleSync);
+    };
+  }, [socket, fetchChemicals, fetchTransactions]);
+
+  useEffect(() => {
+    fetchChemicals();
+    fetchTransactions();
+  }, [fetchChemicals, fetchTransactions]);
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -218,7 +242,7 @@ export const ChemicalManagement: React.FC = () => {
       {/* Header */}
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-          🧪 Quản Lý Hoá Chất
+          Quản Lý Hoá Chất
         </h1>
         <p style={{ color: 'var(--text-muted)', margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
           Kho dược liệu & hoá chất thí nghiệm — VIGH
@@ -240,22 +264,64 @@ export const ChemicalManagement: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--border-color)', marginBottom: '1.5rem', gap: '0.25rem' }}>
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
-            padding: '0.65rem 1.2rem', border: 'none', background: 'none', cursor: 'pointer',
-            fontWeight: activeTab === t.key ? 700 : 500,
-            color: activeTab === t.key ? 'var(--primary)' : 'var(--text-muted)',
-            borderBottom: activeTab === t.key ? '2px solid var(--primary)' : '2px solid transparent',
-            marginBottom: '-2px', fontSize: '0.9rem', transition: 'all 0.2s',
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
-          }}>
-            {t.icon} {t.label}
-            {t.key === 'warehouse' && lowCount > 0 && (
-              <span style={{ background: '#FF4D4F', color: '#fff', borderRadius: '10px', padding: '0 6px', fontSize: '0.75rem', fontWeight: 700 }}>{lowCount}</span>
-            )}
-          </button>
-        ))}
+      <div style={{
+        backgroundColor: '#F8F9FA',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--border-color)',
+        overflow: 'hidden',
+        marginBottom: '1.5rem'
+      }}>
+        <div style={{
+          backgroundColor: 'rgba(52, 144, 139, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0.6rem 1.25rem 0 1.25rem',
+          gap: '0.5rem',
+          borderBottom: '1px solid var(--border-color)',
+          overflowX: 'auto'
+        }}>
+          {tabs.map(t => {
+            const isActive = activeTab === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setActiveTab(t.key)}
+                style={{
+                  backgroundColor: isActive ? 'var(--primary)' : 'transparent',
+                  color: isActive ? '#FFFFFF' : 'var(--text-muted)',
+                  border: 'none',
+                  padding: '0.75rem 1.4rem',
+                  borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  cursor: 'pointer',
+                  borderTop: isActive ? '3px solid var(--primary-light)' : '3px solid transparent',
+                  transition: 'all 0.2s ease',
+                  boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>{t.label}</span>
+                {t.key === 'warehouse' && lowCount > 0 && (
+                  <span style={{
+                    backgroundColor: isActive ? '#FFFFFF' : '#FF4D4F',
+                    color: isActive ? '#CF1322' : '#FFFFFF',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    padding: '0.1rem 0.55rem',
+                    borderRadius: '12px'
+                  }}>
+                    {lowCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── TAB: KHO HOÁ CHẤT ── */}
@@ -264,16 +330,16 @@ export const ChemicalManagement: React.FC = () => {
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
             <button className="btn btn-primary" onClick={() => { setImportForm(emptyImport()); setModal('import'); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
-              📥 Nhập Hoá Chất
+              Nhập Hoá Chất
             </button>
             <button onClick={() => setModal('export')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid var(--primary)', background: 'rgba(0,150,136,0.06)', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              📤 Xuất Hoá Chất
+              Xuất Hoá Chất
             </button>
             <button onClick={() => {}} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid #722ED1', background: 'rgba(114,46,209,0.05)', color: '#722ED1', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              📋 Đề Xuất Hoá Chất
+              Đề Xuất Hoá Chất
             </button>
             <button onClick={() => setModal('alert')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid #FAAD14', background: 'rgba(250,173,20,0.06)', color: '#D48806', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              🔔 Tuỳ Chỉnh Cảnh Báo
+              Tuỳ Chỉnh Cảnh Báo
             </button>
           </div>
 
@@ -291,7 +357,7 @@ export const ChemicalManagement: React.FC = () => {
 
           {/* Search */}
           <div style={{ marginBottom: '1rem' }}>
-            <input className="input-field" type="text" placeholder="🔍 Tìm theo mã hoặc tên hoá chất..." value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: '380px', padding: '0.5rem 0.9rem' }} />
+            <input className="input-field" type="text" placeholder="Tìm theo mã hoặc tên hoá chất..." value={search} onChange={e => setSearch(e.target.value)} style={{ maxWidth: '380px', padding: '0.5rem 0.9rem' }} />
           </div>
 
           {/* Table */}
@@ -315,7 +381,7 @@ export const ChemicalManagement: React.FC = () => {
                   <tbody>
                     {filtered.length === 0 ? (
                       <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                        {chemicals.length === 0 ? '📭 Kho chưa có hoá chất nào. Bấm "Nhập Hoá Chất" để bắt đầu!' : 'Không tìm thấy kết quả.'}
+                        {chemicals.length === 0 ? 'Kho chưa có hoá chất nào. Bấm "Nhập Hoá Chất" để bắt đầu!' : 'Không tìm thấy kết quả.'}
                       </td></tr>
                     ) : filtered.map(c => {
                       const pct = getPercent(c);
@@ -325,7 +391,7 @@ export const ChemicalManagement: React.FC = () => {
                           <td style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--primary)' }}>{c.code}</td>
                           <td style={{ padding: '0.9rem 1rem' }}>
                             <div style={{ fontWeight: 600 }}>{c.name}</div>
-                            {c.location && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>📍 {c.location}</div>}
+                            {c.location && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{c.location}</div>}
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>
                             <div style={{ fontWeight: 700, color: 'var(--primary)' }}>{fmtVND(c.unitPrice)}/{c.unit}</div>
@@ -343,9 +409,9 @@ export const ChemicalManagement: React.FC = () => {
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>
                             {low ? (
-                              <span style={{ background: '#FFF1F0', color: '#CF1322', border: '1px solid #FFA39E', borderRadius: '12px', padding: '0.2rem 0.7rem', fontSize: '0.8rem', fontWeight: 700 }}>⚠️ Dưới {c.alertThreshold}%</span>
+                              <span style={{ background: '#FFF1F0', color: '#CF1322', border: '1px solid #FFA39E', borderRadius: '12px', padding: '0.2rem 0.7rem', fontSize: '0.8rem', fontWeight: 700 }}>Dưới {c.alertThreshold}%</span>
                             ) : (
-                              <span style={{ background: '#F6FFED', color: '#389E0D', border: '1px solid #B7EB8F', borderRadius: '12px', padding: '0.2rem 0.7rem', fontSize: '0.8rem', fontWeight: 600 }}>✅ Ổn định</span>
+                              <span style={{ background: '#F6FFED', color: '#389E0D', border: '1px solid #B7EB8F', borderRadius: '12px', padding: '0.2rem 0.7rem', fontSize: '0.8rem', fontWeight: 600 }}>Ổn định</span>
                             )}
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>
@@ -368,7 +434,7 @@ export const ChemicalManagement: React.FC = () => {
       {/* ── TAB: ĐỀ XUẤT ── */}
       {activeTab === 'proposals' && (
         <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
           <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>Tiến Trình Đề Xuất</div>
           <div>Tính năng đang được phát triển — phiên bản tiếp theo sẽ có luồng duyệt đề xuất hoá chất đa cấp.</div>
         </div>
@@ -378,7 +444,7 @@ export const ChemicalManagement: React.FC = () => {
       {activeTab === 'statistics' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
           <div className="card" style={{ padding: '1.5rem' }}>
-            <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>📊 Tỉ lệ tồn kho</div>
+            <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>Tỉ lệ tồn kho</div>
             {chemicals.map(c => {
               const pct = getPercent(c);
               const low = isLow(c);
@@ -397,7 +463,7 @@ export const ChemicalManagement: React.FC = () => {
             {chemicals.length === 0 && <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Chưa có dữ liệu</div>}
           </div>
           <div className="card" style={{ padding: '1.5rem' }}>
-            <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>💰 Giá trị kho theo hoá chất</div>
+            <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>Giá trị kho theo hoá chất</div>
             {chemicals.sort((a, b) => (b.unitPrice * b.quantity) - (a.unitPrice * a.quantity)).map(c => (
               <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.88rem' }}>
                 <span style={{ fontWeight: 600 }}>{c.code} — {c.name}</span>

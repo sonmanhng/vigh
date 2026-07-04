@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { getIO } from '../socket';
 import { z } from 'zod';
 
 const chemicalSchema = z.object({
@@ -84,6 +85,7 @@ export const createChemical = async (req: Request, res: Response) => {
       },
     });
 
+    getIO().emit('sync_chemicals');
     res.status(201).json(chemical);
   } catch (err: any) {
     if (err.code === 'P2002') {
@@ -122,6 +124,7 @@ export const updateChemical = async (req: Request, res: Response) => {
       },
     });
 
+    getIO().emit('sync_chemicals');
     res.json(chemical);
   } catch (err: any) {
     if (err.code === 'P2025') {
@@ -140,6 +143,8 @@ export const deleteChemical = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
     await prisma.chemical.delete({ where: { id } });
+    getIO().emit('sync_chemicals');
+    getIO().emit('sync_transactions');
     res.json({ message: 'Đã xoá hoá chất thành công' });
   } catch (err: any) {
     if (err.code === 'P2025') {
