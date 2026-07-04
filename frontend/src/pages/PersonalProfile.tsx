@@ -71,7 +71,12 @@ export const PersonalProfile: React.FC<{ userId?: string, onBack?: () => void }>
               <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '200px' }}>
                 <div style={{ marginBottom: '1.25rem' }}>
                   {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)' }} />
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)' }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
                   ) : (
                     <div style={{ width: '150px', height: '150px', borderRadius: '50%', backgroundColor: 'var(--bg-color)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5rem', fontWeight: 700, border: '3px solid var(--primary)' }}>
                       {getInitials(user.name)}
@@ -278,6 +283,9 @@ export const PersonalProfile: React.FC<{ userId?: string, onBack?: () => void }>
           </button>
           <button className="menu-item active" onClick={() => navigate('/dashboard?tab=personnel')}>
             <span>Quản lý nhân sự</span>
+          </button>
+          <button className="menu-item" onClick={() => navigate('/dashboard?tab=chemicals')}>
+            <span>Quản lý hoá chất 🧪</span>
           </button>
         </nav>
 

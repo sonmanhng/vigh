@@ -5,6 +5,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { PersonalProfile } from './pages/PersonalProfile';
+import { BackgroundMonitor } from './components/BackgroundMonitor';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
@@ -17,6 +18,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <AuthProvider>
+      <BackgroundMonitor />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />

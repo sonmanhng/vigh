@@ -4,17 +4,20 @@ import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
 import { Navbar } from '../components/Navbar';
 import { PersonnelManagement } from './PersonnelManagement';
+import { ChemicalManagement } from './ChemicalManagement';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
-  const activeTab = urlTab === 'personnel' ? 'personnel' : 'projects';
+  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : 'projects');
   
-  const setActiveTab = (tab: 'projects' | 'personnel') => {
+  const setActiveTab = (tab: 'projects' | 'personnel' | 'chemicals') => {
     if (tab === 'personnel') {
       setSearchParams({ tab: 'personnel' });
+    } else if (tab === 'chemicals') {
+      setSearchParams({ tab: 'chemicals' });
     } else {
       setSearchParams({});
     }
@@ -116,6 +119,13 @@ export const Dashboard: React.FC = () => {
           >
             <span>Quản lý nhân sự</span>
           </button>
+
+          <button 
+            className={`menu-item ${activeTab === 'chemicals' ? 'active' : ''}`}
+            onClick={() => setActiveTab('chemicals')}
+          >
+            <span>Quản lý hoá chất 🧪</span>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -132,6 +142,8 @@ export const Dashboard: React.FC = () => {
 
         {activeTab === 'personnel' ? (
           <PersonnelManagement />
+        ) : activeTab === 'chemicals' ? (
+          <ChemicalManagement />
         ) : (
           <div className="content-area">
             {/* Project Progress Header */}

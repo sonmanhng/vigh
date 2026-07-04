@@ -26,7 +26,12 @@ export const Navbar: React.FC = () => {
 
         <div className="user-profile-trigger" onClick={() => setShowProfile(true)} title="Chỉnh sửa hồ sơ cá nhân">
           {user?.avatar ? (
-            <img src={user.avatar} alt={user.name} className="avatar-circle" />
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="avatar-circle"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
           ) : (
             <div className="avatar-circle">
               {getInitials(user?.name)}

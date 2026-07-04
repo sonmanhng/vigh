@@ -231,7 +231,12 @@ export const PersonnelManagement: React.FC = () => {
                         title="Xem hồ sơ chi tiết"
                       >
                         {u.avatar ? (
-                          <img src={u.avatar} alt={u.name} style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', flexShrink: 0, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--primary)' }} />
+                          <img
+                            src={u.avatar}
+                            alt={u.name}
+                            style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', flexShrink: 0, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--primary)' }}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
                         ) : (
                           <div style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', flexShrink: 0, borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem' }}>
                             {getInitials(u.name)}

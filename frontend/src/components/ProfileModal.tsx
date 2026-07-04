@@ -82,7 +82,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#F8FAFC', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
               {avatar ? (
-                <img src={avatar} alt={name} style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} />
+                <img
+                  src={avatar}
+                  alt={name}
+                  style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
               ) : (
                 <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700 }}>
                   {name ? name.charAt(0).toUpperCase() : 'U'}
