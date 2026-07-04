@@ -230,11 +230,11 @@ export const ChemicalManagement: React.FC = () => {
   const totalValue = chemicals.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
 
   // ── Styles ────────────────────────────────────────────────────────────────
-  const tabs: { key: Tab; label: string; icon: string }[] = [
-    { key: 'warehouse', label: 'Kho Hoá Chất', icon: '🧪' },
-    { key: 'proposals', label: 'Tiến Trình Đề Xuất', icon: '📋' },
-    { key: 'statistics', label: 'Thống Kê', icon: '📊' },
-    { key: 'history', label: 'Lịch Sử', icon: '📜' },
+  const tabs = [
+    { key: 'warehouse', label: 'Kho Hoá Chất' },
+    { key: 'proposals', label: 'Tiến Trình Đề Xuất' },
+    { key: 'statistics', label: 'Thống Kê' },
+    { key: 'history', label: 'Lịch Sử' },
   ];
 
   return (
@@ -258,7 +258,7 @@ export const ChemicalManagement: React.FC = () => {
       )}
       {error && (
         <div style={{ background: '#FFF1F0', border: '1px solid #FFA39E', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#CF1322' }}>
-          <span>⚠️ {error}</span>
+          <span>{error}</span>
           <button onClick={() => setError(null)} style={{ border: 'none', background: 'none', color: '#CF1322', cursor: 'pointer' }}>✕</button>
         </div>
       )}
@@ -502,7 +502,7 @@ export const ChemicalManagement: React.FC = () => {
                   <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '0.85rem 1rem' }}>
                       <span style={{ background: t.type === 'IMPORT' ? '#F6FFED' : '#FFF1F0', color: t.type === 'IMPORT' ? '#389E0D' : '#CF1322', border: `1px solid ${t.type === 'IMPORT' ? '#B7EB8F' : '#FFA39E'}`, borderRadius: '10px', padding: '0.15rem 0.65rem', fontSize: '0.8rem', fontWeight: 700 }}>
-                        {t.type === 'IMPORT' ? '📥 Nhập' : '📤 Xuất'}
+                        {t.type === 'IMPORT' ? 'Nhập' : 'Xuất'}
                       </span>
                     </td>
                     <td style={{ padding: '0.85rem 1rem' }}>
@@ -530,7 +530,7 @@ export const ChemicalManagement: React.FC = () => {
         <div className="modal-overlay" onClick={() => setModal('none')}>
           <div className="modal-content" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">{modal === 'edit' ? '✏️ Cập Nhật Hoá Chất' : '📥 Nhập Hoá Chất'}</div>
+              <div className="modal-title">{modal === 'edit' ? 'Cập Nhật Hoá Chất' : 'Nhập Hoá Chất'}</div>
               <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
             </div>
             <form onSubmit={modal === 'edit' ? handleEditSubmit : handleImportSubmit}>
@@ -602,7 +602,7 @@ export const ChemicalManagement: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setModal('none')}>Huỷ</button>
-                <button type="submit" className="btn btn-primary">{modal === 'edit' ? '💾 Lưu Cập Nhật' : '📥 Xác Nhận Nhập Kho'}</button>
+                <button type="submit" className="btn btn-primary">{modal === 'edit' ? 'Lưu Cập Nhật' : 'Xác Nhận Nhập Kho'}</button>
               </div>
             </form>
           </div>
@@ -614,7 +614,7 @@ export const ChemicalManagement: React.FC = () => {
         <div className="modal-overlay" onClick={() => setModal('none')}>
           <div className="modal-content" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">📤 Xuất Hoá Chất</div>
+              <div className="modal-title">Xuất Hoá Chất</div>
               <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
             </div>
             <form onSubmit={handleExportSubmit}>
@@ -648,7 +648,7 @@ export const ChemicalManagement: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setModal('none')}>Huỷ</button>
-                <button type="submit" className="btn btn-primary">📤 Xác Nhận Xuất Kho</button>
+                <button type="submit" className="btn btn-primary">Xác Nhận Xuất Kho</button>
               </div>
             </form>
           </div>
@@ -660,7 +660,7 @@ export const ChemicalManagement: React.FC = () => {
         <div className="modal-overlay" onClick={() => setModal('none')}>
           <div className="modal-content" style={{ maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">🔔 Tuỳ Chỉnh Cảnh Báo</div>
+              <div className="modal-title">Tuỳ Chỉnh Cảnh Báo</div>
               <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
             </div>
             <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
