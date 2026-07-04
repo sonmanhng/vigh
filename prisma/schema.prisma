@@ -80,3 +80,34 @@ model ResearchContent {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Chemical {
+  id             Int                   @id @default(autoincrement())
+  code           String                @unique   // Mã HC (VD: HC-001)
+  name           String                // Tên hoá chất
+  unit           String                // Đơn vị (Lít, Kg, Chai...)
+  quantity       Float                 // Số lượng tồn kho hiện tại
+  maxQuantity    Float                 // Định mức tối đa (để tính %)
+  specification  Float                 // Quy cách (VD: 10 Lít)
+  invoicePrice   Float                 // Giá hoá đơn (tổng tiền)
+  unitPrice      Float                 // Đơn giá = invoicePrice / specification
+  importDate     DateTime              // Ngày nhập kho
+  alertThreshold Float     @default(50) // Ngưỡng cảnh báo (%)
+  location       String?
+  note           String?
+  transactions   ChemicalTransaction[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ChemicalTransaction {
+  id          Int      @id @default(autoincrement())
+  type        String   // IMPORT | EXPORT
+  chemicalId  Int
+  chemical    Chemical @relation(fields: [chemicalId], references: [id], onDelete: Cascade)
+  projectCode String?  // Mã dự án (khi xuất)
+  quantity    Float    // Số lượng nhập/xuất
+  note        String?
+  createdById Int?
+  createdAt   DateTime @default(now())
+}
