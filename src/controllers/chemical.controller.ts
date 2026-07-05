@@ -212,16 +212,55 @@ export const exportChemical = async (req: Request, res: Response) => {
 
 // ── PROPOSALS ─────────────────────────────────────────────────────────────
 
+export const getApprovers = async (req: any, res: any) => {
+  try {
+    const approver1List = await prisma.user.findMany({
+      where: { role: { in: ['TruongPhong', 'VienPho'] } },
+      select: { id: true, name: true, role: true, email: true }
+    });
+    const approver2List = await prisma.user.findMany({
+      where: { role: { in: ['VienTruong', 'SuperAdmin'] } },
+      select: { id: true, name: true, role: true, email: true }
+    });
+    res.json({ level1: approver1List, level2: approver2List });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi lấy danh sách người duyệt' });
+  }
+};
+
 export const createProposal = async (req: any, res: any) => {
   try {
-    const { items, note } = req.body;
+    const { items, note, approver1Id, approver2Id } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Danh sách đề xuất rỗng' });
+    }
+
+    const role = req.user.role;
+    let level1Status = 'PENDING';
+    let level2Status = 'PENDING';
+    let overallStatus = 'PENDING';
+
+    // 1. Viện trưởng / SuperAdmin tự tạo -> auto duyệt toàn bộ
+    if (role === 'VienTruong' || role === 'SuperAdmin') {
+      level1Status = 'APPROVED';
+      level2Status = 'APPROVED';
+      overallStatus = 'APPROVED';
+    } 
+    // 2. Người duyệt 1 tự tạo -> auto duyệt cấp 1
+    else if (approver1Id && req.user.id === Number(approver1Id)) {
+      level1Status = 'APPROVED';
+      overallStatus = 'PENDING_LEVEL_2';
     }
 
     const proposal = await prisma.chemicalProposal.create({
       data: {
         createdById: req.user.id,
+        approver1Id: approver1Id ? Number(approver1Id) : null,
+        approver2Id: approver2Id ? Number(approver2Id) : null,
+        level1Status,
+        level2Status,
+        status: overallStatus,
         note,
         items: {
           create: items.map((i: any) => ({
@@ -249,6 +288,8 @@ export const getProposals = async (req: any, res: any) => {
     const proposals = await prisma.chemicalProposal.findMany({
       include: {
         creator: { select: { name: true, email: true } },
+        approver1: { select: { name: true, email: true } },
+        approver2: { select: { name: true, email: true } },
         items: {
           include: { project: { select: { name: true, code: true } } }
         }
@@ -265,20 +306,47 @@ export const getProposals = async (req: any, res: any) => {
 export const updateProposalStatus = async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-
+    const { action } = req.body; // 'APPROVE' or 'REJECT'
     const role = req.user.role;
-    const isManagerOrAdmin = ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'].includes(role);
-    if (!isManagerOrAdmin) {
-      return res.status(403).json({ error: 'Bạn không có quyền duyệt đề xuất' });
+
+    const proposal = await prisma.chemicalProposal.findUnique({ where: { id: Number(id) } });
+    if (!proposal) return res.status(404).json({ error: 'Không tìm thấy phiếu đề xuất' });
+
+    let { level1Status, level2Status, status } = proposal;
+
+    if (action === 'REJECT') {
+      if (req.user.id === proposal.approver1Id) level1Status = 'REJECTED';
+      if (req.user.id === proposal.approver2Id || role === 'VienTruong' || role === 'SuperAdmin') level2Status = 'REJECTED';
+      status = 'REJECTED';
+    } else if (action === 'APPROVE') {
+      // is approver 1
+      if (req.user.id === proposal.approver1Id) {
+        level1Status = 'APPROVED';
+        if (level2Status !== 'APPROVED') status = 'PENDING_LEVEL_2';
+      }
+      // is approver 2 or high level role
+      if (req.user.id === proposal.approver2Id || role === 'VienTruong' || role === 'SuperAdmin') {
+        level2Status = 'APPROVED';
+        status = 'APPROVED';
+        // If approver 2 approves, level1 is also implicitly approved if it was pending
+        if (level1Status === 'PENDING') level1Status = 'APPROVED';
+      }
     }
 
-    const proposal = await prisma.chemicalProposal.update({
+    const updated = await prisma.chemicalProposal.update({
       where: { id: Number(id) },
-      data: { status }
+      data: { level1Status, level2Status, status },
+      include: {
+        creator: { select: { name: true, email: true } },
+        approver1: { select: { name: true, email: true } },
+        approver2: { select: { name: true, email: true } },
+        items: {
+          include: { project: { select: { name: true, code: true } } }
+        }
+      }
     });
 
-    res.json(proposal);
+    res.json(updated);
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ error: 'Lỗi cập nhật trạng thái đề xuất' });

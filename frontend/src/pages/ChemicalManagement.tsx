@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Chemical {
@@ -47,8 +48,13 @@ interface ProposalItem {
 interface Proposal {
   id: number;
   status: string;
+  level1Status: string;
+  level2Status: string;
   note: string;
+  createdById: number;
   creator: { name: string; email: string };
+  approver1?: { name: string; email: string };
+  approver2?: { name: string; email: string };
   createdAt: string;
   items: {
     id: number;
@@ -95,7 +101,9 @@ const emptyImport = () => ({
 
 // ═════════════════════════════════════════════════════════════════════════════
 export const ChemicalManagement: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('warehouse');
+  const [proposalTab, setProposalTab] = useState<'my_proposals' | 'pending'>('my_proposals');
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
@@ -121,6 +129,8 @@ export const ChemicalManagement: React.FC = () => {
   // Proposal form
   const [projects, setProjects] = useState<Project[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [approvers, setApprovers] = useState<{ level1: any[], level2: any[] }>({ level1: [], level2: [] });
+  const [proposalForm, setProposalForm] = useState({ approver1Id: '', approver2Id: '' });
   const [proposalItems, setProposalItems] = useState<ProposalItem[]>([
     { chemicalName: '', unit: '', quantity: '', phase: '', projectId: '' }
   ]);
@@ -170,6 +180,18 @@ export const ChemicalManagement: React.FC = () => {
     }
   }, []);
 
+  const fetchApprovers = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/chemicals/approvers');
+      setApprovers(res.data);
+      if (res.data.level2 && res.data.level2.length > 0) {
+        setProposalForm(p => ({ ...p, approver2Id: res.data.level2[0].id.toString() }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   useEffect(() => {
     if (!socket) return;
 
@@ -191,7 +213,8 @@ export const ChemicalManagement: React.FC = () => {
     fetchTransactions();
     fetchProjects();
     fetchProposals();
-  }, [fetchChemicals, fetchTransactions, fetchProjects, fetchProposals]);
+    fetchApprovers();
+  }, [fetchChemicals, fetchTransactions, fetchProjects, fetchProposals, fetchApprovers]);
   
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
   useEffect(() => { if (activeTab === 'proposals') fetchProposals(); }, [activeTab, fetchProposals]);
@@ -264,21 +287,22 @@ export const ChemicalManagement: React.FC = () => {
     try {
       await apiClient.post('/chemicals/proposals', {
         note: proposalNote,
+        approver1Id: proposalForm.approver1Id,
+        approver2Id: proposalForm.approver2Id,
         items: proposalItems,
       });
       setModal('none');
       setProposalItems([{ chemicalName: '', unit: '', quantity: '', phase: '', projectId: '' }]);
       setProposalNote('');
       fetchProposals();
-      alert('Đã gửi đề xuất thành công!');
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi gửi đề xuất');
     }
   };
 
-  const handleUpdateProposalStatus = async (id: number, status: string) => {
+  const handleUpdateProposalStatus = async (id: number, action: string) => {
     try {
-      await apiClient.put(`/chemicals/proposals/${id}/status`, { status });
+      await apiClient.put(`/chemicals/proposals/${id}/status`, { action });
       fetchProposals();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi cập nhật trạng thái');
@@ -517,6 +541,26 @@ export const ChemicalManagement: React.FC = () => {
       {/* ── TAB: ĐỀ XUẤT ── */}
       {activeTab === 'proposals' && (
         <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
+          {['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong'].includes(user?.role || '') && (
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', background: '#F8FAFC' }}>
+              <button
+                onClick={() => setProposalTab('my_proposals')}
+                style={{
+                  padding: '0.75rem 1.5rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700,
+                  color: proposalTab === 'my_proposals' ? 'var(--primary)' : 'var(--text-muted)',
+                  borderBottom: proposalTab === 'my_proposals' ? '2px solid var(--primary)' : '2px solid transparent'
+                }}
+              >Đề xuất của tôi</button>
+              <button
+                onClick={() => setProposalTab('pending')}
+                style={{
+                  padding: '0.75rem 1.5rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700,
+                  color: proposalTab === 'pending' ? 'var(--primary)' : 'var(--text-muted)',
+                  borderBottom: proposalTab === 'pending' ? '2px solid var(--primary)' : '2px solid transparent'
+                }}
+              >Đề xuất cần duyệt</button>
+            </div>
+          )}
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
@@ -529,9 +573,25 @@ export const ChemicalManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {proposals.length === 0 ? (
+                {proposals.filter(p => {
+                  if (proposalTab === 'my_proposals') return p.createdById === user?.id;
+                  if (proposalTab === 'pending') {
+                    if (p.level1Status === 'PENDING' && p.approver1?.email === user?.email) return true;
+                    if (p.level1Status === 'APPROVED' && p.level2Status === 'PENDING' && (p.approver2?.email === user?.email || user?.role === 'VienTruong' || user?.role === 'SuperAdmin')) return true;
+                    return false;
+                  }
+                  return true;
+                }).length === 0 ? (
                   <tr><td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có đề xuất nào.</td></tr>
-                ) : proposals.map(p => (
+                ) : proposals.filter(p => {
+                  if (proposalTab === 'my_proposals') return p.createdById === user?.id;
+                  if (proposalTab === 'pending') {
+                    if (p.level1Status === 'PENDING' && p.approver1?.email === user?.email) return true;
+                    if (p.level1Status === 'APPROVED' && p.level2Status === 'PENDING' && (p.approver2?.email === user?.email || user?.role === 'VienTruong' || user?.role === 'SuperAdmin')) return true;
+                    return false;
+                  }
+                  return true;
+                }).map(p => (
                   <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>#{p.id}</td>
                     <td style={{ padding: '0.85rem 1rem' }}>
@@ -546,13 +606,14 @@ export const ChemicalManagement: React.FC = () => {
                       </div>
                     </td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
-                      {p.status === 'PENDING' && <span style={{ background: '#FFF7E6', color: '#D46B08', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Chờ duyệt</span>}
-                      {p.status === 'APPROVED' && <span style={{ background: '#F6FFED', color: '#389E0D', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Đã duyệt</span>}
+                      {p.status === 'PENDING' && <span style={{ background: '#FFF7E6', color: '#D46B08', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Chờ duyệt Cấp 1</span>}
+                      {p.status === 'PENDING_LEVEL_2' && <span style={{ background: '#FFF7E6', color: '#D46B08', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Chờ duyệt Cấp 2</span>}
+                      {p.status === 'APPROVED' && <span style={{ background: '#F6FFED', color: '#389E0D', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Đã duyệt toàn bộ</span>}
                       {p.status === 'REJECTED' && <span style={{ background: '#FFF1F0', color: '#CF1322', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Từ chối</span>}
-                      {p.status === 'PENDING' && (
+                      {proposalTab === 'pending' && p.status !== 'APPROVED' && p.status !== 'REJECTED' && (
                         <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
-                          <button onClick={() => handleUpdateProposalStatus(p.id, 'APPROVED')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#52C41A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Duyệt</button>
-                          <button onClick={() => handleUpdateProposalStatus(p.id, 'REJECTED')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#FF4D4F', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Từ chối</button>
+                          <button onClick={() => handleUpdateProposalStatus(p.id, 'APPROVE')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#52C41A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Duyệt</button>
+                          <button onClick={() => handleUpdateProposalStatus(p.id, 'REJECT')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#FF4D4F', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Từ chối</button>
                         </div>
                       )}
                     </td>
@@ -832,6 +893,27 @@ export const ChemicalManagement: React.FC = () => {
             <form onSubmit={handleProposalSubmit}>
               <div className="modal-body" style={{ display: 'grid', gap: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
                 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Người duyệt 1 (Trưởng phòng / Viện phó)</label>
+                    <select className="input-field" value={proposalForm.approver1Id} onChange={e => setProposalForm(p => ({ ...p, approver1Id: e.target.value }))}>
+                      <option value="">— Không có / Tự duyệt —</option>
+                      {approvers.level1.map(u => (
+                        <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Người duyệt 2 (Viện trưởng)</label>
+                    <select className="input-field" required value={proposalForm.approver2Id} onChange={e => setProposalForm(p => ({ ...p, approver2Id: e.target.value }))}>
+                      <option value="">— Chọn người duyệt 2 —</option>
+                      {approvers.level2.map(u => (
+                        <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
                 <div className="input-group">
                   <label className="input-label">Ghi Chú Đề Xuất</label>
                   <input type="text" className="input-field" placeholder="Mục đích chung của đề xuất này..." value={proposalNote} onChange={e => setProposalNote(e.target.value)} />

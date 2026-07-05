@@ -25,6 +25,8 @@ model User {
   bio            String?
   researchInterests String[] @default([])
   chemicalProposals ChemicalProposal[] @relation("CreatorProposals")
+  approved1Proposals ChemicalProposal[] @relation("Approver1Proposals")
+  approved2Proposals ChemicalProposal[] @relation("Approver2Proposals")
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -115,14 +117,20 @@ model ChemicalTransaction {
 }
 
 model ChemicalProposal {
-  id          Int      @id @default(autoincrement())
-  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdById Int?
-  creator     User?    @relation("CreatorProposals", fields: [createdById], references: [id], onDelete: SetNull)
-  note        String?
-  items       ChemicalProposalItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  status       String   @default("PENDING") // PENDING, PENDING_LEVEL_2, APPROVED, REJECTED
+  createdById  Int?
+  creator      User?    @relation("CreatorProposals", fields: [createdById], references: [id], onDelete: SetNull)
+  approver1Id  Int?
+  approver1    User?    @relation("Approver1Proposals", fields: [approver1Id], references: [id], onDelete: SetNull)
+  approver2Id  Int?
+  approver2    User?    @relation("Approver2Proposals", fields: [approver2Id], references: [id], onDelete: SetNull)
+  level1Status String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  level2Status String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  note         String?
+  items        ChemicalProposalItem[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model ChemicalProposalItem {

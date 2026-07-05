@@ -9,6 +9,7 @@ import {
   createProposal,
   getProposals,
   updateProposalStatus,
+  getApprovers,
 } from '../controllers/chemical.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
@@ -17,6 +18,7 @@ const router = Router();
 router.use(authenticateToken);
 
 // Proposals
+router.get('/approvers', getApprovers);
 router.post('/proposals', createProposal);
 router.get('/proposals', getProposals);
 router.put('/proposals/:id/status', updateProposalStatus);
