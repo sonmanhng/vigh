@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
-import { notificationService, Notification } from '../services/notification.service';
+import { notificationService } from '../services/notification.service';
+import type { Notification } from '../services/notification.service';
 import { useAuth } from '../context/AuthContext';
 import { ProfileModal } from './ProfileModal';
 

@@ -238,8 +238,35 @@ export const updateChemical = async (req: Request, res: Response) => {
       },
     });
 
+    const percentage = (chemical.quantity / chemical.maxQuantity) * 100;
+    const isLow = percentage < chemical.alertThreshold;
+
+    if (isLow) {
+      const managers = await prisma.user.findMany({
+        where: {
+          role: { in: ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'] }
+        }
+      });
+      
+      const notifications = managers.map(m => ({
+        userId: m.id,
+        title: 'Cảnh báo mức hoá chất',
+        message: `Hoá chất ${chemical.name} đang ở mức thấp (${percentage.toFixed(1)}%). Vui lòng kiểm tra và lên kế hoạch mua bổ sung.`,
+        type: 'CHEMICAL_WARNING'
+      }));
+
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({ data: notifications });
+      }
+    }
+
     getIO().emit('sync_chemicals');
-    res.json(chemical);
+    res.json({
+      chemical,
+      warning: isLow
+        ? `⚠️ ${chemical.name} còn ${percentage.toFixed(1)}% — dưới ngưỡng cảnh báo ${chemical.alertThreshold}%!`
+        : null,
+    });
   } catch (err: any) {
     if (err.code === 'P2025') {
       return res.status(404).json({ error: 'Không tìm thấy hoá chất' });
