@@ -859,7 +859,12 @@ export const ChemicalManagement: React.FC = () => {
                 </div>
                 <div className="input-group">
                   <label className="input-label">Mã Dự Án (*)</label>
-                  <input type="text" className="input-field" required placeholder="VD: SAM-003, DE-012..." value={exportForm.projectCode} onChange={e => setExportForm(p => ({ ...p, projectCode: e.target.value }))} />
+                  <select className="input-field" required value={exportForm.projectCode} onChange={e => setExportForm(p => ({ ...p, projectCode: e.target.value }))}>
+                    <option value="">— Chọn dự án —</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.code}>{p.code} - {p.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="input-group">
                   <label className="input-label">Số Lượng Xuất (*)</label>
