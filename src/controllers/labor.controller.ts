@@ -159,8 +159,9 @@ export const getMyLaborStats = async (req: Request, res: Response) => {
     const weeklyStats = calculateStats(weeklyLogs);
     const monthlyStats = calculateStats(monthlyLogs);
 
-    // Tính % theo Dự án trong Tháng
+    // Tính % theo Dự án trong Tháng (Chỉ dựa trên giờ Chuyên môn)
     const projectMap: Record<string, { projectId: number, projectName: string, projectCode: string, totalHours: number }> = {};
+    let totalMonthlyProHours = 0;
     monthlyLogs.forEach((l: any) => {
       const pId = l.projectId ? l.projectId.toString() : 'none';
       if (!projectMap[pId]) {
@@ -171,12 +172,13 @@ export const getMyLaborStats = async (req: Request, res: Response) => {
           totalHours: 0
         };
       }
-      projectMap[pId].totalHours += (l.adminHours + l.proHours + l.cleanHours);
+      projectMap[pId].totalHours += l.proHours;
+      totalMonthlyProHours += l.proHours;
     });
 
     const projectStats = Object.values(projectMap).map(p => ({
       ...p,
-      percent: (monthlyStats.maxExpectedHours && monthlyStats.maxExpectedHours > 0) ? (p.totalHours / monthlyStats.maxExpectedHours) * 100 : 0
+      percent: totalMonthlyProHours > 0 ? (p.totalHours / totalMonthlyProHours) * 100 : 0
     })).sort((a, b) => b.percent - a.percent);
 
     res.json({
@@ -248,7 +250,9 @@ export const getAdminLaborStats = async (req: Request, res: Response) => {
         cleanTotal += l.cleanHours;
       });
 
+      // Tính % theo Dự án trong Tháng (Chỉ dựa trên giờ Chuyên môn)
       const projectMap: Record<string, { projectId: number, projectName: string, projectCode: string, totalHours: number }> = {};
+      let totalProHours = 0;
       u.logs.forEach((l: any) => {
         const pId = l.projectId ? l.projectId.toString() : 'none';
         if (!projectMap[pId]) {
@@ -259,12 +263,13 @@ export const getAdminLaborStats = async (req: Request, res: Response) => {
             totalHours: 0
           };
         }
-        projectMap[pId].totalHours += (l.adminHours + l.proHours + l.cleanHours);
+        projectMap[pId].totalHours += l.proHours;
+        totalProHours += l.proHours;
       });
 
       const projects = Object.values(projectMap).map(p => ({
         ...p,
-        percent: (maxExpectedHours && maxExpectedHours > 0) ? (p.totalHours / maxExpectedHours) * 100 : 0
+        percent: totalProHours > 0 ? (p.totalHours / totalProHours) * 100 : 0
       })).sort((a, b) => b.percent - a.percent);
 
       return {
