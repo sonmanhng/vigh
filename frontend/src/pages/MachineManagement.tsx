@@ -503,13 +503,7 @@ export const MachineManagement: React.FC = () => {
         </div>
       )}
 
-      {/* TAB: LABOR (PLACEHOLDER) */}
-      {activeTab === 'labor' && (
-        <div style={{ padding: '3rem', textAlign: 'center', background: '#fff', borderRadius: '12px', border: '1px dashed var(--border-color)', color: 'var(--text-muted)' }}>
-          <h3>Tính năng Quản lý Nhân công đang được phát triển</h3>
-          <p>Phần này sẽ được cập nhật trong phiên bản tiếp theo.</p>
-        </div>
-      )}
+
 
       {/* TAB: STATISTICS */}
       {activeTab === 'statistics' && (
