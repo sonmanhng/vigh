@@ -337,6 +337,21 @@ export const ChemicalManagement: React.FC = () => {
     setModal('edit');
   };
 
+  const handleExportExcel = async (id: number) => {
+    try {
+      const res = await apiClient.get(`/chemicals/proposals/${id}/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `DeXuat_${id}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (e: any) {
+      setError('Lỗi khi xuất file Excel');
+    }
+  };
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const filtered = chemicals.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
