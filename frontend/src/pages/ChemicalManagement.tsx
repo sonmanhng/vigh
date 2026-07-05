@@ -729,7 +729,26 @@ export const ChemicalManagement: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
                   <div className="input-group">
                     <label className="input-label">Mã Hoá Chất (*)</label>
-                    <input type="text" className="input-field" required placeholder="HC-001" value={importForm.code} onChange={e => setImportForm(p => ({ ...p, code: e.target.value }))} />
+                    <input type="text" className="input-field" required placeholder="HC-001" value={importForm.code} onChange={e => {
+                      const code = e.target.value;
+                      const existing = chemicals.find(c => c.code === code);
+                      if (existing && modal === 'import') {
+                        setImportForm(p => ({
+                          ...p,
+                          code,
+                          name: existing.name,
+                          unit: existing.unit,
+                          maxQuantity: existing.maxQuantity,
+                          specification: existing.specification,
+                          invoicePrice: existing.invoicePrice,
+                          alertThreshold: existing.alertThreshold,
+                          location: existing.location || '',
+                          note: existing.note || '',
+                        }));
+                      } else {
+                        setImportForm(p => ({ ...p, code }));
+                      }
+                    }} />
                   </div>
                   <div className="input-group">
                     <label className="input-label">Tên Hoá Chất (*)</label>

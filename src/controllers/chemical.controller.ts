@@ -66,6 +66,16 @@ export const createChemical = async (req: Request, res: Response) => {
         where: { code: data.code },
         data: {
           quantity: { increment: data.quantity },
+          name: data.name,
+          unit: data.unit,
+          maxQuantity: data.maxQuantity,
+          specification: data.specification,
+          invoicePrice: data.invoicePrice,
+          unitPrice,
+          importDate: new Date(data.importDate),
+          alertThreshold: data.alertThreshold,
+          location: data.location,
+          note: data.note,
           transactions: {
             create: {
               type: 'IMPORT',
