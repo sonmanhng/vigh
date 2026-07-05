@@ -24,7 +24,7 @@ export const getNotifications = async (req: Request, res: Response) => {
 export const markAsRead = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const notificationId = parseInt(req.params.id);
+    const notificationId = parseInt(req.params.id as string);
     if (!userId || isNaN(notificationId)) return res.status(400).json({ error: 'Invalid data' });
 
     const updated = await prisma.notification.update({
