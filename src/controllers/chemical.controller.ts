@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { getIO } from '../socket';
 import { z } from 'zod';
+import ExcelJS from 'exceljs';
+import path from 'path';
 
 const chemicalSchema = z.object({
   code: z.string().min(1),
@@ -377,6 +379,95 @@ export const updateProposalStatus = async (req: any, res: any) => {
     res.json(updated);
   } catch (err: any) {
     console.error(err);
-    res.status(500).json({ error: 'Lỗi cập nhật trạng thái đề xuất' });
+    res.status(500).json({ error: 'Lỗi cập nhật trạng thái phiếu' });
+  }
+};
+
+export const exportProposalToExcel = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const proposal = await prisma.chemicalProposal.findUnique({
+      where: { id: Number(id) },
+      include: {
+        creator: { select: { name: true } },
+        approver1: { select: { name: true, role: true } },
+        approver2: { select: { name: true, role: true } },
+        items: {
+          include: {
+            chemical: { select: { name: true, unit: true } },
+            project: { select: { code: true } }
+          }
+        }
+      }
+    });
+
+    if (!proposal) {
+      return res.status(404).json({ error: 'Không tìm thấy phiếu đề xuất' });
+    }
+
+    const templatePath = path.join(__dirname, '..', 'templates', 'proposal_template.xlsx');
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(templatePath);
+    
+    const worksheet = workbook.worksheets[0];
+
+    // F5: Ngày tháng năm
+    const date = new Date(proposal.createdAt);
+    worksheet.getCell('F5').value = `Ngày ${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+
+    // A8: Nội dung
+    worksheet.getCell('A8').value = `Nội dung: ${proposal.note || 'Đề nghị xuất kho NVL cho việc thực hiện dự án'}`;
+
+    const items = proposal.items;
+    
+    // Rows 10 to 14 are available in the template. 
+    // If we have more than 5 items, we need to insert rows before filling data to shift signatures down
+    if (items.length > 5) {
+      // Insert rows starting at row 15 (after the 5 template rows)
+      // duplicate the formatting from row 14
+      for (let i = 0; i < items.length - 5; i++) {
+        worksheet.duplicateRow(14, 1, true);
+      }
+    }
+
+    // Fill data
+    for (let i = 0; i < items.length; i++) {
+      const rowNum = 10 + i;
+      const item = items[i];
+      worksheet.getCell(`A${rowNum}`).value = i + 1;
+      worksheet.getCell(`B${rowNum}`).value = item.chemical.name;
+      worksheet.getCell(`C${rowNum}`).value = item.chemical.unit;
+      worksheet.getCell(`D${rowNum}`).value = item.quantity;
+      worksheet.getCell(`E${rowNum}`).value = ''; // Giai đoạn, currently not in schema
+      worksheet.getCell(`F${rowNum}`).value = item.project?.code || '';
+    }
+
+    // Signatures
+    // Since we duplicated rows, the signature row shifted down by (items.length > 5 ? items.length - 5 : 0)
+    const shiftCount = items.length > 5 ? items.length - 5 : 0;
+    
+    // Signatures title row is 16 + shiftCount
+    const titleRow = 16 + shiftCount;
+    const nameRow = 20 + shiftCount;
+
+    // Fill actual approver1 role instead of hardcoding "Trưởng Phòng"
+    const approver1Role = proposal.approver1?.role === 'VienPho' ? 'Viện Phó' : 'Trưởng Phòng';
+    worksheet.getCell(`C${titleRow}`).value = approver1Role;
+    
+    // Fill names
+    worksheet.getCell(`A${nameRow}`).value = proposal.creator?.name || '';
+    worksheet.getCell(`C${nameRow}`).value = proposal.approver1?.name || '';
+    worksheet.getCell(`F${nameRow}`).value = proposal.approver2?.name || '';
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=DeXuat_${id}.xlsx`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error(err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Lỗi khi xuất file Excel' });
+    }
   }
 };

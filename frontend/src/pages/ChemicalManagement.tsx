@@ -615,12 +615,16 @@ export const ChemicalManagement: React.FC = () => {
                       {p.status === 'PENDING_LEVEL_2' && <span style={{ background: '#FFF7E6', color: '#D46B08', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Chờ duyệt Cấp 2</span>}
                       {p.status === 'APPROVED' && <span style={{ background: '#F6FFED', color: '#389E0D', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Đã duyệt toàn bộ</span>}
                       {p.status === 'REJECTED' && <span style={{ background: '#FFF1F0', color: '#CF1322', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Từ chối</span>}
-                      {proposalTab === 'pending' && p.status !== 'APPROVED' && p.status !== 'REJECTED' && (
-                        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
-                          <button onClick={() => handleUpdateProposalStatus(p.id, 'APPROVE')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#52C41A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Duyệt</button>
-                          <button onClick={() => handleUpdateProposalStatus(p.id, 'REJECT')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#FF4D4F', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Từ chối</button>
-                        </div>
-                      )}
+                      
+                      <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                        {proposalTab === 'pending' && p.status !== 'APPROVED' && p.status !== 'REJECTED' && (
+                          <>
+                            <button onClick={() => handleUpdateProposalStatus(p.id, 'APPROVE')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#52C41A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Duyệt</button>
+                            <button onClick={() => handleUpdateProposalStatus(p.id, 'REJECT')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#FF4D4F', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Từ chối</button>
+                          </>
+                        )}
+                        <button onClick={() => handleExportExcel(p.id)} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#1890FF', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>In/Xuất File</button>
+                      </div>
                     </td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{new Date(p.createdAt).toLocaleString('vi-VN')}</td>
                   </tr>

@@ -9,6 +9,7 @@ import {
   createProposal,
   getProposals,
   updateProposalStatus,
+  exportProposalToExcel,
   getApprovers,
 } from '../controllers/chemical.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
@@ -22,6 +23,7 @@ router.get('/approvers', getApprovers);
 router.post('/proposals', createProposal);
 router.get('/proposals', getProposals);
 router.put('/proposals/:id/status', updateProposalStatus);
+router.get('/proposals/:id/export', exportProposalToExcel);
 
 // Regular Chemical endpoints
 router.get('/transactions', getTransactions);
