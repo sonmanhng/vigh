@@ -484,16 +484,16 @@ export const ChemicalManagement: React.FC = () => {
         <>
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={() => { setImportForm(emptyImport()); setModal('import'); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}>
+            <button className="btn" onClick={() => { setImportForm(emptyImport()); setModal('import'); }} style={{ background: 'var(--primary)', color: '#fff' }}>
               Nhập Hoá Chất
             </button>
-            <button onClick={() => setModal('export')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid var(--primary)', background: 'rgba(0,150,136,0.06)', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <button className="btn" onClick={() => setModal('export')} style={{ background: '#08979c', color: '#fff' }}>
               Xuất Hoá Chất
             </button>
-            <button onClick={() => setModal('proposal')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid #722ED1', background: 'rgba(114,46,209,0.05)', color: '#722ED1', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <button className="btn" onClick={() => setModal('proposal')} style={{ background: '#722ED1', color: '#fff' }}>
               Đề Xuất Hoá Chất
             </button>
-            <button onClick={() => setModal('alert')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid #FAAD14', background: 'rgba(250,173,20,0.06)', color: '#D48806', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <button className="btn" onClick={() => setModal('alert')} style={{ background: '#D48806', color: '#fff' }}>
               Tuỳ Chỉnh Cảnh Báo
             </button>
           </div>
