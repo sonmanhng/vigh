@@ -55,6 +55,90 @@ export const getTransactions = async (req: Request, res: Response) => {
   }
 };
 
+// GET /api/chemicals/statistics/projects — Thống kê sử dụng hoá chất theo dự án
+export const getProjectStatistics = async (req: Request, res: Response) => {
+  try {
+    const role = (req as any).user?.role;
+    const userId = (req as any).user?.id;
+
+    let projectCodes: string[] | undefined = undefined;
+
+    if (!['SuperAdmin', 'VienTruong', 'VienPho'].includes(role)) {
+      // Find projects this user belongs to
+      const userProjects = await prisma.project.findMany({
+        where: {
+          OR: [
+            { managerId: userId },
+            { members: { some: { id: userId } } }
+          ]
+        },
+        select: { code: true }
+      });
+      projectCodes = userProjects.map(p => p.code).filter(Boolean) as string[];
+      if (projectCodes.length === 0) {
+        return res.json([]);
+      }
+    }
+
+    const whereClause: any = { type: 'EXPORT', projectCode: { not: null } };
+    if (projectCodes) {
+      whereClause.projectCode = { in: projectCodes };
+    }
+
+    const transactions = await prisma.chemicalTransaction.findMany({
+      where: whereClause,
+      include: { chemical: true }
+    });
+
+    const statsMap: Record<string, any> = {};
+
+    for (const tx of transactions) {
+      if (!tx.projectCode) continue;
+      
+      if (!statsMap[tx.projectCode]) {
+        statsMap[tx.projectCode] = {
+          projectCode: tx.projectCode,
+          chemicals: {}
+        };
+      }
+
+      const chemId = tx.chemicalId;
+      if (!statsMap[tx.projectCode].chemicals[chemId]) {
+        statsMap[tx.projectCode].chemicals[chemId] = {
+          chemicalId: chemId,
+          chemicalCode: tx.chemical.code,
+          chemicalName: tx.chemical.name,
+          unit: tx.chemical.unit,
+          totalQuantity: 0,
+          totalValue: 0
+        };
+      }
+
+      statsMap[tx.projectCode].chemicals[chemId].totalQuantity += tx.quantity;
+      statsMap[tx.projectCode].chemicals[chemId].totalValue += (tx.quantity * tx.chemical.unitPrice);
+    }
+
+    const allProjectCodes = Object.keys(statsMap);
+    const projects = await prisma.project.findMany({
+      where: { code: { in: allProjectCodes } },
+      select: { code: true, name: true }
+    });
+    
+    const codeToNameMap = new Map(projects.map(p => [p.code, p.name]));
+
+    const result = allProjectCodes.map(code => ({
+      projectCode: code,
+      projectName: codeToNameMap.get(code) || 'Dự án không tồn tại',
+      chemicals: Object.values(statsMap[code].chemicals)
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi lấy thống kê theo dự án' });
+  }
+};
+
 // POST /api/chemicals — Nhập hoá chất mới
 export const createChemical = async (req: Request, res: Response) => {
   try {

@@ -29,10 +29,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
     setSuccess(null);
 
     try {
-      const payload: any = { 
-        name, 
-        avatar, 
-        department, 
+      const payload: any = {
+        name,
+        avatar,
+        department,
         phone,
         orcid,
         scholar,
@@ -65,7 +65,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
           <div className="modal-title">Hồ Sơ Cá Nhân VIGH</div>
           <button type="button" className="modal-close-btn" onClick={onClose}>Đóng</button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
@@ -102,126 +102,126 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
 
             <div className="input-group">
               <label className="input-label">Họ và tên cán bộ</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                required 
+              <input
+                type="text"
+                className="input-field"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
               />
             </div>
 
             <div className="input-group">
               <label className="input-label">Phòng ban / Đơn vị công tác</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="VD: Phòng Nghiên cứu Dược liệu" 
-                value={department} 
-                onChange={(e) => setDepartment(e.target.value)} 
+              <input
+                type="text"
+                className="input-field"
+                placeholder="VD: Phòng Nghiên cứu Dược liệu"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
               />
             </div>
 
             <div className="input-group">
               <label className="input-label">Cơ quan / Tổ chức liên kết (Affiliations)</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="VD: Đại học Bách Khoa, Viện VIGH" 
-                value={affiliations} 
-                onChange={(e) => setAffiliations(e.target.value)} 
+              <input
+                type="text"
+                className="input-field"
+                placeholder="VD: VIGH"
+                value={affiliations}
+                onChange={(e) => setAffiliations(e.target.value)}
               />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Các cơ quan cách nhau bằng dấu phẩy (,)</span>
             </div>
 
             <div className="input-group">
               <label className="input-label">Số điện thoại liên hệ</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="VD: 0912 345 678" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)} 
+              <input
+                type="text"
+                className="input-field"
+                placeholder="VD: 0912 345 678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
             </div>
 
             <div className="input-group">
               <label className="input-label">Mã số nhà khoa học (ORCID)</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="VD: 0000-0002-1825-0097" 
-                value={orcid} 
-                onChange={(e) => setOrcid(e.target.value)} 
+              <input
+                type="text"
+                className="input-field"
+                placeholder="VD: 0000-0002-1825-0097"
+                value={orcid}
+                onChange={(e) => setOrcid(e.target.value)}
               />
             </div>
 
             <div className="input-group">
               <label className="input-label">Google Scholar ID (Nếu có)</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 name="scholarId"
                 autoComplete="off"
-                className="input-field" 
-                placeholder="VD: uB2d8iMAAAAJ" 
-                value={scholar} 
-                onChange={(e) => setScholar(e.target.value)} 
+                className="input-field"
+                placeholder="VD: uB2d8iMAAAAJ"
+                value={scholar}
+                onChange={(e) => setScholar(e.target.value)}
               />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Chỉ cần nhập ID cuối đường link. Ví dụ link là: scholar.google.com/citations?user=uB2d8iMAAAAJ thì nhập phần "uB2d8iMAAAAJ"</span>
             </div>
 
             <div className="input-group">
               <label className="input-label">Lý lịch khoa học / Giới thiệu bản thân</label>
-              <textarea 
-                className="input-field" 
+              <textarea
+                className="input-field"
                 style={{ minHeight: '80px', resize: 'vertical' }}
-                placeholder="Viết một đoạn ngắn giới thiệu về bản thân..." 
-                value={bio} 
-                onChange={(e) => setBio(e.target.value)} 
+                placeholder="Viết một đoạn ngắn giới thiệu về bản thân..."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
               />
             </div>
 
             <div className="input-group">
               <label className="input-label">Các hướng nghiên cứu chính</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="VD: Dược lý học, Hóa thực vật, Sinh học phân tử..." 
-                value={researchInterests} 
-                onChange={(e) => setResearchInterests(e.target.value)} 
+              <input
+                type="text"
+                className="input-field"
+                placeholder="VD: Dược lý học, Hóa thực vật, Sinh học phân tử..."
+                value={researchInterests}
+                onChange={(e) => setResearchInterests(e.target.value)}
               />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ngăn cách các hướng nghiên cứu bằng dấu phẩy (,)</span>
             </div>
 
             <div className="input-group">
               <label className="input-label">Đường dẫn ảnh đại diện (Avatar URL)</label>
-              <input 
-                type="url" 
-                className="input-field" 
-                placeholder="https://example.com/avatar.jpg" 
-                value={avatar} 
-                onChange={(e) => setAvatar(e.target.value)} 
+              <input
+                type="url"
+                className="input-field"
+                placeholder="https://example.com/avatar.jpg"
+                value={avatar}
+                onChange={(e) => setAvatar(e.target.value)}
               />
             </div>
 
             <div className="input-group">
               <label className="input-label">Đổi mật khẩu mới (Bỏ trống nếu không đổi)</label>
-              <input 
-                type="password" 
+              <input
+                type="password"
                 name="new-password"
                 autoComplete="new-password"
-                className="input-field" 
-                placeholder="Để trống nếu không muốn đổi mật khẩu" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
+                className="input-field"
+                placeholder="Để trống nếu không muốn đổi mật khẩu"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
 
           <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
-            <button 
-              type="button" 
-              className="btn btn-danger btn-sm" 
+            <button
+              type="button"
+              className="btn btn-danger btn-sm"
               onClick={() => { onClose(); logout(); }}
             >
               Đăng Xuất Khỏi Hệ Thống

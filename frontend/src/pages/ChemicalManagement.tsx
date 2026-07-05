@@ -37,6 +37,19 @@ interface Project {
   code: string;
 }
 
+interface ProjectStatistic {
+  projectCode: string;
+  projectName: string;
+  chemicals: {
+    chemicalId: number;
+    chemicalCode: string;
+    chemicalName: string;
+    unit: string;
+    totalQuantity: number;
+    totalValue: number;
+  }[];
+}
+
 interface ProposalItem {
   chemicalName: string;
   unit: string;
@@ -106,6 +119,7 @@ export const ChemicalManagement: React.FC = () => {
   const [proposalTab, setProposalTab] = useState<'my_proposals' | 'pending'>('my_proposals');
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [projectStatistics, setProjectStatistics] = useState<ProjectStatistic[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alertBanner, setAlertBanner] = useState<string | null>(null);
@@ -180,6 +194,15 @@ export const ChemicalManagement: React.FC = () => {
     }
   }, []);
 
+  const fetchProjectStatistics = useCallback(async () => {
+    try {
+      const res = await apiClient.get<ProjectStatistic[]>('/chemicals/statistics/projects');
+      setProjectStatistics(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   const fetchApprovers = useCallback(async () => {
     try {
       const res = await apiClient.get('/chemicals/approvers');
@@ -218,6 +241,7 @@ export const ChemicalManagement: React.FC = () => {
   
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
   useEffect(() => { if (activeTab === 'proposals') fetchProposals(); }, [activeTab, fetchProposals]);
+  useEffect(() => { if (activeTab === 'statistics') fetchProjectStatistics(); }, [activeTab, fetchProjectStatistics]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleImportSubmit = async (e: React.FormEvent) => {
@@ -652,41 +676,39 @@ export const ChemicalManagement: React.FC = () => {
 
       {/* ── TAB: THỐNG KÊ ── */}
       {activeTab === 'statistics' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>Tỉ lệ tồn kho</div>
-            {chemicals.map(c => {
-              const pct = getPercent(c);
-              const low = isLow(c);
-              return (
-                <div key={c.id} style={{ marginBottom: '0.85rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
-                    <span style={{ fontWeight: 600 }}>{c.name}</span>
-                    <span style={{ color: low ? '#FF4D4F' : '#52C41A', fontWeight: 700 }}>{pct}%</span>
-                  </div>
-                  <div style={{ background: '#E2E8F0', borderRadius: '4px', height: '6px' }}>
-                    <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: low ? '#FF4D4F' : pct > 70 ? '#52C41A' : '#FAAD14', borderRadius: '4px' }} />
-                  </div>
-                </div>
-              );
-            })}
-            {chemicals.length === 0 && <div style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Chưa có dữ liệu</div>}
-          </div>
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>Giá trị kho theo hoá chất</div>
-            {chemicals.sort((a, b) => (b.unitPrice * b.quantity) - (a.unitPrice * a.quantity)).map(c => (
-              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--border-color)', fontSize: '0.88rem' }}>
-                <span style={{ fontWeight: 600 }}>{c.code} — {c.name}</span>
-                <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{fmtVND(c.unitPrice * c.quantity)}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+          {projectStatistics.length === 0 ? (
+            <div style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', background: '#fff', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              Chưa có dữ liệu thống kê xuất kho cho dự án nào.
+            </div>
+          ) : projectStatistics.map(stat => (
+            <div key={stat.projectCode} className="card" style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.25rem' }}>
+                <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--primary)' }}>{stat.projectCode}</span>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-main)', fontWeight: 600 }}>{stat.projectName}</span>
               </div>
-            ))}
-            {chemicals.length > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0 0', fontWeight: 700, fontSize: '0.95rem' }}>
-                <span>Tổng cộng</span>
-                <span style={{ color: 'var(--primary)' }}>{fmtVND(totalValue)}</span>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {stat.chemicals.map(c => (
+                  <div key={c.chemicalId} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px dashed var(--border-color)' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{c.chemicalName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mã: {c.chemicalCode}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 700, color: '#D46B08' }}>{c.totalQuantity} {c.unit}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{fmtVND(c.totalValue)}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '1rem', fontWeight: 700, fontSize: '0.95rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
+                <span>Tổng chi phí:</span>
+                <span style={{ color: '#CF1322' }}>{fmtVND(stat.chemicals.reduce((sum, c) => sum + c.totalValue, 0))}</span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
