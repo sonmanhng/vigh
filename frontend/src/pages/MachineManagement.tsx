@@ -358,56 +358,58 @@ export const MachineManagement: React.FC = () => {
 
       {/* MODAL: NHẬP THIẾT BỊ */}
       {modal === 'import' && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '500px' }}>
+        <div className="modal-overlay" onClick={() => { setModal('none'); setError(null); }}>
+          <div className="modal-content" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Nhập thiết bị mới</h2>
-              <button className="close-btn" onClick={() => { setModal('none'); setError(null); }}>&times;</button>
+              <div className="modal-title">Nhập thiết bị mới</div>
+              <button className="modal-close-btn" onClick={() => { setModal('none'); setError(null); }}>Đóng</button>
             </div>
             <form onSubmit={handleImportSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="input-group">
-                  <label className="input-label">Mã tài sản (*)</label>
-                  <input className="input-field" required value={importForm.code} onChange={e => setImportForm({...importForm, code: e.target.value})} />
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Mã tài sản (*)</label>
+                    <input className="input-field" required placeholder="VD: M-001" value={importForm.code} onChange={e => setImportForm({...importForm, code: e.target.value})} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Tên tài sản (*)</label>
+                    <input className="input-field" required placeholder="VD: Máy ly tâm..." value={importForm.name} onChange={e => setImportForm({...importForm, name: e.target.value})} />
+                  </div>
                 </div>
+                
                 <div className="input-group">
-                  <label className="input-label">Tên tài sản (*)</label>
-                  <input className="input-field" required value={importForm.name} onChange={e => setImportForm({...importForm, name: e.target.value})} />
-                </div>
-              </div>
-              
-              <div className="input-group" style={{ marginBottom: '1rem' }}>
-                <label className="input-label">Đơn vị sử dụng (*)</label>
-                <select className="input-field" required value={importForm.department} onChange={e => setImportForm({...importForm, department: e.target.value})}>
-                  <option value="Phòng Công nghệ Dược">Phòng Công nghệ Dược</option>
-                  <option value="Chung">Chung</option>
-                  <option value="Phòng Thử nghiệm Sinh học">Phòng Thử nghiệm Sinh học</option>
-                  <option value="Văn phòng Công ty">Văn phòng Công ty</option>
-                  <option value="Phòng Tài nguyên và Công nghệ Sinh học">Phòng Tài nguyên và Công nghệ Sinh học</option>
-                  <option value="Phòng Khoa học Công nghệ">Phòng Khoa học Công nghệ</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="input-group">
-                  <label className="input-label">Phân loại</label>
-                  <input className="input-field" value={importForm.category} onChange={e => setImportForm({...importForm, category: e.target.value})} />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">Tình trạng</label>
-                  <select className="input-field" value={importForm.status} onChange={e => setImportForm({...importForm, status: e.target.value})}>
-                    <option value="IN_USE">Có sử dụng</option>
-                    <option value="NOT_IN_USE">Không sử dụng</option>
+                  <label className="input-label">Đơn vị sử dụng (*)</label>
+                  <select className="input-field" required value={importForm.department} onChange={e => setImportForm({...importForm, department: e.target.value})}>
+                    <option value="Phòng Công nghệ Dược">Phòng Công nghệ Dược</option>
+                    <option value="Chung">Chung</option>
+                    <option value="Phòng Thử nghiệm Sinh học">Phòng Thử nghiệm Sinh học</option>
+                    <option value="Văn phòng Công ty">Văn phòng Công ty</option>
+                    <option value="Phòng Tài nguyên và Công nghệ Sinh học">Phòng Tài nguyên và Công nghệ Sinh học</option>
+                    <option value="Phòng Khoa học Công nghệ">Phòng Khoa học Công nghệ</option>
                   </select>
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Phân loại</label>
+                    <input className="input-field" placeholder="VD: Thiết bị văn phòng..." value={importForm.category} onChange={e => setImportForm({...importForm, category: e.target.value})} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Tình trạng</label>
+                    <select className="input-field" value={importForm.status} onChange={e => setImportForm({...importForm, status: e.target.value})}>
+                      <option value="IN_USE">Có sử dụng</option>
+                      <option value="NOT_IN_USE">Không sử dụng</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Đặc điểm</label>
+                  <textarea className="input-field" style={{ minHeight: '60px', resize: 'vertical' }} placeholder="VD: Ghi chú tình trạng máy..." value={importForm.characteristics} onChange={e => setImportForm({...importForm, characteristics: e.target.value})} />
+                </div>
               </div>
 
-              <div className="input-group" style={{ marginBottom: '2rem' }}>
-                <label className="input-label">Đặc điểm</label>
-                <textarea className="input-field" rows={2} value={importForm.characteristics} onChange={e => setImportForm({...importForm, characteristics: e.target.value})} />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => { setModal('none'); setError(null); }}>Huỷ</button>
                 <button type="submit" className="btn btn-primary">Lưu thiết bị</button>
               </div>
@@ -418,45 +420,47 @@ export const MachineManagement: React.FC = () => {
 
       {/* MODAL: TIÊU HAO */}
       {modal === 'consume' && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '450px' }}>
+        <div className="modal-overlay" onClick={() => { setModal('none'); setError(null); }}>
+          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Ghi nhận tiêu hao thiết bị</h2>
-              <button className="close-btn" onClick={() => { setModal('none'); setError(null); }}>&times;</button>
+              <div className="modal-title">Ghi nhận tiêu hao thiết bị</div>
+              <button className="modal-close-btn" onClick={() => { setModal('none'); setError(null); }}>Đóng</button>
             </div>
             <form onSubmit={handleConsumeSubmit}>
-              <div className="input-group" style={{ marginBottom: '1rem' }}>
-                <label className="input-label">Chọn máy móc (*)</label>
-                <select className="input-field" required value={consumeForm.machineId} onChange={e => setConsumeForm({...consumeForm, machineId: e.target.value})}>
-                  <option value="">-- Chọn thiết bị --</option>
-                  {machines.filter(m => m.status === 'IN_USE').map(m => (
-                    <option key={m.id} value={m.id}>{m.code} - {m.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="input-group" style={{ marginBottom: '1rem' }}>
-                <label className="input-label">Dự án sử dụng (*)</label>
-                <select className="input-field" required value={consumeForm.projectId} onChange={e => setConsumeForm({...consumeForm, projectId: e.target.value})}>
-                  <option value="">-- Chọn dự án --</option>
-                  {projects.map(p => (
-                    <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
                 <div className="input-group">
-                  <label className="input-label">Ngày tiêu hao (*)</label>
-                  <input type="date" className="input-field" required value={consumeForm.date} onChange={e => setConsumeForm({...consumeForm, date: e.target.value})} />
+                  <label className="input-label">Chọn máy móc (*)</label>
+                  <select className="input-field" required value={consumeForm.machineId} onChange={e => setConsumeForm({...consumeForm, machineId: e.target.value})}>
+                    <option value="">-- Chọn thiết bị --</option>
+                    {machines.filter(m => m.status === 'IN_USE').map(m => (
+                      <option key={m.id} value={m.id}>{m.code} - {m.name}</option>
+                    ))}
+                  </select>
                 </div>
+
                 <div className="input-group">
-                  <label className="input-label">Số phút (*)</label>
-                  <input type="number" className="input-field" required min="1" value={consumeForm.minutes} onChange={e => setConsumeForm({...consumeForm, minutes: e.target.value})} />
+                  <label className="input-label">Dự án sử dụng (*)</label>
+                  <select className="input-field" required value={consumeForm.projectId} onChange={e => setConsumeForm({...consumeForm, projectId: e.target.value})}>
+                    <option value="">-- Chọn dự án --</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label className="input-label">Ngày tiêu hao (*)</label>
+                    <input type="date" className="input-field" required value={consumeForm.date} onChange={e => setConsumeForm({...consumeForm, date: e.target.value})} />
+                  </div>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label className="input-label">Số phút (*)</label>
+                    <input type="number" className="input-field" required min="1" placeholder="VD: 120" value={consumeForm.minutes} onChange={e => setConsumeForm({...consumeForm, minutes: e.target.value})} />
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => { setModal('none'); setError(null); }}>Huỷ</button>
                 <button type="submit" className="btn btn-primary">Ghi nhận</button>
               </div>
