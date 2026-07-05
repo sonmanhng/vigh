@@ -18,8 +18,9 @@ export const getNotifications = async (req: Request, res: Response) => {
         if (chemical.maxQuantity > 0) {
           const percentage = (chemical.quantity / chemical.maxQuantity) * 100;
           if (percentage < chemical.alertThreshold) {
-            // Kiểm tra xem đã có thông báo chưa đọc nào cho hoá chất này chưa
             const title = `Cảnh báo mức hoá chất: ${chemical.name}`;
+            const newMessage = `Hoá chất ${chemical.name} đang ở mức thấp (${percentage.toFixed(1)}%). Vui lòng kiểm tra và lên kế hoạch mua bổ sung.`;
+            
             const existingNotification = await prisma.notification.findFirst({
               where: {
                 userId,
@@ -34,10 +35,16 @@ export const getNotifications = async (req: Request, res: Response) => {
                 data: [{
                   userId,
                   title,
-                  message: `Hoá chất ${chemical.name} đang ở mức thấp (${percentage.toFixed(1)}%). Vui lòng kiểm tra và lên kế hoạch mua bổ sung.`,
+                  message: newMessage,
                   type: 'CHEMICAL_WARNING'
                 }],
                 skipDuplicates: true
+              }).catch(() => {});
+            } else if (existingNotification.message !== newMessage) {
+              // Cập nhật lại nội dung và đẩy thông báo lên đầu nếu số lượng tiếp tục giảm (hoặc thay đổi)
+              await prisma.notification.update({
+                where: { id: existingNotification.id },
+                data: { message: newMessage, createdAt: new Date() }
               }).catch(() => {});
             }
           }
