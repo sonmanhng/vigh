@@ -373,7 +373,7 @@ export const ChemicalManagement: React.FC = () => {
                       <th style={{ padding: '0.9rem 1rem' }}>Tên Hoá Chất</th>
                       <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Đơn Giá (VNĐ)</th>
                       <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Ngày Nhập</th>
-                      <th style={{ padding: '0.9rem 1rem', textAlign: 'center', width: '220px' }}>Số Lượng & Tiến Độ</th>
+                      <th style={{ padding: '0.9rem 1rem', textAlign: 'center', width: '150px' }}>Số Lượng</th>
                       <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Trạng Thái</th>
                       <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Thao Tác</th>
                     </tr>
@@ -398,13 +398,9 @@ export const ChemicalManagement: React.FC = () => {
                             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>HĐ: {fmtVND(c.invoicePrice)} / {c.specification} {c.unit}</div>
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center', fontSize: '0.88rem', color: 'var(--text-muted)' }}>{fmtDate(c.importDate)}</td>
-                          <td style={{ padding: '0.9rem 1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem', fontSize: '0.88rem', fontWeight: 600 }}>
-                              <span style={{ color: low ? '#CF1322' : 'var(--text-main)' }}>{c.quantity} {c.unit}</span>
-                              <span style={{ color: low ? '#FF4D4F' : pct > 70 ? '#52C41A' : '#FAAD14' }}>{pct}%</span>
-                            </div>
-                            <div style={{ background: '#E2E8F0', borderRadius: '6px', height: '7px', overflow: 'hidden' }}>
-                              <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: low ? '#FF4D4F' : pct > 70 ? '#52C41A' : '#FAAD14', transition: 'width 0.4s' }} />
+                          <td style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>
+                            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: low ? '#CF1322' : 'var(--text-main)' }}>
+                              {c.quantity} {c.unit}
                             </div>
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>
