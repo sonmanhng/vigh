@@ -41,7 +41,7 @@ export const BackgroundMonitor: React.FC = () => {
                 if (isTauri() && tauriPermission && tauriSendNotification) {
                   tauriSendNotification({ title, body: bodyStr });
                 } else if ('Notification' in window && Notification.permission === 'granted') {
-                  new Notification(title, { body: bodyStr, icon: '/logo.png' });
+                  new Notification(title, { body: bodyStr, icon: '/logo-app.png' });
                 }
                 
                 notifiedIds.add(c.id);
