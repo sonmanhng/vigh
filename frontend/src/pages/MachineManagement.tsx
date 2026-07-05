@@ -485,17 +485,6 @@ export const MachineManagement: React.FC = () => {
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.cleanHours}</td>
                     </tr>
                   ))}
-
-                  {statType === 'labor' && adminLaborStats.map(s => (
-                    <tr key={s.userId} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--primary)' }}>{s.userName}</td>
-                      <td style={{ padding: '1rem' }}>{s.department || '—'}</td>
-                      <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 700 }}>{s.loggedDays}</td>
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>{s.adminPercent.toFixed(1)}%</td>
-                      <td style={{ padding: '1rem', textAlign: 'right', color: '#096dd9' }}>{s.proPercent.toFixed(1)}%</td>
-                      <td style={{ padding: '1rem', textAlign: 'right', color: '#d46b08' }}>{s.cleanPercent.toFixed(1)}%</td>
-                    </tr>
-                  ))}
                 </tbody>
               </table>
             </div>
