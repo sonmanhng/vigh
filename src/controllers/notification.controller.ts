@@ -10,8 +10,8 @@ export const getNotifications = async (req: Request, res: Response) => {
     if (!userId || !user) return res.status(401).json({ error: 'Unauthorized' });
 
     // Tự động quét hoá chất dưới ngưỡng nếu là quản lý
-    const managerRoles = ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'];
-    if (managerRoles.includes(user.role)) {
+    const managerRoles = ['superadmin', 'vientruong', 'vienpho', 'truongphong', 'admin', 'manager'];
+    if (managerRoles.includes(user.role.toLowerCase())) {
       const allChemicals = await prisma.chemical.findMany();
       
       for (const chemical of allChemicals) {
