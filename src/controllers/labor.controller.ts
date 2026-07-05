@@ -285,3 +285,124 @@ export const getAdminLaborStats = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi lấy thống kê toàn hệ thống' });
   }
 };
+
+export const createOvertimeRequest = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { date, hours, reason, projectId, approver1Id, approver2Id } = req.body;
+
+    if (!date || !hours || !reason || !approver1Id || !approver2Id) {
+      return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin bắt buộc' });
+    }
+
+    const request = await prisma.overtimeRequest.create({
+      data: {
+        userId,
+        date: new Date(date),
+        hours: Number(hours),
+        reason,
+        projectId: projectId ? Number(projectId) : null,
+        approver1Id: Number(approver1Id),
+        approver2Id: Number(approver2Id),
+      }
+    });
+
+    res.status(201).json(request);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Lỗi server khi tạo đề xuất' });
+  }
+};
+
+export const getMyOvertimeRequests = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const requests = await prisma.overtimeRequest.findMany({
+      where: { userId },
+      include: {
+        project: { select: { id: true, code: true, name: true } },
+        approver1: { select: { id: true, name: true, role: true } },
+        approver2: { select: { id: true, name: true, role: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(requests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Lỗi lấy danh sách đề xuất' });
+  }
+};
+
+export const getPendingOvertimeRequests = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    // Requests waiting for approver1 or approver2
+    const requests = await prisma.overtimeRequest.findMany({
+      where: {
+        OR: [
+          { approver1Id: userId, level1Status: 'PENDING' },
+          { approver2Id: userId, level1Status: 'APPROVED', level2Status: 'PENDING' }
+        ]
+      },
+      include: {
+        user: { select: { id: true, name: true, department: true } },
+        project: { select: { id: true, code: true, name: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(requests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Lỗi lấy danh sách duyệt đề xuất' });
+  }
+};
+
+export const approveOvertimeRequest = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body; // 'APPROVE' or 'REJECT'
+    const userId = req.user?.id;
+
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const request = await prisma.overtimeRequest.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!request) return res.status(404).json({ error: 'Không tìm thấy đề xuất' });
+
+    let dataToUpdate: any = {};
+
+    if (request.approver1Id === userId && request.level1Status === 'PENDING') {
+      dataToUpdate.level1Status = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
+      if (action === 'REJECTED') {
+        dataToUpdate.status = 'REJECTED';
+      } else {
+        dataToUpdate.status = 'PENDING_LEVEL_2';
+      }
+    } else if (request.approver2Id === userId && request.level1Status === 'APPROVED' && request.level2Status === 'PENDING') {
+      dataToUpdate.level2Status = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
+      dataToUpdate.status = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
+    } else {
+      return res.status(403).json({ error: 'Bạn không có quyền duyệt đề xuất này ở thời điểm hiện tại' });
+    }
+
+    const updated = await prisma.overtimeRequest.update({
+      where: { id: Number(id) },
+      data: dataToUpdate
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Lỗi duyệt đề xuất' });
+  }
+};

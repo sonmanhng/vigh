@@ -4,7 +4,11 @@ import {
   getMyLaborLogs,
   deleteLaborLog,
   getMyLaborStats,
-  getAdminLaborStats
+  getAdminLaborStats,
+  createOvertimeRequest,
+  getMyOvertimeRequests,
+  getPendingOvertimeRequests,
+  approveOvertimeRequest
 } from '../controllers/labor.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
@@ -17,6 +21,12 @@ router.post('/', addLaborLog);
 router.get('/my-logs', getMyLaborLogs);
 router.delete('/:id', deleteLaborLog);
 router.get('/my-statistics', getMyLaborStats);
+
+// Overtime endpoints
+router.post('/overtime', createOvertimeRequest);
+router.get('/overtime/my-requests', getMyOvertimeRequests);
+router.get('/overtime/pending', getPendingOvertimeRequests);
+router.put('/overtime/:id/approve', approveOvertimeRequest);
 
 // Admin endpoints
 router.get('/admin-statistics', getAdminLaborStats);

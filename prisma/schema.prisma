@@ -29,6 +29,9 @@ model User {
   approved2Proposals ChemicalProposal[] @relation("Approver2Proposals")
   machineLogs      MachineLog[] @relation("MachineLogCreator")
   laborLogs        LaborLog[]   @relation("UserLaborLogs")
+  overtimeRequests        OvertimeRequest[] @relation("OvertimeRequester")
+  approved1Overtime       OvertimeRequest[] @relation("Approver1Overtime")
+  approved2Overtime       OvertimeRequest[] @relation("Approver2Overtime")
   createdAt        DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -58,6 +61,7 @@ model Project {
   chemicalProposalItems ChemicalProposalItem[]
   machineLogs      MachineLog[]
   laborLogs        LaborLog[]   @relation("ProjectLaborLogs")
+  overtimeRequests        OvertimeRequest[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
@@ -188,4 +192,24 @@ model LaborLog {
   project     Project? @relation("ProjectLaborLogs", fields: [projectId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model OvertimeRequest {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation("OvertimeRequester", fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime
+  hours        Float
+  reason       String
+  projectId    Int?
+  project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  approver1Id  Int?
+  approver1    User?    @relation("Approver1Overtime", fields: [approver1Id], references: [id], onDelete: SetNull)
+  approver2Id  Int?
+  approver2    User?    @relation("Approver2Overtime", fields: [approver2Id], references: [id], onDelete: SetNull)
+  status       String   @default("PENDING") // PENDING, PENDING_LEVEL_2, APPROVED, REJECTED
+  level1Status String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  level2Status String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

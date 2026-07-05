@@ -81,7 +81,29 @@ interface AdminLaborStat {
   projects: { projectId: number; projectName: string; projectCode: string; totalHours: number; percent: number }[];
 }
 
-type Tab = 'machines' | 'labor' | 'statistics' | 'history';
+type Tab = 'machines' | 'labor' | 'statistics' | 'history' | 'overtime-approval';
+
+interface UserData {
+  id: number;
+  name: string;
+  role: string;
+  department?: string;
+}
+
+interface OvertimeRequest {
+  id: number;
+  date: string;
+  hours: number;
+  reason: string;
+  project?: { code: string; name: string };
+  approver1?: UserData;
+  approver2?: UserData;
+  user?: UserData;
+  status: string;
+  level1Status: string;
+  level2Status: string;
+  createdAt: string;
+}
 
 export const MachineManagement: React.FC = () => {
   const { user } = useAuth();
@@ -95,6 +117,19 @@ export const MachineManagement: React.FC = () => {
   const [laborLogs, setLaborLogs] = useState<LaborLog[]>([]);
   const [laborStats, setLaborStats] = useState<LaborStatsResponse | null>(null);
   const [adminLaborStats, setAdminLaborStats] = useState<AdminLaborStat[]>([]);
+  
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [myOvertimeRequests, setMyOvertimeRequests] = useState<OvertimeRequest[]>([]);
+  const [pendingOvertimeRequests, setPendingOvertimeRequests] = useState<OvertimeRequest[]>([]);
+  
+  const [overtimeForm, setOvertimeForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    hours: '',
+    reason: '',
+    projectId: '',
+    approver1Id: '',
+    approver2Id: '' // Automatically populated with VienTruong if possible, or selected
+  });
   
   const [laborForm, setLaborForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -112,7 +147,7 @@ export const MachineManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const [modal, setModal] = useState<'none' | 'import' | 'edit' | 'consume' | 'labor'>('none');
+  const [modal, setModal] = useState<'none' | 'import' | 'edit' | 'consume' | 'labor' | 'overtime'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
   
   // Forms
@@ -155,6 +190,32 @@ export const MachineManagement: React.FC = () => {
     }
   }, []);
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const res = await apiClient.get<UserData[]>('/users/assignable');
+      setUsers(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const fetchMyOvertimeRequests = useCallback(async () => {
+    try {
+      const res = await apiClient.get<OvertimeRequest[]>('/labor/overtime/my-requests');
+      setMyOvertimeRequests(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const fetchPendingOvertimeRequests = useCallback(async () => {
+    try {
+      const res = await apiClient.get<OvertimeRequest[]>('/labor/overtime/pending');
+      setPendingOvertimeRequests(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   const fetchLaborLogs = useCallback(async () => {
     try {
@@ -205,11 +266,13 @@ export const MachineManagement: React.FC = () => {
   useEffect(() => {
     fetchMachines();
     fetchProjects();
-  }, [fetchMachines, fetchProjects]);
+    fetchUsers();
+  }, [fetchMachines, fetchProjects, fetchUsers]);
 
   useEffect(() => { if (activeTab === 'history') fetchLogs(); }, [activeTab, fetchLogs]);
   useEffect(() => { if (activeTab === 'statistics') fetchStats(); }, [activeTab, fetchStats]);
-  useEffect(() => { if (activeTab === 'labor') { fetchLaborLogs(); fetchLaborStats(); } }, [activeTab, fetchLaborLogs, fetchLaborStats]);
+  useEffect(() => { if (activeTab === 'labor') { fetchLaborLogs(); fetchLaborStats(); fetchMyOvertimeRequests(); } }, [activeTab, fetchLaborLogs, fetchLaborStats, fetchMyOvertimeRequests]);
+  useEffect(() => { if (activeTab === 'overtime-approval') { fetchPendingOvertimeRequests(); } }, [activeTab, fetchPendingOvertimeRequests]);
 
 
   const handleImportSubmit = async (e: React.FormEvent) => {
@@ -283,6 +346,34 @@ export const MachineManagement: React.FC = () => {
     }
   };
 
+  const handleOvertimeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      let finalApprover2Id = overtimeForm.approver2Id;
+      if (!finalApprover2Id) {
+        const vt = users.find(u => u.role === 'VienTruong');
+        if (vt) finalApprover2Id = vt.id.toString();
+      }
+
+      await apiClient.post('/labor/overtime', { ...overtimeForm, approver2Id: finalApprover2Id });
+      setModal('none');
+      setOvertimeForm({ date: new Date().toISOString().split('T')[0], hours: '', reason: '', projectId: '', approver1Id: '', approver2Id: '' });
+      fetchMyOvertimeRequests();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi tạo đề xuất làm thêm giờ');
+    }
+  };
+
+  const handleApproveOvertime = async (id: number, action: 'APPROVE' | 'REJECT') => {
+    if (!window.confirm(`Bạn có chắc chắn muốn ${action === 'APPROVE' ? 'duyệt' : 'từ chối'} đề xuất này?`)) return;
+    try {
+      await apiClient.put(`/labor/overtime/${id}/approve`, { action });
+      fetchPendingOvertimeRequests();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi duyệt đề xuất');
+    }
+  };
+
   return (
     <div className="content-area">
       {/* HEADER */}
@@ -296,9 +387,14 @@ export const MachineManagement: React.FC = () => {
         <div style={{ display: 'flex', gap: '1rem' }}>
           
           {activeTab === 'labor' && (
-            <button className="btn btn-primary" onClick={() => setModal('labor')}>
-              <Plus size={18} /> Thêm giờ công
-            </button>
+            <>
+              <button className="btn btn-secondary" onClick={() => setModal('overtime')}>
+                <Plus size={18} /> Đề xuất làm thêm giờ
+              </button>
+              <button className="btn btn-primary" onClick={() => setModal('labor')}>
+                <Plus size={18} /> Thêm giờ công
+              </button>
+            </>
           )}
           {activeTab === 'machines' && (
 
@@ -321,6 +417,7 @@ export const MachineManagement: React.FC = () => {
           { id: 'labor', label: 'Nhân công' },
           { id: 'statistics', label: 'Thống kê' },
           { id: 'history', label: 'Lịch sử tiêu hao' },
+          ...(user && ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong'].includes(user.role) ? [{ id: 'overtime-approval', label: 'Duyệt làm thêm giờ' }] : []),
         ].map(t => (
           <button
             key={t.id}
@@ -484,6 +581,62 @@ export const MachineManagement: React.FC = () => {
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.adminHours}</td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.proHours}</td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.cleanHours}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* MY OVERTIME REQUESTS */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)', fontWeight: 700, fontSize: '1.1rem' }}>
+              Tiến trình đề xuất làm thêm giờ
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '1rem' }}>Ngày</th>
+                    <th style={{ padding: '1rem' }}>Số giờ</th>
+                    <th style={{ padding: '1rem' }}>Lý do / Công việc</th>
+                    <th style={{ padding: '1rem' }}>Dự án</th>
+                    <th style={{ padding: '1rem' }}>Người duyệt 1</th>
+                    <th style={{ padding: '1rem' }}>Người duyệt 2</th>
+                    <th style={{ padding: '1rem', textAlign: 'center' }}>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myOvertimeRequests.length === 0 ? (
+                    <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có đề xuất nào</td></tr>
+                  ) : myOvertimeRequests.map(r => (
+                    <tr key={r.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '1rem', fontWeight: 600 }}>{new Date(r.date).toLocaleDateString('vi-VN')}</td>
+                      <td style={{ padding: '1rem', color: '#D46B08', fontWeight: 700 }}>{r.hours} H</td>
+                      <td style={{ padding: '1rem' }}>{r.reason}</td>
+                      <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>{r.project?.name || '—'}</td>
+                      <td style={{ padding: '1rem' }}>
+                        <div>{r.approver1?.name || '—'}</div>
+                        <div style={{ fontSize: '0.8rem', color: r.level1Status === 'APPROVED' ? '#389e0d' : r.level1Status === 'REJECTED' ? '#cf1322' : '#d48806' }}>
+                          {r.level1Status === 'PENDING' ? 'Đang chờ' : r.level1Status === 'APPROVED' ? 'Đã duyệt' : 'Từ chối'}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <div>{r.approver2?.name || '—'}</div>
+                        <div style={{ fontSize: '0.8rem', color: r.level2Status === 'APPROVED' ? '#389e0d' : r.level2Status === 'REJECTED' ? '#cf1322' : '#d48806' }}>
+                          {r.level2Status === 'PENDING' ? 'Đang chờ' : r.level2Status === 'APPROVED' ? 'Đã duyệt' : 'Từ chối'}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>
+                        <span style={{
+                          background: r.status === 'APPROVED' ? '#F6FFED' : r.status === 'REJECTED' ? '#FFF1F0' : '#FFFBE6',
+                          color: r.status === 'APPROVED' ? '#389E0D' : r.status === 'REJECTED' ? '#CF1322' : '#D48806',
+                          border: `1px solid ${r.status === 'APPROVED' ? '#B7EB8F' : r.status === 'REJECTED' ? '#FFA39E' : '#FFE58F'}`,
+                          borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.8rem', fontWeight: 600
+                        }}>
+                          {r.status === 'APPROVED' ? 'Đã duyệt' : r.status === 'REJECTED' ? 'Từ chối' : r.status === 'PENDING_LEVEL_2' ? 'Chờ duyệt cấp 2' : 'Chờ duyệt'}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -663,6 +816,52 @@ export const MachineManagement: React.FC = () => {
         </div>
       )}
 
+      {/* TAB: OVERTIME-APPROVAL */}
+      {activeTab === 'overtime-approval' && (
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '1rem' }}>Người đề xuất</th>
+                  <th style={{ padding: '1rem' }}>Ngày</th>
+                  <th style={{ padding: '1rem' }}>Số giờ</th>
+                  <th style={{ padding: '1rem' }}>Lý do / Công việc</th>
+                  <th style={{ padding: '1rem' }}>Dự án</th>
+                  <th style={{ padding: '1rem', width: '120px', textAlign: 'center' }}>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingOvertimeRequests.length === 0 ? (
+                  <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có đề xuất nào cần duyệt</td></tr>
+                ) : pendingOvertimeRequests.map(r => (
+                  <tr key={r.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ fontWeight: 600 }}>{r.user?.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{r.user?.department}</div>
+                    </td>
+                    <td style={{ padding: '1rem', fontWeight: 600 }}>{new Date(r.date).toLocaleDateString('vi-VN')}</td>
+                    <td style={{ padding: '1rem', color: '#D46B08', fontWeight: 700 }}>{r.hours} H</td>
+                    <td style={{ padding: '1rem' }}>{r.reason}</td>
+                    <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>{r.project?.name || '—'}</td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                        <button className="btn btn-primary btn-sm" onClick={() => handleApproveOvertime(r.id, 'APPROVE')} title="Duyệt đề xuất">
+                          Duyệt
+                        </button>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleApproveOvertime(r.id, 'REJECT')} title="Từ chối đề xuất">
+                          Từ chối
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: NHẬP THIẾT BỊ / SỬA THIẾT BỊ */}
       {(modal === 'import' || modal === 'edit') && (
         <div className="modal-overlay" onClick={() => { setModal('none'); setError(null); setEditingId(null); }}>
@@ -820,6 +1019,72 @@ export const MachineManagement: React.FC = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => { setModal('none'); setError(null); }}>Huỷ</button>
                 <button type="submit" className="btn btn-primary">Ghi nhận</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: OVERTIME */}
+      {modal === 'overtime' && (
+        <div className="modal-overlay" onClick={() => { setModal('none'); setError(null); }}>
+          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Đề xuất làm thêm giờ</div>
+              <button className="modal-close-btn" onClick={() => { setModal('none'); setError(null); }}>Đóng</button>
+            </div>
+            <form onSubmit={handleOvertimeSubmit}>
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label className="input-label">Ngày làm thêm (*)</label>
+                    <input type="date" className="input-field" required value={overtimeForm.date} onChange={e => setOvertimeForm({...overtimeForm, date: e.target.value})} />
+                  </div>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <label className="input-label">Số giờ (*)</label>
+                    <input type="number" step="0.5" min="0.5" max="24" className="input-field" required placeholder="VD: 2.5" value={overtimeForm.hours} onChange={e => setOvertimeForm({...overtimeForm, hours: e.target.value})} />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Công việc phát sinh cần làm thêm giờ (*)</label>
+                  <textarea className="input-field" required style={{ minHeight: '60px', resize: 'vertical' }} value={overtimeForm.reason} onChange={e => setOvertimeForm({...overtimeForm, reason: e.target.value})} />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Dự án liên quan</label>
+                  <select className="input-field" value={overtimeForm.projectId} onChange={e => setOvertimeForm({...overtimeForm, projectId: e.target.value})}>
+                    <option value="">-- Chọn dự án --</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Người duyệt 1 (*)</label>
+                  <select className="input-field" required value={overtimeForm.approver1Id} onChange={e => setOvertimeForm({...overtimeForm, approver1Id: e.target.value})}>
+                    <option value="">-- Chọn Trưởng phòng / Viện phó --</option>
+                    {users.filter(u => u.role === 'TruongPhong' || u.role === 'VienPho').map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="input-group" style={{ marginBottom: 0 }}>
+                  <label className="input-label">Người duyệt 2 (Mặc định)</label>
+                  <select className="input-field" value={overtimeForm.approver2Id || users.find(u => u.role === 'VienTruong')?.id || ''} disabled>
+                    <option value="">-- Viện trưởng --</option>
+                    {users.filter(u => u.role === 'VienTruong').map(u => (
+                      <option key={u.id} value={u.id}>{u.name} (VienTruong)</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => { setModal('none'); setError(null); }}>Huỷ</button>
+                <button type="submit" className="btn btn-primary">Gửi đề xuất</button>
               </div>
             </form>
           </div>
