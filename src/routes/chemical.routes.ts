@@ -6,6 +6,9 @@ import {
   updateChemical,
   deleteChemical,
   exportChemical,
+  createProposal,
+  getProposals,
+  updateProposalStatus,
 } from '../controllers/chemical.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
@@ -13,6 +16,12 @@ const router = Router();
 
 router.use(authenticateToken);
 
+// Proposals
+router.post('/proposals', createProposal);
+router.get('/proposals', getProposals);
+router.put('/proposals/:id/status', updateProposalStatus);
+
+// Regular Chemical endpoints
 router.get('/transactions', getTransactions);
 router.get('/', getChemicals);
 router.post('/', createChemical);

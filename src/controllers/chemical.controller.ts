@@ -209,3 +209,78 @@ export const exportChemical = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi server khi xuất hoá chất' });
   }
 };
+
+// ── PROPOSALS ─────────────────────────────────────────────────────────────
+
+export const createProposal = async (req: any, res: any) => {
+  try {
+    const { items, note } = req.body;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Danh sách đề xuất rỗng' });
+    }
+
+    const proposal = await prisma.chemicalProposal.create({
+      data: {
+        createdById: req.user.id,
+        note,
+        items: {
+          create: items.map((i: any) => ({
+            chemicalName: i.chemicalName,
+            unit: i.unit,
+            quantity: Number(i.quantity) || 0,
+            phase: i.phase,
+            projectId: i.projectId ? Number(i.projectId) : null,
+            projectCode: i.projectCode,
+          }))
+        }
+      },
+      include: { items: true }
+    });
+
+    res.status(201).json(proposal);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi khi tạo đề xuất' });
+  }
+};
+
+export const getProposals = async (req: any, res: any) => {
+  try {
+    const proposals = await prisma.chemicalProposal.findMany({
+      include: {
+        creator: { select: { name: true, email: true } },
+        items: {
+          include: { project: { select: { name: true, code: true } } }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(proposals);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi lấy danh sách đề xuất' });
+  }
+};
+
+export const updateProposalStatus = async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const role = req.user.role;
+    const isManagerOrAdmin = ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'].includes(role);
+    if (!isManagerOrAdmin) {
+      return res.status(403).json({ error: 'Bạn không có quyền duyệt đề xuất' });
+    }
+
+    const proposal = await prisma.chemicalProposal.update({
+      where: { id: Number(id) },
+      data: { status }
+    });
+
+    res.json(proposal);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi cập nhật trạng thái đề xuất' });
+  }
+};
