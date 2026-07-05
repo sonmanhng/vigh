@@ -5,19 +5,24 @@ import { apiClient } from '../api/client';
 import { Navbar } from '../components/Navbar';
 import { PersonnelManagement } from './PersonnelManagement';
 import { ChemicalManagement } from './ChemicalManagement';
+import { MachineManagement } from './MachineManagement';
+
+type Tab = 'projects' | 'personnel' | 'chemicals' | 'machines';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
-  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : 'projects');
+  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'machines' ? 'machines' : 'projects'));
   
-  const setActiveTab = (tab: 'projects' | 'personnel' | 'chemicals') => {
+  const setActiveTab = (tab: Tab) => {
     if (tab === 'personnel') {
       setSearchParams({ tab: 'personnel' });
     } else if (tab === 'chemicals') {
       setSearchParams({ tab: 'chemicals' });
+    } else if (tab === 'machines') {
+      setSearchParams({ tab: 'machines' });
     } else {
       setSearchParams({});
     }
@@ -126,6 +131,13 @@ export const Dashboard: React.FC = () => {
           >
             <span>Quản lý hoá chất</span>
           </button>
+
+          <button 
+            className={`menu-item ${activeTab === 'machines' ? 'active' : ''}`}
+            onClick={() => setActiveTab('machines')}
+          >
+            <span>Máy - Giờ công</span>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -144,6 +156,8 @@ export const Dashboard: React.FC = () => {
           <PersonnelManagement />
         ) : activeTab === 'chemicals' ? (
           <ChemicalManagement />
+        ) : activeTab === 'machines' ? (
+          <MachineManagement />
         ) : (
           <div className="content-area">
             {/* Project Progress Header */}
