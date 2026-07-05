@@ -527,9 +527,36 @@ export const MachineManagement: React.FC = () => {
           </div>
 
           {statType === 'labor' ? (
-             <div style={{ padding: '3rem', textAlign: 'center', background: '#fff', borderRadius: '12px', color: 'var(--text-muted)' }}>
-               Chưa có dữ liệu thống kê nhân công.
-             </div>
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '1rem' }}>Nhân sự</th>
+                      <th style={{ padding: '1rem' }}>Phòng ban</th>
+                      <th style={{ padding: '1rem', textAlign: 'right' }}>Số ngày làm</th>
+                      <th style={{ padding: '1rem', textAlign: 'right' }}>Hành chính (%)</th>
+                      <th style={{ padding: '1rem', textAlign: 'right' }}>Chuyên môn (%)</th>
+                      <th style={{ padding: '1rem', textAlign: 'right' }}>Dọn dẹp (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminLaborStats.length === 0 ? (
+                      <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Không có dữ liệu trong tháng này</td></tr>
+                    ) : adminLaborStats.map(s => (
+                      <tr key={s.userId} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                        <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--primary)' }}>{s.userName}</td>
+                        <td style={{ padding: '1rem' }}>{s.department || '—'}</td>
+                        <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 700 }}>{s.loggedDays}</td>
+                        <td style={{ padding: '1rem', textAlign: 'right' }}>{s.adminPercent.toFixed(1)}%</td>
+                        <td style={{ padding: '1rem', textAlign: 'right', color: '#096dd9' }}>{s.proPercent.toFixed(1)}%</td>
+                        <td style={{ padding: '1rem', textAlign: 'right', color: '#d46b08' }}>{s.cleanPercent.toFixed(1)}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
               {stats.length === 0 ? (
