@@ -30,6 +30,36 @@ interface Transaction {
   chemical: { code: string; name: string; unit: string };
 }
 
+interface Project {
+  id: number;
+  name: string;
+  code: string;
+}
+
+interface ProposalItem {
+  chemicalName: string;
+  unit: string;
+  quantity: string | number;
+  phase: string;
+  projectId: string | number;
+}
+
+interface Proposal {
+  id: number;
+  status: string;
+  note: string;
+  creator: { name: string; email: string };
+  createdAt: string;
+  items: {
+    id: number;
+    chemicalName: string;
+    unit: string;
+    quantity: number;
+    phase: string;
+    project: { name: string; code: string } | null;
+  }[];
+}
+
 type Tab = 'warehouse' | 'proposals' | 'statistics' | 'history';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -76,7 +106,7 @@ export const ChemicalManagement: React.FC = () => {
   const { socket } = useSocket();
 
   // Modal state
-  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert'>('none');
+  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'proposal'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
 
   // Import form
@@ -87,6 +117,14 @@ export const ChemicalManagement: React.FC = () => {
 
   // Alert threshold form
   const [alertForm, setAlertForm] = useState({ chemicalId: '', threshold: 50 });
+
+  // Proposal form
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [proposalItems, setProposalItems] = useState<ProposalItem[]>([
+    { chemicalName: '', unit: '', quantity: '', phase: '', projectId: '' }
+  ]);
+  const [proposalNote, setProposalNote] = useState('');
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   const fetchChemicals = useCallback(async () => {
@@ -114,6 +152,24 @@ export const ChemicalManagement: React.FC = () => {
     }
   }, []);
 
+  const fetchProjects = useCallback(async () => {
+    try {
+      const res = await apiClient.get<Project[]>('/projects');
+      setProjects(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const fetchProposals = useCallback(async () => {
+    try {
+      const res = await apiClient.get<Proposal[]>('/chemicals/proposals');
+      setProposals(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   useEffect(() => {
     if (!socket) return;
 
@@ -133,8 +189,12 @@ export const ChemicalManagement: React.FC = () => {
   useEffect(() => {
     fetchChemicals();
     fetchTransactions();
-  }, [fetchChemicals, fetchTransactions]);
+    fetchProjects();
+    fetchProposals();
+  }, [fetchChemicals, fetchTransactions, fetchProjects, fetchProposals]);
+  
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
+  useEffect(() => { if (activeTab === 'proposals') fetchProposals(); }, [activeTab, fetchProposals]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleImportSubmit = async (e: React.FormEvent) => {
@@ -195,6 +255,33 @@ export const ChemicalManagement: React.FC = () => {
       fetchChemicals();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi cập nhật hoá chất');
+    }
+  };
+
+  const handleProposalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (proposalItems.length === 0) return;
+    try {
+      await apiClient.post('/chemicals/proposals', {
+        note: proposalNote,
+        items: proposalItems,
+      });
+      setModal('none');
+      setProposalItems([{ chemicalName: '', unit: '', quantity: '', phase: '', projectId: '' }]);
+      setProposalNote('');
+      fetchProposals();
+      alert('Đã gửi đề xuất thành công!');
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi gửi đề xuất');
+    }
+  };
+
+  const handleUpdateProposalStatus = async (id: number, status: string) => {
+    try {
+      await apiClient.put(`/chemicals/proposals/${id}/status`, { status });
+      fetchProposals();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi cập nhật trạng thái');
     }
   };
 
@@ -335,7 +422,7 @@ export const ChemicalManagement: React.FC = () => {
             <button onClick={() => setModal('export')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid var(--primary)', background: 'rgba(0,150,136,0.06)', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               Xuất Hoá Chất
             </button>
-            <button onClick={() => {}} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid #722ED1', background: 'rgba(114,46,209,0.05)', color: '#722ED1', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <button onClick={() => setModal('proposal')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid #722ED1', background: 'rgba(114,46,209,0.05)', color: '#722ED1', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               Đề Xuất Hoá Chất
             </button>
             <button onClick={() => setModal('alert')} style={{ padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-md)', border: '1.5px solid #FAAD14', background: 'rgba(250,173,20,0.06)', color: '#D48806', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -429,10 +516,52 @@ export const ChemicalManagement: React.FC = () => {
 
       {/* ── TAB: ĐỀ XUẤT ── */}
       {activeTab === 'proposals' && (
-        <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
-          <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>Tiến Trình Đề Xuất</div>
-          <div>Tính năng đang được phát triển — phiên bản tiếp theo sẽ có luồng duyệt đề xuất hoá chất đa cấp.</div>
+        <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.82rem', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '0.9rem 1rem' }}>ID</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>Người Đề Xuất</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>Nội Dung</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Trạng Thái</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Ngày Đề Xuất</th>
+                </tr>
+              </thead>
+              <tbody>
+                {proposals.length === 0 ? (
+                  <tr><td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có đề xuất nào.</td></tr>
+                ) : proposals.map(p => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>#{p.id}</td>
+                    <td style={{ padding: '0.85rem 1rem' }}>
+                      <div style={{ fontWeight: 600 }}>{p.creator?.name || 'Ẩn danh'}</div>
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem' }}>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{p.note || 'Không có ghi chú'}</div>
+                      <div style={{ fontSize: '0.8rem' }}>
+                        {p.items.map((i, idx) => (
+                          <div key={idx}>- {i.chemicalName}: {i.quantity} {i.unit} (DA: {i.project?.code || 'Không có'})</div>
+                        ))}
+                      </div>
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                      {p.status === 'PENDING' && <span style={{ background: '#FFF7E6', color: '#D46B08', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Chờ duyệt</span>}
+                      {p.status === 'APPROVED' && <span style={{ background: '#F6FFED', color: '#389E0D', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Đã duyệt</span>}
+                      {p.status === 'REJECTED' && <span style={{ background: '#FFF1F0', color: '#CF1322', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Từ chối</span>}
+                      {p.status === 'PENDING' && (
+                        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                          <button onClick={() => handleUpdateProposalStatus(p.id, 'APPROVED')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#52C41A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Duyệt</button>
+                          <button onClick={() => handleUpdateProposalStatus(p.id, 'REJECTED')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#FF4D4F', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Từ chối</button>
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{new Date(p.createdAt).toLocaleString('vi-VN')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -689,6 +818,102 @@ export const ChemicalManagement: React.FC = () => {
                 } catch (e: any) { setError(e.response?.data?.error || 'Lỗi cập nhật ngưỡng cảnh báo'); }
               }}>💾 Lưu Cảnh Báo</button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Proposal Modal */}
+      {modal === 'proposal' && (
+        <div className="modal-overlay" onClick={() => setModal('none')}>
+          <div className="modal-content" style={{ maxWidth: '900px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Đề Xuất Hoá Chất</div>
+              <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
+            </div>
+            <form onSubmit={handleProposalSubmit}>
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
+                
+                <div className="input-group">
+                  <label className="input-label">Ghi Chú Đề Xuất</label>
+                  <input type="text" className="input-field" placeholder="Mục đích chung của đề xuất này..." value={proposalNote} onChange={e => setProposalNote(e.target.value)} />
+                </div>
+
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead style={{ background: '#F8FAFC' }}>
+                      <tr style={{ fontSize: '0.85rem' }}>
+                        <th style={{ padding: '0.5rem' }}>Tên vật tư</th>
+                        <th style={{ padding: '0.5rem', width: '80px' }}>ĐVT</th>
+                        <th style={{ padding: '0.5rem', width: '100px' }}>Số lượng</th>
+                        <th style={{ padding: '0.5rem', width: '120px' }}>Giai đoạn</th>
+                        <th style={{ padding: '0.5rem' }}>Dự án</th>
+                        <th style={{ padding: '0.5rem', width: '50px' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {proposalItems.map((item, idx) => (
+                        <tr key={idx} style={{ borderTop: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="text" className="input-field" required placeholder="Tên hoá chất..." value={item.chemicalName} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].chemicalName = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="text" className="input-field" required placeholder="Lít, kg..." value={item.unit} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].unit = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="number" step="any" min="0" className="input-field" required value={item.quantity} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].quantity = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="text" className="input-field" value={item.phase} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].phase = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem' }}>
+                            <select className="input-field" value={item.projectId} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].projectId = e.target.value;
+                              setProposalItems(newItems);
+                            }}>
+                              <option value="">— Chọn dự án —</option>
+                              {projects.map(p => (
+                                <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                            <button type="button" onClick={() => {
+                              if (proposalItems.length > 1) {
+                                setProposalItems(proposalItems.filter((_, i) => i !== idx));
+                              }
+                            }} style={{ border: 'none', background: 'none', color: '#CF1322', cursor: 'pointer', fontWeight: 800 }}>✕</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div style={{ padding: '0.5rem', background: '#F8FAFC', borderTop: '1px solid var(--border-color)' }}>
+                    <button type="button" onClick={() => setProposalItems([...proposalItems, { chemicalName: '', unit: '', quantity: '', phase: '', projectId: '' }])} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>+ Thêm dòng</button>
+                  </div>
+                </div>
+
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setModal('none')}>Huỷ</button>
+                <button type="submit" className="btn btn-primary">Gửi Đề Xuất</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
