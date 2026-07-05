@@ -404,7 +404,7 @@ export const exportProposalToExcel = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Không tìm thấy phiếu đề xuất' });
     }
 
-    const templatePath = path.join(__dirname, '..', 'templates', 'proposal_template.xlsx');
+    const templatePath = path.join(process.cwd(), 'src', 'templates', 'proposal_template.xlsx');
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(templatePath);
     
