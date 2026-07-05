@@ -10,6 +10,7 @@ import taskRoutes from './routes/task.routes';
 import chemicalRoutes from './routes/chemical.routes';
 import machineRoutes from './routes/machine.routes';
 import laborRoutes from './routes/labor.routes';
+import notificationRoutes from './routes/notification.routes';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/chemicals', chemicalRoutes);
 app.use('/api/machines', machineRoutes);
 app.use('/api/labor', laborRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {

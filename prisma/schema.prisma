@@ -32,6 +32,7 @@ model User {
   overtimeRequests        OvertimeRequest[] @relation("OvertimeRequester")
   approved1Overtime       OvertimeRequest[] @relation("Approver1Overtime")
   approved2Overtime       OvertimeRequest[] @relation("Approver2Overtime")
+  notifications           Notification[]    @relation("UserNotifications")
   createdAt        DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -212,4 +213,16 @@ model OvertimeRequest {
   level2Status String   @default("PENDING") // PENDING, APPROVED, REJECTED
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  type      String   // 'CHEMICAL_WARNING', 'OVERTIME_PENDING', 'OVERTIME_APPROVED', 'OVERTIME_REJECTED', 'PROPOSAL_PENDING', 'PROPOSAL_RESULT'
+  link      String?  // Optional link
+  createdAt DateTime @default(now())
 }

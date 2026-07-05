@@ -309,6 +309,26 @@ export const exportChemical = async (req: Request, res: Response) => {
     const percentage = (newQuantity / chemical.maxQuantity) * 100;
     const isLow = percentage < chemical.alertThreshold;
 
+    if (isLow) {
+      // Tìm các user có quyền quản lý để báo (SuperAdmin, VienTruong, VienPho, TruongPhong)
+      const managers = await prisma.user.findMany({
+        where: {
+          role: { in: ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'] }
+        }
+      });
+      
+      const notifications = managers.map(m => ({
+        userId: m.id,
+        title: 'Cảnh báo mức hoá chất',
+        message: `Hoá chất ${chemical.name} đã giảm xuống dưới ngưỡng cảnh báo (${percentage.toFixed(1)}%). Vui lòng kiểm tra và lên kế hoạch mua bổ sung.`,
+        type: 'CHEMICAL_WARNING'
+      }));
+
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({ data: notifications });
+      }
+    }
+
     res.json({
       chemical: updated,
       warning: isLow
@@ -390,6 +410,27 @@ export const createProposal = async (req: any, res: any) => {
       include: { items: true }
     });
 
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (overallStatus === 'PENDING' && approver1Id) {
+      await prisma.notification.create({
+        data: {
+          userId: Number(approver1Id),
+          title: 'Đề xuất mua hoá chất mới',
+          message: `${user?.name} vừa gửi đề xuất mua hoá chất. Vui lòng kiểm tra và phê duyệt.`,
+          type: 'PROPOSAL_PENDING',
+        }
+      });
+    } else if (overallStatus === 'PENDING_LEVEL_2' && approver2Id) {
+      await prisma.notification.create({
+        data: {
+          userId: Number(approver2Id),
+          title: 'Đề xuất mua hoá chất cần duyệt cấp 2',
+          message: `Đề xuất mua hoá chất của ${user?.name} đã được duyệt cấp 1. Vui lòng kiểm tra và phê duyệt.`,
+          type: 'PROPOSAL_PENDING',
+        }
+      });
+    }
+
     res.status(201).json(proposal);
   } catch (err: any) {
     console.error(err);
@@ -459,6 +500,29 @@ export const updateProposalStatus = async (req: any, res: any) => {
         }
       }
     });
+
+    if (status === 'PENDING_LEVEL_2' && proposal.approver2Id) {
+      await prisma.notification.create({
+        data: {
+          userId: proposal.approver2Id,
+          title: 'Đề xuất mua hoá chất cần duyệt cấp 2',
+          message: `Đề xuất mua hoá chất (ID: ${proposal.id}) đã được duyệt cấp 1. Vui lòng kiểm tra và phê duyệt.`,
+          type: 'PROPOSAL_PENDING'
+        }
+      });
+    } else if (status === 'APPROVED' || status === 'REJECTED') {
+      const statusText = status === 'APPROVED' ? 'Đã được phê duyệt' : 'Đã bị từ chối';
+      if (proposal.createdById) {
+        await prisma.notification.create({
+          data: {
+            userId: proposal.createdById,
+            title: `Đề xuất mua hoá chất ${statusText}`,
+            message: `Đề xuất mua hoá chất (ID: ${proposal.id}) của bạn ${statusText.toLowerCase()}.`,
+            type: status === 'APPROVED' ? 'PROPOSAL_RESULT' : 'PROPOSAL_RESULT'
+          }
+        });
+      }
+    }
 
     res.json(updated);
   } catch (err: any) {

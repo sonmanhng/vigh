@@ -314,6 +314,17 @@ export const createOvertimeRequest = async (req: Request, res: Response) => {
       }
     });
 
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    await prisma.notification.create({
+      data: {
+        userId: Number(approver1Id),
+        title: 'Đề xuất làm thêm giờ mới',
+        message: `${user?.name} vừa gửi đề xuất làm thêm ${hours} giờ. Vui lòng kiểm tra và phê duyệt.`,
+        type: 'OVERTIME_PENDING',
+      }
+    });
+
     res.status(201).json(request);
   } catch (error) {
     console.error(error);
@@ -404,6 +415,30 @@ export const approveOvertimeRequest = async (req: Request, res: Response) => {
       where: { id: Number(id) },
       data: dataToUpdate
     });
+
+    // Create notifications
+    if (dataToUpdate.status === 'PENDING_LEVEL_2' && request.approver2Id) {
+      // Notify approver 2
+      await prisma.notification.create({
+        data: {
+          userId: request.approver2Id,
+          title: 'Đề xuất làm thêm giờ cần duyệt cấp 2',
+          message: `Đề xuất làm thêm giờ (ID: ${request.id}) đã được duyệt cấp 1. Vui lòng kiểm tra và phê duyệt.`,
+          type: 'OVERTIME_PENDING'
+        }
+      });
+    } else if (dataToUpdate.status === 'APPROVED' || dataToUpdate.status === 'REJECTED') {
+      // Notify the requester
+      const statusText = dataToUpdate.status === 'APPROVED' ? 'Đã được phê duyệt' : 'Đã bị từ chối';
+      await prisma.notification.create({
+        data: {
+          userId: request.userId,
+          title: `Đề xuất làm thêm giờ ${statusText}`,
+          message: `Đề xuất làm thêm giờ (ID: ${request.id}) của bạn ${statusText.toLowerCase()}.`,
+          type: dataToUpdate.status === 'APPROVED' ? 'OVERTIME_APPROVED' : 'OVERTIME_REJECTED'
+        }
+      });
+    }
 
     res.json(updated);
   } catch (error) {
