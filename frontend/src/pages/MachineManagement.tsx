@@ -77,6 +77,7 @@ interface AdminLaborStat {
   adminPercent: number;
   proPercent: number;
   cleanPercent: number;
+  projects: { projectId: number; projectName: string; projectCode: string; totalHours: number; percent: number }[];
 }
 
 type Tab = 'machines' | 'labor' | 'statistics' | 'history';
@@ -103,6 +104,7 @@ export const MachineManagement: React.FC = () => {
   });
   
   const [laborMonth, setLaborMonth] = useState(new Date().toISOString().substring(0, 7));
+  const [laborViewMode, setLaborViewMode] = useState<'task' | 'project'>('task');
 
   
   // UI State
@@ -524,39 +526,85 @@ export const MachineManagement: React.FC = () => {
                 <option value="labor">Theo dõi nhân công</option>
               </select>
             </div>
+            {statType === 'labor' && (
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Chế độ xem</label>
+                <select className="input-field" value={laborViewMode} onChange={e => setLaborViewMode(e.target.value as any)}>
+                  <option value="task">Theo công việc (Hành chính/Chuyên môn...)</option>
+                  <option value="project">Theo Dự án tham gia</option>
+                </select>
+              </div>
+            )}
           </div>
 
           {statType === 'labor' ? (
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>
-                      <th style={{ padding: '1rem' }}>Nhân sự</th>
-                      <th style={{ padding: '1rem' }}>Phòng ban</th>
-                      <th style={{ padding: '1rem', textAlign: 'right' }}>Số ngày làm</th>
-                      <th style={{ padding: '1rem', textAlign: 'right' }}>Hành chính (%)</th>
-                      <th style={{ padding: '1rem', textAlign: 'right' }}>Chuyên môn (%)</th>
-                      <th style={{ padding: '1rem', textAlign: 'right' }}>Dọn dẹp (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adminLaborStats.length === 0 ? (
-                      <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Không có dữ liệu trong tháng này</td></tr>
-                    ) : adminLaborStats.map(s => (
-                      <tr key={s.userId} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--primary)' }}>{s.userName}</td>
-                        <td style={{ padding: '1rem' }}>{s.department || '—'}</td>
-                        <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 700 }}>{s.loggedDays}</td>
-                        <td style={{ padding: '1rem', textAlign: 'right' }}>{s.adminPercent.toFixed(1)}%</td>
-                        <td style={{ padding: '1rem', textAlign: 'right', color: '#096dd9' }}>{s.proPercent.toFixed(1)}%</td>
-                        <td style={{ padding: '1rem', textAlign: 'right', color: '#d46b08' }}>{s.cleanPercent.toFixed(1)}%</td>
+            laborViewMode === 'task' ? (
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                        <th style={{ padding: '1rem' }}>Nhân sự</th>
+                        <th style={{ padding: '1rem' }}>Phòng ban</th>
+                        <th style={{ padding: '1rem', textAlign: 'right' }}>Số ngày làm</th>
+                        <th style={{ padding: '1rem', textAlign: 'right' }}>Hành chính (%)</th>
+                        <th style={{ padding: '1rem', textAlign: 'right' }}>Chuyên môn (%)</th>
+                        <th style={{ padding: '1rem', textAlign: 'right' }}>Dọn dẹp (%)</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {adminLaborStats.length === 0 ? (
+                        <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Không có dữ liệu trong tháng này</td></tr>
+                      ) : adminLaborStats.map(s => (
+                        <tr key={s.userId} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--primary)' }}>{s.userName}</td>
+                          <td style={{ padding: '1rem' }}>{s.department || '—'}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 700 }}>{s.loggedDays}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right' }}>{s.adminPercent.toFixed(1)}%</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', color: '#096dd9' }}>{s.proPercent.toFixed(1)}%</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', color: '#d46b08' }}>{s.cleanPercent.toFixed(1)}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+                {adminLaborStats.length === 0 ? (
+                  <div style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', background: '#fff', borderRadius: '8px' }}>
+                    Không có dữ liệu trong tháng này.
+                  </div>
+                ) : adminLaborStats.map(s => (
+                  <div key={s.userId} className="card" style={{ padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-main)' }}>{s.userName}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{s.department || '—'}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--primary)' }}>
+                          {s.loggedDays} ngày
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Có ghi nhận</div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--text-muted)' }}>PHÂN BỔ DỰ ÁN TRONG THÁNG</div>
+                      {!s.projects || s.projects.length === 0 ? (
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Không có dự án nào</div>
+                      ) : s.projects.map(p => (
+                        <div key={p.projectId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-main)' }} title={p.projectName}>{p.projectCode || p.projectName}</span>
+                          <span style={{ color: '#389e0d', fontWeight: 700 }}>{p.percent.toFixed(1)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
               {stats.length === 0 ? (

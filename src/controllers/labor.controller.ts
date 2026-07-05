@@ -248,6 +248,25 @@ export const getAdminLaborStats = async (req: Request, res: Response) => {
         cleanTotal += l.cleanHours;
       });
 
+      const projectMap: Record<string, { projectId: number, projectName: string, projectCode: string, totalHours: number }> = {};
+      u.logs.forEach((l: any) => {
+        const pId = l.projectId ? l.projectId.toString() : 'none';
+        if (!projectMap[pId]) {
+          projectMap[pId] = {
+            projectId: l.projectId || 0,
+            projectName: l.project?.name || 'Khác',
+            projectCode: l.project?.code || '',
+            totalHours: 0
+          };
+        }
+        projectMap[pId].totalHours += (l.adminHours + l.proHours + l.cleanHours);
+      });
+
+      const projects = Object.values(projectMap).map(p => ({
+        ...p,
+        percent: (maxExpectedHours && maxExpectedHours > 0) ? (p.totalHours / maxExpectedHours) * 100 : 0
+      })).sort((a, b) => b.percent - a.percent);
+
       return {
         userId: u.userId,
         userName: u.userName,
@@ -256,6 +275,7 @@ export const getAdminLaborStats = async (req: Request, res: Response) => {
         adminPercent: maxExpectedHours > 0 ? (adminTotal / maxExpectedHours) * 100 : 0,
         proPercent: maxExpectedHours > 0 ? (proTotal / maxExpectedHours) * 100 : 0,
         cleanPercent: maxExpectedHours > 0 ? (cleanTotal / maxExpectedHours) * 100 : 0,
+        projects
       };
     });
 
