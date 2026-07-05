@@ -394,7 +394,6 @@ export const exportProposalToExcel = async (req: Request, res: Response) => {
         approver2: { select: { name: true, role: true } },
         items: {
           include: {
-            chemical: { select: { name: true, unit: true } },
             project: { select: { code: true } }
           }
         }
@@ -435,10 +434,10 @@ export const exportProposalToExcel = async (req: Request, res: Response) => {
       const rowNum = 10 + i;
       const item = items[i];
       worksheet.getCell(`A${rowNum}`).value = i + 1;
-      worksheet.getCell(`B${rowNum}`).value = item.chemical.name;
-      worksheet.getCell(`C${rowNum}`).value = item.chemical.unit;
+      worksheet.getCell(`B${rowNum}`).value = item.chemicalName;
+      worksheet.getCell(`C${rowNum}`).value = item.unit;
       worksheet.getCell(`D${rowNum}`).value = item.quantity;
-      worksheet.getCell(`E${rowNum}`).value = ''; // Giai đoạn, currently not in schema
+      worksheet.getCell(`E${rowNum}`).value = item.phase || '';
       worksheet.getCell(`F${rowNum}`).value = item.project?.code || '';
     }
 
