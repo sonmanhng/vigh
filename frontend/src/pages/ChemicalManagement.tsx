@@ -545,14 +545,14 @@ export const ChemicalManagement: React.FC = () => {
         <>
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <a href="/hoa_chat_mau.xlsx" download className="btn" style={{ background: '#f5f5f5', color: '#333', textDecoration: 'none', border: '1px solid #d9d9d9' }}>
+            <a href="/hoa_chat_mau.xlsx" download className="btn" style={{ background: 'var(--primary)', color: '#fff', textDecoration: 'none', border: 'none' }}>
               ⬇ File Excel Mẫu
             </a>
             <input type="file" accept=".xlsx, .xls, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
-            <button className="btn" onClick={() => fileInputRef.current?.click()} disabled={loading} style={{ background: '#52c41a', color: '#fff' }}>
+            <button className="btn" onClick={() => fileInputRef.current?.click()} disabled={loading} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               ⬆ {loading ? 'Đang tải...' : 'Nhập Excel'}
             </button>
-            <button className="btn" onClick={() => { setImportForm(emptyImport()); setModal('import'); }} style={{ background: 'var(--primary)', color: '#fff' }}>
+            <button className="btn" onClick={() => { setImportForm(emptyImport()); setModal('import'); }} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               Nhập Hoá Chất Thường
             </button>
             <button className="btn" onClick={() => setModal('export')} style={{ background: '#08979c', color: '#fff' }}>
