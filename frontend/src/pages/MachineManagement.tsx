@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Download, Plus, Search, Filter, Edit, Trash2, Upload } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface Machine {
   id: number;
@@ -282,25 +283,29 @@ export const MachineManagement: React.FC = () => {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
-        const text = event.target?.result as string;
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-        if (lines.length < 2) {
-          setError('File CSV trống hoặc không đúng định dạng');
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        const rows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        if (rows.length < 2) {
+          setError('File Excel trống hoặc không đúng định dạng');
           return;
         }
 
         const machinesPayload = [];
-        for (let i = 1; i < lines.length; i++) {
-          // Xử lý các dấu phẩy bên trong ngoặc kép bằng regex
-          const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/(^"|"$)/g, '').trim());
-          if (cols.length >= 4 && cols[0] && cols[1]) {
+        for (let i = 1; i < rows.length; i++) {
+          const cols = rows[i];
+          if (cols && cols.length >= 4 && cols[0] && cols[1]) {
             machinesPayload.push({
-              code: cols[0],
-              name: cols[1],
-              category: cols[2],
-              department: cols[3],
-              characteristics: cols[4] || '',
-              status: cols[5] === 'NOT_IN_USE' ? 'NOT_IN_USE' : 'IN_USE'
+              code: String(cols[0]).trim(),
+              name: String(cols[1]).trim(),
+              category: cols[2] ? String(cols[2]).trim() : '',
+              department: cols[3] ? String(cols[3]).trim() : '',
+              characteristics: cols[4] ? String(cols[4]).trim() : '',
+              status: String(cols[5]).trim() === 'NOT_IN_USE' ? 'NOT_IN_USE' : 'IN_USE'
             });
           }
         }
@@ -311,12 +316,12 @@ export const MachineManagement: React.FC = () => {
         setError(null);
         alert(res.data.message);
       } catch (err: any) {
-        setError(err.response?.data?.error || 'Lỗi khi upload CSV');
+        setError(err.response?.data?.error || 'Lỗi khi upload file');
       } finally {
         setLoading(false);
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
     e.target.value = '';
   };
 
@@ -445,12 +450,12 @@ export const MachineManagement: React.FC = () => {
           {activeTab === 'machines' && (
 
             <>
-              <a href="/may_moc_mau.csv" download className="btn btn-secondary" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Download size={18} /> File CSV Mẫu
+              <a href="/may_moc_mau.xlsx" download className="btn btn-secondary" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Download size={18} /> File Excel Mẫu
               </a>
-              <input type="file" accept=".csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
+              <input type="file" accept=".xlsx, .xls, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
               <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={loading}>
-                <Upload size={18} /> {loading ? 'Đang tải...' : 'Nhập CSV'}
+                <Upload size={18} /> {loading ? 'Đang tải...' : 'Nhập Excel'}
               </button>
               <button className="btn btn-secondary" onClick={() => setModal('consume')}>
                 <Search size={18} /> Ghi tiêu hao
