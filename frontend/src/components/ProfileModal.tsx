@@ -113,13 +113,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose }) => {
 
             <div className="input-group">
               <label className="input-label">Phòng ban / Đơn vị công tác</label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="VD: Phòng Nghiên cứu Dược liệu"
+              <select
+                className="select-field"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-              />
+              >
+                <option value="">-- Chọn phòng ban --</option>
+                <option value="Ban lãnh đạo">Ban lãnh đạo</option>
+                <option value="Phòng Khoa học Công nghệ">Phòng Khoa học Công nghệ</option>
+                <option value="Phòng Sinh học">Phòng Sinh học</option>
+                <option value="Phòng Công nghệ Dược">Phòng Công nghệ Dược</option>
+              </select>
             </div>
 
             <div className="input-group">

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { CHEMICAL_DEPARTMENTS } from './chemical.controller';
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,17 @@ export const getNotifications = async (req: Request, res: Response) => {
       const allChemicals = await prisma.chemical.findMany();
       
       for (const chemical of allChemicals) {
+        // Kiểm tra user có quyền xem hoá chất này không
+        const dept = user.department || '';
+        const fullAccess = ['SuperAdmin', 'VienTruong', 'VienPho', 'ADMIN'].includes(user.role)
+          || dept === 'Ban lãnh đạo';
+        const chemDept = chemical.department || '';
+        const hasAccess = fullAccess
+          || (dept === 'Phòng Sinh học' && ['Phòng Thử nghiệm Sinh học', 'Phòng Tài nguyên và Công nghệ Sinh học'].includes(chemDept))
+          || dept === chemDept;
+        
+        if (!hasAccess) continue;
+        
         if (chemical.maxQuantity > 0) {
           const percentage = (chemical.quantity / chemical.maxQuantity) * 100;
           if (percentage < chemical.alertThreshold) {
@@ -30,7 +42,6 @@ export const getNotifications = async (req: Request, res: Response) => {
             });
 
             if (!existingNotification) {
-              // Double check via transaction/upsert to prevent race conditions
               await prisma.notification.createMany({
                 data: [{
                   userId,
@@ -41,7 +52,6 @@ export const getNotifications = async (req: Request, res: Response) => {
                 skipDuplicates: true
               }).catch(() => {});
             } else if (existingNotification.message !== newMessage) {
-              // Cập nhật lại nội dung và đẩy thông báo lên đầu nếu số lượng tiếp tục giảm (hoặc thay đổi)
               await prisma.notification.update({
                 where: { id: existingNotification.id },
                 data: { message: newMessage, createdAt: new Date() }

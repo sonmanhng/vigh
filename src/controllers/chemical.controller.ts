@@ -5,6 +5,42 @@ import { z } from 'zod';
 import ExcelJS from 'exceljs';
 import path from 'path';
 
+// Danh sách phòng ban hoá chất hợp lệ
+export const CHEMICAL_DEPARTMENTS = [
+  'Phòng Công nghệ Dược',
+  'Phòng Thử nghiệm Sinh học',
+  'Phòng Tài nguyên và Công nghệ Sinh học',
+  'Phòng Khoa học Công nghệ',
+] as const;
+
+// Danh sách phòng ban người dùng hợp lệ
+export const USER_DEPARTMENTS = [
+  'Ban lãnh đạo',
+  'Phòng Khoa học Công nghệ',
+  'Phòng Sinh học',
+  'Phòng Công nghệ Dược',
+] as const;
+
+/**
+ * Lấy danh sách phòng ban hoá chất mà user có quyền xem/thao tác.
+ * Trả về undefined nghĩa là xem được tất cả.
+ */
+function getAllowedChemicalDepts(user: any): string[] | undefined {
+  const fullAccessRoles = ['SuperAdmin', 'VienTruong', 'VienPho', 'ADMIN'];
+  if (fullAccessRoles.includes(user.role)) return undefined; // Toàn quyền
+  
+  const dept = user.department || '';
+  // Ban lãnh đạo: xem và thao tác toàn bộ
+  if (dept === 'Ban lãnh đạo') return undefined;
+  // Phòng Sinh học: quản lý cả 2 phòng sinh học
+  if (dept === 'Phòng Sinh học') return ['Phòng Thử nghiệm Sinh học', 'Phòng Tài nguyên và Công nghệ Sinh học'];
+  // Các phòng khác: chỉ xem phòng của mình
+  if (dept === 'Phòng Khoa học Công nghệ') return ['Phòng Khoa học Công nghệ'];
+  if (dept === 'Phòng Công nghệ Dược') return ['Phòng Công nghệ Dược'];
+  // Không thuộc phòng nào → không thấy gì
+  return [];
+}
+
 const chemicalSchema = z.object({
   code: z.string().min(1),
   name: z.string().min(1),
@@ -15,6 +51,7 @@ const chemicalSchema = z.object({
   invoicePrice: z.number().min(0),
   importDate: z.string(),
   alertThreshold: z.number().min(0).default(5),
+  department: z.string().optional(),
   location: z.string().optional(),
   note: z.string().optional(),
 });
@@ -25,10 +62,20 @@ const exportSchema = z.object({
   note: z.string().optional(),
 });
 
-// GET /api/chemicals — Lấy toàn bộ kho
+// GET /api/chemicals — Lấy kho theo phòng ban của user
 export const getChemicals = async (req: Request, res: Response) => {
   try {
+    const user = (req as any).user;
+    const allowedDepts = getAllowedChemicalDepts(user);
+    
+    const where: any = {};
+    if (allowedDepts !== undefined) {
+      if (allowedDepts.length === 0) return res.json([]);
+      where.department = { in: allowedDepts };
+    }
+    
     const chemicals = await prisma.chemical.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
     });
     res.json(chemicals);
@@ -38,10 +85,20 @@ export const getChemicals = async (req: Request, res: Response) => {
   }
 };
 
-// GET /api/chemicals/transactions — Lịch sử xuất nhập
+// GET /api/chemicals/transactions — Lịch sử xuất nhập (lọc theo phòng ban)
 export const getTransactions = async (req: Request, res: Response) => {
   try {
+    const user = (req as any).user;
+    const allowedDepts = getAllowedChemicalDepts(user);
+    
+    const chemicalWhere: any = {};
+    if (allowedDepts !== undefined) {
+      if (allowedDepts.length === 0) return res.json([]);
+      chemicalWhere.department = { in: allowedDepts };
+    }
+    
     const transactions = await prisma.chemicalTransaction.findMany({
+      where: allowedDepts !== undefined ? { chemical: chemicalWhere } : {},
       orderBy: { createdAt: 'desc' },
       include: {
         chemical: { select: { code: true, name: true, unit: true } },
@@ -160,6 +217,7 @@ export const createChemical = async (req: Request, res: Response) => {
           unitPrice,
           importDate: new Date(data.importDate),
           alertThreshold: data.alertThreshold,
+          department: data.department,
           location: data.location,
           note: data.note,
           transactions: {
@@ -188,6 +246,7 @@ export const createChemical = async (req: Request, res: Response) => {
         unitPrice,
         importDate: new Date(data.importDate),
         alertThreshold: data.alertThreshold,
+        department: data.department,
         location: data.location,
         note: data.note,
         // Ghi log nhập kho ban đầu
@@ -233,6 +292,7 @@ export const updateChemical = async (req: Request, res: Response) => {
         unitPrice,
         importDate: new Date(data.importDate),
         alertThreshold: data.alertThreshold,
+        department: data.department,
         location: data.location,
         note: data.note,
       },

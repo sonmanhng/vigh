@@ -106,6 +106,7 @@ model Chemical {
   unitPrice      Float                 // Đơn giá = invoicePrice / specification
   importDate     DateTime              // Ngày nhập kho
   alertThreshold Float     @default(50) // Ngưỡng cảnh báo (%)
+  department     String?               // Phòng ban quản lý hoá chất
   location       String?
   note           String?
   transactions   ChemicalTransaction[]

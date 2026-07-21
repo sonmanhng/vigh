@@ -16,6 +16,7 @@ interface Chemical {
   unitPrice: number;
   importDate: string;
   alertThreshold: number;
+  department?: string;
   location?: string;
   note?: string;
   updatedAt: string;
@@ -109,7 +110,7 @@ const emptyImport = () => ({
   code: '', name: '', unit: 'Lít', quantity: '' as number | '',
   maxQuantity: '' as number | '', specification: '' as number | '',
   invoicePrice: '' as number | '', importDate: new Date().toISOString().split('T')[0],
-  alertThreshold: 5, location: '', note: '',
+  alertThreshold: 5, department: '', location: '', note: '',
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -356,6 +357,7 @@ export const ChemicalManagement: React.FC = () => {
       specification: c.specification, invoicePrice: c.invoicePrice,
       importDate: c.importDate.split('T')[0],
       alertThreshold: c.alertThreshold,
+      department: c.department || '',
       location: c.location || '', note: c.note || '',
     });
     setModal('edit');
@@ -526,6 +528,7 @@ export const ChemicalManagement: React.FC = () => {
                     <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.82rem', textTransform: 'uppercase' }}>
                       <th style={{ padding: '0.9rem 1rem' }}>Mã HC</th>
                       <th style={{ padding: '0.9rem 1rem' }}>Tên Hoá Chất</th>
+                      <th style={{ padding: '0.9rem 1rem' }}>Phòng Quản Lý</th>
                       <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Đơn Giá (VNĐ)</th>
                       <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Ngày Nhập</th>
                       <th style={{ padding: '0.9rem 1rem', textAlign: 'center', width: '150px' }}>Số Lượng</th>
@@ -547,6 +550,15 @@ export const ChemicalManagement: React.FC = () => {
                           <td style={{ padding: '0.9rem 1rem' }}>
                             <div style={{ fontWeight: 600 }}>{c.name}</div>
                             {c.location && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{c.location}</div>}
+                          </td>
+                          <td style={{ padding: '0.9rem 1rem' }}>
+                            {c.department ? (
+                              <span style={{ background: 'rgba(52,144,139,0.08)', color: 'var(--primary)', padding: '0.15rem 0.6rem', borderRadius: '10px', fontSize: '0.78rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                {c.department}
+                              </span>
+                            ) : (
+                              <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>Chưa phân</span>
+                            )}
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>
                             <div style={{ fontWeight: 700, color: 'var(--primary)' }}>{fmtVND(c.unitPrice)}/{c.unit}</div>
