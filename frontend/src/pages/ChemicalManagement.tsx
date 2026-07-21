@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
+import * as XLSX from 'xlsx';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Chemical {
@@ -131,6 +132,8 @@ export const ChemicalManagement: React.FC = () => {
   // Modal state
   const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'proposal'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
+  
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Import form
   const [importForm, setImportForm] = useState(emptyImport());
@@ -262,6 +265,62 @@ export const ChemicalManagement: React.FC = () => {
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi nhập hoá chất');
     }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        const rows: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        if (rows.length < 2) {
+          setError('File Excel trống hoặc không đúng định dạng');
+          return;
+        }
+
+        const chemicalsPayload = [];
+        for (let i = 1; i < rows.length; i++) {
+          const cols = rows[i];
+          if (cols && cols.length >= 3 && cols[0] && cols[1]) {
+            chemicalsPayload.push({
+              code: String(cols[0]).trim(),
+              name: String(cols[1]).trim(),
+              unit: cols[2] ? String(cols[2]).trim() : 'Lít',
+              quantity: Number(cols[3]) || 0,
+              maxQuantity: Number(cols[4]) || 0,
+              specification: Number(cols[5]) || 1,
+              invoicePrice: Number(cols[6]) || 0,
+              importDate: cols[7] ? String(cols[7]).trim() : new Date().toISOString().split('T')[0],
+              alertThreshold: Number(cols[8]) || 5,
+              department: cols[9] ? String(cols[9]).trim() : '',
+              location: cols[10] ? String(cols[10]).trim() : '',
+              note: cols[11] ? String(cols[11]).trim() : ''
+            });
+          }
+        }
+
+        setLoading(true);
+        const res = await apiClient.post('/chemicals/import', { chemicals: chemicalsPayload });
+        fetchChemicals();
+        fetchTransactions();
+        setError(null);
+        alert(res.data.message);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Lỗi khi upload file');
+      } finally {
+        setLoading(false);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
   };
 
   const handleExportSubmit = async (e: React.FormEvent) => {
@@ -486,8 +545,15 @@ export const ChemicalManagement: React.FC = () => {
         <>
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <a href="/hoa_chat_mau.xlsx" download className="btn" style={{ background: '#f5f5f5', color: '#333', textDecoration: 'none', border: '1px solid #d9d9d9' }}>
+              ⬇ File Excel Mẫu
+            </a>
+            <input type="file" accept=".xlsx, .xls, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
+            <button className="btn" onClick={() => fileInputRef.current?.click()} disabled={loading} style={{ background: '#52c41a', color: '#fff' }}>
+              ⬆ {loading ? 'Đang tải...' : 'Nhập Excel'}
+            </button>
             <button className="btn" onClick={() => { setImportForm(emptyImport()); setModal('import'); }} style={{ background: 'var(--primary)', color: '#fff' }}>
-              Nhập Hoá Chất
+              Nhập Hoá Chất Thường
             </button>
             <button className="btn" onClick={() => setModal('export')} style={{ background: '#08979c', color: '#fff' }}>
               Xuất Hoá Chất

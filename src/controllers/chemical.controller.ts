@@ -723,3 +723,88 @@ export const exportProposalToExcel = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const importChemicals = async (req: Request, res: Response) => {
+  try {
+    const { chemicals } = req.body;
+    if (!Array.isArray(chemicals)) {
+      return res.status(400).json({ error: 'Dữ liệu không hợp lệ. Mong đợi một mảng các hoá chất.' });
+    }
+
+    let successCount = 0;
+    for (const chem of chemicals) {
+      if (!chem.code || !chem.name || !chem.department) continue;
+      
+      const quantity = Number(chem.quantity) || 0;
+      const maxQuantity = Number(chem.maxQuantity) || 0;
+      const specification = Number(chem.specification) || 1;
+      const invoicePrice = Number(chem.invoicePrice) || 0;
+      const unitPrice = invoicePrice / specification;
+      const alertThreshold = Number(chem.alertThreshold) || 5;
+      const importDate = chem.importDate ? new Date(chem.importDate) : new Date();
+
+      const existing = await prisma.chemical.findUnique({ where: { code: chem.code } });
+
+      if (existing) {
+        await prisma.chemical.update({
+          where: { code: chem.code },
+          data: {
+            quantity: { increment: quantity },
+            name: chem.name,
+            unit: chem.unit,
+            maxQuantity,
+            specification,
+            invoicePrice,
+            unitPrice,
+            importDate,
+            alertThreshold,
+            department: chem.department,
+            location: chem.location,
+            note: chem.note,
+            transactions: {
+              create: {
+                type: 'IMPORT',
+                quantity,
+                note: `Nhập đè từ file Excel — Ngày ${importDate.toLocaleDateString('vi-VN')}`,
+                createdById: (req as any).user?.id,
+              },
+            },
+          }
+        });
+      } else {
+        await prisma.chemical.create({
+          data: {
+            code: chem.code,
+            name: chem.name,
+            unit: chem.unit,
+            quantity,
+            maxQuantity,
+            specification,
+            invoicePrice,
+            unitPrice,
+            importDate,
+            alertThreshold,
+            department: chem.department,
+            location: chem.location,
+            note: chem.note,
+            transactions: {
+              create: {
+                type: 'IMPORT',
+                quantity,
+                note: `Nhập mới từ file Excel`,
+                createdById: (req as any).user?.id,
+              },
+            },
+          }
+        });
+      }
+      successCount++;
+    }
+
+    getIO().emit('sync_chemicals');
+    res.json({ message: `Đã import thành công ${successCount} hoá chất.` });
+  } catch (error) {
+    console.error('Error importing chemicals:', error);
+    res.status(500).json({ error: 'Lỗi server khi import hoá chất' });
+  }
+};
