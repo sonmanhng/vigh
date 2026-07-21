@@ -1,0 +1,4 @@
+"Mã tài sản","Tên tài sản","Phân loại","Đơn vị sử dụng","Đặc điểm","Trạng thái"
+"MM-001","Tủ sấy chân không","Thiết bị dùng chung","Phòng Sinh học","Thể tích 50L, gia nhiệt đến 250 độ C","IN_USE"
+"MM-002","Máy ly tâm lạnh","Thiết bị dùng chung","Phòng Công nghệ Dược","Tốc độ 15000 vòng/phút","IN_USE"
+"MM-003","Cân phân tích","Thiết bị chuyên dụng","Phòng Khoa học Công nghệ","Độ chính xác 4 số lẻ","NOT_IN_USE"

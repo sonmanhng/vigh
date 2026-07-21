@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Download, Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
+import { Download, Plus, Search, Filter, Edit, Trash2, Upload } from 'lucide-react';
 
 interface Machine {
   id: number;
@@ -146,6 +146,7 @@ export const MachineManagement: React.FC = () => {
   // UI State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const [modal, setModal] = useState<'none' | 'import' | 'edit' | 'consume' | 'labor' | 'overtime'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -274,6 +275,51 @@ export const MachineManagement: React.FC = () => {
   useEffect(() => { if (activeTab === 'labor') { fetchLaborLogs(); fetchLaborStats(); fetchMyOvertimeRequests(); } }, [activeTab, fetchLaborLogs, fetchLaborStats, fetchMyOvertimeRequests]);
   useEffect(() => { if (activeTab === 'overtime-approval') { fetchPendingOvertimeRequests(); } }, [activeTab, fetchPendingOvertimeRequests]);
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        if (lines.length < 2) {
+          setError('File CSV trống hoặc không đúng định dạng');
+          return;
+        }
+
+        const machinesPayload = [];
+        for (let i = 1; i < lines.length; i++) {
+          // Xử lý các dấu phẩy bên trong ngoặc kép bằng regex
+          const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/(^"|"$)/g, '').trim());
+          if (cols.length >= 4 && cols[0] && cols[1]) {
+            machinesPayload.push({
+              code: cols[0],
+              name: cols[1],
+              category: cols[2],
+              department: cols[3],
+              characteristics: cols[4] || '',
+              status: cols[5] === 'NOT_IN_USE' ? 'NOT_IN_USE' : 'IN_USE'
+            });
+          }
+        }
+
+        setLoading(true);
+        const res = await apiClient.post('/machines/import', { machines: machinesPayload });
+        fetchMachines();
+        setError(null);
+        alert(res.data.message);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Lỗi khi upload CSV');
+      } finally {
+        setLoading(false);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
 
   const handleImportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -399,6 +445,13 @@ export const MachineManagement: React.FC = () => {
           {activeTab === 'machines' && (
 
             <>
+              <a href="/may_moc_mau.csv" download className="btn btn-secondary" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Download size={18} /> File CSV Mẫu
+              </a>
+              <input type="file" accept=".csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
+              <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={loading}>
+                <Upload size={18} /> {loading ? 'Đang tải...' : 'Nhập CSV'}
+              </button>
               <button className="btn btn-secondary" onClick={() => setModal('consume')}>
                 <Search size={18} /> Ghi tiêu hao
               </button>

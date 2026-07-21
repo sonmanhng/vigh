@@ -257,3 +257,44 @@ export const updateMachine = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi server' });
   }
 };
+
+export const importMachines = async (req: Request, res: Response) => {
+  try {
+    const { machines } = req.body;
+    if (!Array.isArray(machines)) {
+      return res.status(400).json({ error: 'Dữ liệu không hợp lệ. Mong đợi một mảng các máy móc.' });
+    }
+
+    let successCount = 0;
+    for (const machine of machines) {
+      if (!machine.code || !machine.name || !machine.department) continue;
+      
+      const status = machine.status === 'NOT_IN_USE' ? 'NOT_IN_USE' : 'IN_USE';
+      
+      await prisma.machine.upsert({
+        where: { code: machine.code },
+        update: {
+          name: machine.name,
+          category: machine.category,
+          department: machine.department,
+          characteristics: machine.characteristics,
+          status: status
+        },
+        create: {
+          code: machine.code,
+          name: machine.name,
+          category: machine.category,
+          department: machine.department,
+          characteristics: machine.characteristics,
+          status: status
+        }
+      });
+      successCount++;
+    }
+
+    res.json({ message: `Đã import thành công ${successCount} thiết bị/máy móc.` });
+  } catch (error) {
+    console.error('Error importing machines:', error);
+    res.status(500).json({ error: 'Lỗi server khi import máy móc' });
+  }
+};
