@@ -274,8 +274,9 @@ export const exportProjectDocx = async (req: Request, res: Response) => {
             spacing: { after: 400 }
           }),
           new Paragraph({
-            text: 'Vui lòng chỉnh sửa nội dung ở cột thứ 2 bên dưới. Không thay đổi tên các trường ở cột thứ 1.',
-            italics: true,
+            children: [
+              new TextRun({ text: 'Vui lòng chỉnh sửa nội dung ở cột thứ 2 bên dưới. Không thay đổi tên các trường ở cột thứ 1.', italics: true })
+            ],
             spacing: { after: 200 }
           }),
           new Table({
