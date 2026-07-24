@@ -119,6 +119,42 @@ export const ProjectDetail: React.FC = () => {
     }
   };
 
+  const handleExportDocx = async () => {
+    if (!project) return;
+    try {
+      const response = await apiClient.get(`/projects/${project.id}/export-docx`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `DeTai_${project.id}_${Date.now()}.docx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      alert('Lỗi khi tải file DOCX');
+    }
+  };
+
+  const handleImportDocx = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !project) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      await apiClient.post(`/projects/${project.id}/import-docx`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert('Cập nhật thông tin từ file DOCX thành công!');
+      fetchProjectDetails();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Lỗi khi cập nhật từ file DOCX');
+    } finally {
+      e.target.value = ''; // reset file input
+    }
+  };
+
   // Research Content Handlers
   const openCreateResearchModal = () => {
     setEditingResearchId(null);
@@ -754,14 +790,14 @@ export const ProjectDetail: React.FC = () => {
                         </h3>
                       </div>
 
-                      {canEditGeneralInfo && (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
                           type="button"
-                          onClick={openEditModal}
+                          onClick={handleExportDocx}
                           style={{
-                            backgroundColor: 'var(--primary)',
-                            color: '#FFFFFF',
-                            border: 'none',
+                            backgroundColor: 'var(--bg-light)',
+                            color: 'var(--primary)',
+                            border: '1px solid var(--border-color)',
                             padding: '0.5rem 1.15rem',
                             borderRadius: 'var(--radius-sm)',
                             fontWeight: 600,
@@ -773,12 +809,59 @@ export const ProjectDetail: React.FC = () => {
                             boxShadow: 'var(--shadow-sm)',
                             transition: 'background-color 0.2s ease'
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary-light)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary)'; }}
                         >
-                          Chỉnh sửa thông tin
+                          Tải mẫu DOCX
                         </button>
-                      )}
+                        
+                        {canEditGeneralInfo && (
+                          <>
+                            <label
+                              style={{
+                                backgroundColor: 'var(--bg-light)',
+                                color: 'var(--text-main)',
+                                border: '1px solid var(--border-color)',
+                                padding: '0.5rem 1.15rem',
+                                borderRadius: 'var(--radius-sm)',
+                                fontWeight: 600,
+                                fontSize: '0.88rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                boxShadow: 'var(--shadow-sm)',
+                                transition: 'background-color 0.2s ease'
+                              }}
+                            >
+                              Cập nhật từ DOCX
+                              <input type="file" accept=".docx" style={{ display: 'none' }} onChange={handleImportDocx} />
+                            </label>
+                            
+                            <button
+                              type="button"
+                              onClick={openEditModal}
+                              style={{
+                                backgroundColor: 'var(--primary)',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                padding: '0.5rem 1.15rem',
+                                borderRadius: 'var(--radius-sm)',
+                                fontWeight: 600,
+                                fontSize: '0.88rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                boxShadow: 'var(--shadow-sm)',
+                                transition: 'background-color 0.2s ease'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary-light)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--primary)'; }}
+                            >
+                              Chỉnh sửa thông tin
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* Table Rows */}

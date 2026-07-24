@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, BorderStyle } from 'docx';
+import mammoth from 'mammoth';
+import * as cheerio from 'cheerio';
 import { z } from 'zod';
 import { isTopAdmin, isManagerOrAbove } from '../middlewares/auth.middleware';
 
@@ -186,5 +189,161 @@ export const getProjectById = async (req: Request, res: Response) => {
     res.json({ ...p, progress });
   } catch (error: any) {
     res.status(500).json({ message: 'Error fetching project details', error: error.message });
+  }
+};
+
+const DOCX_FIELDS = [
+  { key: 'name', label: 'Tên đề tài' },
+  { key: 'nameEn', label: 'Tên tiếng Anh' },
+  { key: 'code', label: 'Mã số' },
+  { key: 'projectType', label: 'Loại đề tài' },
+  { key: 'managementUnit', label: 'Đơn vị quản lý' },
+  { key: 'hostOrganization', label: 'Tổ chức chủ trì' },
+  { key: 'advisor', label: 'Cố vấn' },
+  { key: 'executionTime', label: 'Thời gian thực hiện' },
+  { key: 'budget', label: 'Kinh phí' },
+  { key: 'generalObjective', label: 'Mục tiêu chung' },
+  { key: 'description', label: 'Mô tả chi tiết / Tổng quan' }
+];
+
+export const exportProjectDocx = async (req: Request, res: Response) => {
+  try {
+    const projectId = parseInt(req.params.id as string);
+    const { role, id } = req.user!;
+    
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: { manager: true }
+    });
+
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    // Authorization check
+    if (!isTopAdmin(role) && project.managerId !== id) {
+      // Members might be allowed to export, let's allow anyone who can see it
+      const isMember = await prisma.project.findFirst({
+        where: {
+          id: projectId,
+          OR: [
+            { members: { some: { id } } },
+            { tasks: { some: { assigneeId: id } } }
+          ]
+        }
+      });
+      if (!isMember) {
+        return res.status(403).json({ message: 'Not authorized to export this project' });
+      }
+    }
+
+    const tableRows = DOCX_FIELDS.map(field => {
+      return new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 30, type: WidthType.PERCENTAGE },
+            children: [new Paragraph({ children: [new TextRun({ text: field.label, bold: true })] })],
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 1 },
+              bottom: { style: BorderStyle.SINGLE, size: 1 },
+              left: { style: BorderStyle.SINGLE, size: 1 },
+              right: { style: BorderStyle.SINGLE, size: 1 },
+            }
+          }),
+          new TableCell({
+            width: { size: 70, type: WidthType.PERCENTAGE },
+            children: [new Paragraph({ text: (project as any)[field.key] || '' })],
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 1 },
+              bottom: { style: BorderStyle.SINGLE, size: 1 },
+              left: { style: BorderStyle.SINGLE, size: 1 },
+              right: { style: BorderStyle.SINGLE, size: 1 },
+            }
+          })
+        ]
+      });
+    });
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({ text: `THÔNG TIN ĐỀ TÀI: ${(project.name || '').toUpperCase()}`, bold: true, size: 32 })
+            ],
+            alignment: 'center',
+            spacing: { after: 400 }
+          }),
+          new Paragraph({
+            text: 'Vui lòng chỉnh sửa nội dung ở cột thứ 2 bên dưới. Không thay đổi tên các trường ở cột thứ 1.',
+            italics: true,
+            spacing: { after: 200 }
+          }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: tableRows
+          })
+        ]
+      }]
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    
+    res.setHeader('Content-Disposition', `attachment; filename=DeTai_${projectId}_${Date.now()}.docx`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.send(buffer);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error exporting docx', error: error.message });
+  }
+};
+
+export const importProjectDocx = async (req: Request, res: Response) => {
+  try {
+    const projectId = parseInt(req.params.id as string);
+    const { role, id } = req.user!;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    // Ensure only TopAdmin or Manager can update
+    if (!isTopAdmin(role) && project.managerId !== id) {
+      return res.status(403).json({ message: 'Not authorized to update this project' });
+    }
+
+    const result = await mammoth.convertToHtml({ buffer: file.buffer });
+    const html = result.value;
+    
+    const $ = cheerio.load(html);
+    const updates: any = {};
+
+    $('table tr').each((i, el) => {
+      const tdList = $(el).find('td');
+      if (tdList.length >= 2) {
+        const fieldName = $(tdList[0]).text().trim();
+        const fieldValue = $(tdList[1]).text().trim();
+        
+        const fieldDef = DOCX_FIELDS.find(f => f.label.toLowerCase() === fieldName.toLowerCase());
+        if (fieldDef) {
+          updates[fieldDef.key] = fieldValue;
+        }
+      }
+    });
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'Không tìm thấy dữ liệu hợp lệ trong file DOCX' });
+    }
+
+    const updated = await prisma.project.update({
+      where: { id: projectId },
+      data: updates
+    });
+
+    res.json({ message: 'Cập nhật thành công', data: updated });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error importing docx', error: error.message });
   }
 };
