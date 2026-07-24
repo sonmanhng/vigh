@@ -301,7 +301,7 @@ export const importProjectDocx = async (req: Request, res: Response) => {
   try {
     const projectId = parseInt(req.params.id as string);
     const { role, id } = req.user!;
-    const file = req.file;
+    const file = (req as any).file;
 
     if (!file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -315,13 +315,15 @@ export const importProjectDocx = async (req: Request, res: Response) => {
       return res.status(403).json({ message: 'Not authorized to update this project' });
     }
 
+    // Đọc docx bằng mammoth -> chuyển thành html
     const result = await mammoth.convertToHtml({ buffer: file.buffer });
     const html = result.value;
-    
+
+    // Phân tích HTML bằng cheerio để lấy data trong bảng
     const $ = cheerio.load(html);
     const updates: any = {};
 
-    $('table tr').each((i, el) => {
+    $('table tr').each((i: number, el: any) => {
       const tdList = $(el).find('td');
       if (tdList.length >= 2) {
         const fieldName = $(tdList[0]).text().trim();
