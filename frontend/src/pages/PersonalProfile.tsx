@@ -281,11 +281,17 @@ export const PersonalProfile: React.FC<{ userId?: string, onBack?: () => void }>
           <button className="menu-item" onClick={() => navigate('/dashboard')}>
             <span>Tiến độ đề tài</span>
           </button>
+          <button className="menu-item" onClick={() => navigate('/dashboard?tab=weekly-reports')}>
+            <span>Báo cáo tuần</span>
+          </button>
           <button className="menu-item active" onClick={() => navigate('/dashboard?tab=personnel')}>
             <span>Quản lý nhân sự</span>
           </button>
           <button className="menu-item" onClick={() => navigate('/dashboard?tab=chemicals')}>
             <span>Quản lý hoá chất</span>
+          </button>
+          <button className="menu-item" onClick={() => navigate('/dashboard?tab=machines')}>
+            <span>Máy - Giờ công</span>
           </button>
         </nav>
 

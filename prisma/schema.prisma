@@ -33,6 +33,8 @@ model User {
   approved1Overtime       OvertimeRequest[] @relation("Approver1Overtime")
   approved2Overtime       OvertimeRequest[] @relation("Approver2Overtime")
   notifications           Notification[]    @relation("UserNotifications")
+  submittedReports        WeeklyReport[]    @relation("ReportedBy")
+  receivedReports         WeeklyReport[]    @relation("ReportedTo")
   createdAt        DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -61,8 +63,10 @@ model Project {
   tasks            Task[]
   researchContents ResearchContent[]
   chemicalProposalItems ChemicalProposalItem[]
-  machineLogs      MachineLog[]
-  laborLogs        LaborLog[]   @relation("ProjectLaborLogs")
+  machineLogs          MachineLog[]
+  laborLogs            LaborLog[]           @relation("ProjectLaborLogs")
+  weeklyReportResults  WeeklyReportResult[] @relation("ProjectWeeklyResults")
+  weeklyReportPlans    WeeklyReportPlan[]   @relation("ProjectWeeklyPlans")
   overtimeRequests        OvertimeRequest[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -227,4 +231,38 @@ model Notification {
   type      String   // 'CHEMICAL_WARNING', 'OVERTIME_PENDING', 'OVERTIME_APPROVED', 'OVERTIME_REJECTED', 'PROPOSAL_PENDING', 'PROPOSAL_RESULT'
   link      String?  // Optional link
   createdAt DateTime @default(now())
+}
+
+model WeeklyReport {
+  id          Int                  @id @default(autoincrement())
+  reporterId  Int
+  reporter    User                 @relation("ReportedBy", fields: [reporterId], references: [id])
+  recipientId Int
+  recipient   User                 @relation("ReportedTo", fields: [recipientId], references: [id])
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  results     WeeklyReportResult[]
+  plans       WeeklyReportPlan[]
+}
+
+model WeeklyReportResult {
+  id          Int          @id @default(autoincrement())
+  reportId    Int
+  report      WeeklyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  projectId   Int?
+  project     Project?     @relation("ProjectWeeklyResults", fields: [projectId], references: [id], onDelete: SetNull)
+  description String?
+  fileUrl     String?
+  fileName    String?
+  fileData    String?      // Base64 backup for files < 10MB
+}
+
+model WeeklyReportPlan {
+  id          Int          @id @default(autoincrement())
+  reportId    Int
+  report      WeeklyReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  projectId   Int?
+  project     Project?     @relation("ProjectWeeklyPlans", fields: [projectId], references: [id], onDelete: SetNull)
+  customTitle String?      // "Khác" or task name
+  description String?
 }

@@ -6,15 +6,16 @@ import { Navbar } from '../components/Navbar';
 import { PersonnelManagement } from './PersonnelManagement';
 import { ChemicalManagement } from './ChemicalManagement';
 import { MachineManagement } from './MachineManagement';
+import { WeeklyReports } from './WeeklyReports';
 
-type Tab = 'projects' | 'personnel' | 'chemicals' | 'machines';
+type Tab = 'projects' | 'personnel' | 'chemicals' | 'machines' | 'weekly-reports';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
-  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'machines' ? 'machines' : 'projects'));
+  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : 'projects')));
   
   const setActiveTab = (tab: Tab) => {
     if (tab === 'personnel') {
@@ -23,6 +24,8 @@ export const Dashboard: React.FC = () => {
       setSearchParams({ tab: 'chemicals' });
     } else if (tab === 'machines') {
       setSearchParams({ tab: 'machines' });
+    } else if (tab === 'weekly-reports') {
+      setSearchParams({ tab: 'weekly-reports' });
     } else {
       setSearchParams({});
     }
@@ -125,6 +128,13 @@ export const Dashboard: React.FC = () => {
           </button>
 
           <button 
+            className={`menu-item ${activeTab === 'weekly-reports' ? 'active' : ''}`}
+            onClick={() => setActiveTab('weekly-reports')}
+          >
+            <span>Báo cáo tuần</span>
+          </button>
+
+          <button 
             className={`menu-item ${activeTab === 'personnel' ? 'active' : ''}`}
             onClick={() => setActiveTab('personnel')}
           >
@@ -164,6 +174,8 @@ export const Dashboard: React.FC = () => {
           <ChemicalManagement />
         ) : activeTab === 'machines' ? (
           <MachineManagement />
+        ) : activeTab === 'weekly-reports' ? (
+          <WeeklyReports />
         ) : (
           <div className="content-area">
             {/* Project Progress Header */}

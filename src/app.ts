@@ -11,6 +11,7 @@ import chemicalRoutes from './routes/chemical.routes';
 import machineRoutes from './routes/machine.routes';
 import laborRoutes from './routes/labor.routes';
 import notificationRoutes from './routes/notification.routes';
+import weeklyReportRoutes from './routes/weeklyReport.routes';
 
 const app = express();
 
@@ -32,6 +33,10 @@ app.use('/api/chemicals', chemicalRoutes);
 app.use('/api/machines', machineRoutes);
 app.use('/api/labor', laborRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/weekly-reports', weeklyReportRoutes);
+
+// Serve static uploads
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
