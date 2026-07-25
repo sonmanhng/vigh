@@ -35,6 +35,7 @@ export const Dashboard: React.FC = () => {
   // New Project State
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectCode, setNewProjectCode] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [newProjectManager, setNewProjectManager] = useState<number | ''>('');
   const [newProjectMembers, setNewProjectMembers] = useState<number[]>([]);
@@ -70,12 +71,14 @@ export const Dashboard: React.FC = () => {
     try {
       const res = await apiClient.post('/projects', { 
         name: newProjectName, 
+        code: newProjectCode || null,
         description: newProjectDesc || 'Đề tài nghiên cứu Viện VIGH',
         managerId: newProjectManager ? Number(newProjectManager) : user?.id,
         memberIds: newProjectMembers
       });
       setShowCreateProjectModal(false);
       setNewProjectName('');
+      setNewProjectCode('');
       setNewProjectDesc('');
       setNewProjectManager('');
       setNewProjectMembers([]);
@@ -215,8 +218,13 @@ export const Dashboard: React.FC = () => {
                     >
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                          <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-main)', margin: 0, lineHeight: 1.4 }}>
-                            {p.name}
+                          <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-main)', margin: 0, lineHeight: 1.4, display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            {p.code && (
+                              <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--primary)', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+                                {p.code}
+                              </span>
+                            )}
+                            <span>{p.name}</span>
                           </h3>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span className="badge badge-success" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Hoạt Động</span>
@@ -304,6 +312,17 @@ export const Dashboard: React.FC = () => {
                     value={newProjectName} 
                     onChange={(e) => setNewProjectName(e.target.value)} 
                     required 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Mã số đề tài / Dự án</label>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    placeholder="VD: VIGH-2026-01, KHCN-01/2026..." 
+                    value={newProjectCode} 
+                    onChange={(e) => setNewProjectCode(e.target.value)} 
                   />
                 </div>
 
