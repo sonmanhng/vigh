@@ -213,7 +213,12 @@ export const exportProjectDocx = async (req: Request, res: Response) => {
     
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      include: { manager: true }
+      include: { 
+        manager: true,
+        researchContents: {
+          orderBy: { id: 'asc' }
+        }
+      }
     });
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -262,28 +267,152 @@ export const exportProjectDocx = async (req: Request, res: Response) => {
       });
     });
 
+    const docChildren: any[] = [
+      new Paragraph({
+        children: [
+          new TextRun({ text: `THÔNG TIN ĐỀ TÀI: ${(project.name || '').toUpperCase()}`, bold: true, size: 32 })
+        ],
+        alignment: 'center',
+        spacing: { after: 300 }
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'I. THÔNG TIN CHUNG', bold: true, size: 26 })
+        ],
+        spacing: { before: 200, after: 200 }
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Vui lòng chỉnh sửa nội dung ở cột thứ 2 bên dưới. Không thay đổi tên các trường ở cột thứ 1.', italics: true })
+        ],
+        spacing: { after: 200 }
+      }),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: tableRows
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'II. MỤC TIÊU & NỘI DUNG NGHIÊN CỨU', bold: true, size: 26 })
+        ],
+        spacing: { before: 400, after: 200 }
+      })
+    ];
+
+    const researchList = (project as any).researchContents || [];
+    if (researchList.length === 0) {
+      docChildren.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: 'Chưa có nội dung nghiên cứu nào được bổ sung.', italics: true })
+          ],
+          spacing: { after: 200 }
+        })
+      );
+    } else {
+      researchList.forEach((rc: any) => {
+        docChildren.push(
+          new Paragraph({
+            children: [
+              new TextRun({ text: `${rc.code || ''}: ${rc.title || ''} (${rc.status || 'Đang thực hiện'})`, bold: true, size: 22 })
+            ],
+            spacing: { before: 250, after: 100 }
+          })
+        );
+        if (rc.description) {
+          docChildren.push(
+            new Paragraph({
+              children: [
+                new TextRun({ text: `Mô tả: ${rc.description}`, italics: true })
+              ],
+              spacing: { after: 150 }
+            })
+          );
+        }
+
+        let actList: any[] = [];
+        try {
+          if (rc.activities) {
+            actList = typeof rc.activities === 'string' ? JSON.parse(rc.activities) : rc.activities;
+          }
+        } catch (e) {}
+        if (!Array.isArray(actList)) actList = [];
+
+        const actHeaderRow = new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 10, type: WidthType.PERCENTAGE },
+              children: [new Paragraph({ children: [new TextRun({ text: 'STT', bold: true })], alignment: 'center' })],
+              borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+            }),
+            new TableCell({
+              width: { size: 45, type: WidthType.PERCENTAGE },
+              children: [new Paragraph({ children: [new TextRun({ text: 'Hoạt động thực hiện', bold: true })] })],
+              borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+            }),
+            new TableCell({
+              width: { size: 45, type: WidthType.PERCENTAGE },
+              children: [new Paragraph({ children: [new TextRun({ text: 'Kết quả / Đầu ra', bold: true })] })],
+              borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+            })
+          ]
+        });
+
+        const actDataRows = actList.length === 0 ? [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 10, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ text: '-', alignment: 'center' })],
+                borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+              }),
+              new TableCell({
+                width: { size: 45, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ children: [new TextRun({ text: 'Chưa có hoạt động nào', italics: true })] })],
+                borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+              }),
+              new TableCell({
+                width: { size: 45, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ text: '-' })],
+                borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+              })
+            ]
+          })
+        ] : actList.map((act: any, idx: number) => {
+          return new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 10, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ text: `${idx + 1}`, alignment: 'center' })],
+                borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+              }),
+              new TableCell({
+                width: { size: 45, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ text: act.activity || '' })],
+                borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+              }),
+              new TableCell({
+                width: { size: 45, type: WidthType.PERCENTAGE },
+                children: [new Paragraph({ text: act.result || '' })],
+                borders: { top: { style: BorderStyle.SINGLE, size: 1 }, bottom: { style: BorderStyle.SINGLE, size: 1 }, left: { style: BorderStyle.SINGLE, size: 1 }, right: { style: BorderStyle.SINGLE, size: 1 } }
+              })
+            ]
+          });
+        });
+
+        docChildren.push(
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [actHeaderRow, ...actDataRows]
+          })
+        );
+      });
+    }
+
     const doc = new Document({
       sections: [{
         properties: {},
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun({ text: `THÔNG TIN ĐỀ TÀI: ${(project.name || '').toUpperCase()}`, bold: true, size: 32 })
-            ],
-            alignment: 'center',
-            spacing: { after: 400 }
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({ text: 'Vui lòng chỉnh sửa nội dung ở cột thứ 2 bên dưới. Không thay đổi tên các trường ở cột thứ 1.', italics: true })
-            ],
-            spacing: { after: 200 }
-          }),
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            rows: tableRows
-          })
-        ]
+        children: docChildren
       }]
     });
 
