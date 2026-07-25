@@ -10,6 +10,7 @@ const projectSchema = z.object({
   name: z.string().min(1),
   nameEn: z.string().optional().nullable(),
   code: z.string().optional().nullable(),
+  topicCode: z.string().optional().nullable(),
   projectType: z.string().optional().nullable(),
   managementUnit: z.string().optional().nullable(),
   hostOrganization: z.string().optional().nullable(),
@@ -195,7 +196,8 @@ export const getProjectById = async (req: Request, res: Response) => {
 const DOCX_FIELDS = [
   { key: 'name', label: 'Tên đề tài' },
   { key: 'nameEn', label: 'Tên tiếng Anh' },
-  { key: 'code', label: 'Mã số' },
+  { key: 'topicCode', label: 'Mã đề tài' },
+  { key: 'code', label: 'Mã số dự án' },
   { key: 'projectType', label: 'Loại đề tài' },
   { key: 'managementUnit', label: 'Đơn vị quản lý' },
   { key: 'hostOrganization', label: 'Tổ chức chủ trì' },
@@ -458,7 +460,10 @@ export const importProjectDocx = async (req: Request, res: Response) => {
         const fieldName = $(tdList[0]).text().trim();
         const fieldValue = $(tdList[1]).text().trim();
         
-        const fieldDef = DOCX_FIELDS.find(f => f.label.toLowerCase() === fieldName.toLowerCase());
+        let fieldDef = DOCX_FIELDS.find(f => f.label.toLowerCase() === fieldName.toLowerCase());
+        if (!fieldDef && fieldName.toLowerCase() === 'mã số') {
+          fieldDef = { key: 'code', label: 'Mã số dự án' };
+        }
         if (fieldDef) {
           updates[fieldDef.key] = fieldValue;
         }

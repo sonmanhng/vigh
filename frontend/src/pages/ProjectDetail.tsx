@@ -92,6 +92,7 @@ export const ProjectDetail: React.FC = () => {
     setEditForm({
       name: project.name || '',
       nameEn: project.nameEn || '',
+      topicCode: project.topicCode || '',
       code: project.code || '',
       projectType: project.projectType || '',
       managementUnit: project.managementUnit || '',
@@ -867,7 +868,8 @@ export const ProjectDetail: React.FC = () => {
                     {/* Table Rows */}
                     <div>
                       {renderRow('Tên đề tài', project.name, true, project.nameEn)}
-                      {renderRow('Mã số', project.code)}
+                      {renderRow('Mã đề tài', project.topicCode)}
+                      {renderRow('Mã số dự án', project.code)}
                       {renderRow('Loại đề tài', project.projectType)}
                       {renderRow('Đơn vị quản lý', project.managementUnit)}
                       {renderRow('Tổ chức chủ trì', project.hostOrganization)}
@@ -2127,16 +2129,29 @@ export const ProjectDetail: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className="input-group">
-                    <label className="input-label">Mã số đề tài</label>
+                    <label className="input-label">Mã đề tài</label>
                     <input
                       type="text"
                       className="input-field"
-                      placeholder="VD: 108.05-2023.20"
+                      placeholder="VD: ĐT-2026-01"
+                      value={editForm.topicCode || ''}
+                      onChange={(e) => setEditForm({ ...editForm, topicCode: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Mã số dự án</label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="VD: DA-2026-005, 108.05-2023.20..."
                       value={editForm.code || ''}
                       onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
                     />
                   </div>
+                </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className="input-group">
                     <label className="input-label">Loại đề tài</label>
                     <input

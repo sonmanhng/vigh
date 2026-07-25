@@ -35,6 +35,7 @@ export const Dashboard: React.FC = () => {
   // New Project State
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectTopicCode, setNewProjectTopicCode] = useState('');
   const [newProjectCode, setNewProjectCode] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [newProjectManager, setNewProjectManager] = useState<number | ''>('');
@@ -71,6 +72,7 @@ export const Dashboard: React.FC = () => {
     try {
       const res = await apiClient.post('/projects', { 
         name: newProjectName, 
+        topicCode: newProjectTopicCode || null,
         code: newProjectCode || null,
         description: newProjectDesc || 'Đề tài nghiên cứu Viện VIGH',
         managerId: newProjectManager ? Number(newProjectManager) : user?.id,
@@ -78,6 +80,7 @@ export const Dashboard: React.FC = () => {
       });
       setShowCreateProjectModal(false);
       setNewProjectName('');
+      setNewProjectTopicCode('');
       setNewProjectCode('');
       setNewProjectDesc('');
       setNewProjectManager('');
@@ -219,9 +222,14 @@ export const Dashboard: React.FC = () => {
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.75rem' }}>
                           <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-main)', margin: 0, lineHeight: 1.4, display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {p.code && (
+                            {p.topicCode && (
                               <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--primary)', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
-                                {p.code}
+                                Mã đề tài: {p.topicCode}
+                              </span>
+                            )}
+                            {p.code && (
+                              <span style={{ fontSize: '0.8rem', backgroundColor: '#10b981', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+                                Mã số DA: {p.code}
                               </span>
                             )}
                             <span>{p.name}</span>
@@ -315,15 +323,27 @@ export const Dashboard: React.FC = () => {
                   />
                 </div>
 
-                <div className="input-group">
-                  <label className="input-label">Mã số đề tài / Dự án</label>
-                  <input 
-                    type="text" 
-                    className="input-field" 
-                    placeholder="VD: VIGH-2026-01, KHCN-01/2026..." 
-                    value={newProjectCode} 
-                    onChange={(e) => setNewProjectCode(e.target.value)} 
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Mã đề tài</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="VD: ĐT-2026-01" 
+                      value={newProjectTopicCode} 
+                      onChange={(e) => setNewProjectTopicCode(e.target.value)} 
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Mã số dự án</label>
+                    <input 
+                      type="text" 
+                      className="input-field" 
+                      placeholder="VD: DA-2026-005, 108.05-2023.20..." 
+                      value={newProjectCode} 
+                      onChange={(e) => setNewProjectCode(e.target.value)} 
+                    />
+                  </div>
                 </div>
 
                 <div className="input-group">

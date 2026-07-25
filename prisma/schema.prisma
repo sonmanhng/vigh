@@ -42,6 +42,7 @@ model Project {
   name             String
   nameEn           String?
   code             String?
+  topicCode        String?
   projectType      String?
   managementUnit   String?
   hostOrganization String?
