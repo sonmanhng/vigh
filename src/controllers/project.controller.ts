@@ -465,16 +465,102 @@ export const importProjectDocx = async (req: Request, res: Response) => {
       }
     });
 
-    if (Object.keys(updates).length === 0) {
+    // Phân tích các Mục tiêu & Nội dung nghiên cứu (Phần II)
+    const parsedRCs: any[] = [];
+    let currentRC: any = null;
+
+    $('p, h1, h2, h3, h4, table').each((_: number, el: any) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === 'table') {
+        if (currentRC) {
+          const trs = $(el).find('tr');
+          trs.each((rowIdx: number, trEl: any) => {
+            if (rowIdx === 0) return; // Bỏ qua dòng tiêu đề
+            const tds = $(trEl).find('td');
+            if (tds.length >= 3) {
+              const act = $(tds[1]).text().trim();
+              const res = $(tds[2]).text().trim();
+              if (act && act !== '-' && act.toLowerCase() !== 'chưa có hoạt động nào') {
+                currentRC.activities.push({ activity: act, result: res });
+              }
+            } else if (tds.length === 2) {
+              const act = $(tds[0]).text().trim();
+              const res = $(tds[1]).text().trim();
+              if (act && act !== '-' && act.toLowerCase() !== 'chưa có hoạt động nào') {
+                currentRC.activities.push({ activity: act, result: res });
+              }
+            }
+          });
+        }
+      } else {
+        const text = $(el).text().trim();
+        const rcHeaderMatch = text.match(/^(ND\s*\d+|\w+[\.-]\d+):\s*(.*?)(?:\s*\((.*?)\))?$/i);
+        if (rcHeaderMatch && rcHeaderMatch[1].length <= 10 && rcHeaderMatch[2].length > 0) {
+          if (currentRC) parsedRCs.push(currentRC);
+          currentRC = {
+            code: rcHeaderMatch[1].replace(/\s+/g, '').toUpperCase(),
+            title: rcHeaderMatch[2].trim(),
+            status: rcHeaderMatch[3] ? rcHeaderMatch[3].trim() : 'Đang thực hiện',
+            description: '',
+            activities: []
+          };
+        } else if (currentRC && text.toLowerCase().startsWith('mô tả:')) {
+          currentRC.description = text.replace(/^mô tả:\s*/i, '').trim();
+        }
+      }
+    });
+    if (currentRC) parsedRCs.push(currentRC);
+
+    if (Object.keys(updates).length === 0 && parsedRCs.length === 0) {
       return res.status(400).json({ message: 'Không tìm thấy dữ liệu hợp lệ trong file DOCX' });
     }
 
-    const updated = await prisma.project.update({
-      where: { id: projectId },
-      data: updates
-    });
+    let updated = project;
+    if (Object.keys(updates).length > 0) {
+      updated = await prisma.project.update({
+        where: { id: projectId },
+        data: updates
+      });
+    }
 
-    res.json({ message: 'Cập nhật thành công', data: updated });
+    for (const rc of parsedRCs) {
+      const existing = await prisma.researchContent.findFirst({
+        where: {
+          projectId: projectId,
+          code: rc.code
+        }
+      });
+      const activitiesJson = JSON.stringify(rc.activities);
+
+      if (existing) {
+        await prisma.researchContent.update({
+          where: { id: existing.id },
+          data: {
+            title: rc.title,
+            status: rc.status,
+            description: rc.description || existing.description,
+            activities: activitiesJson
+          }
+        });
+      } else {
+        await prisma.researchContent.create({
+          data: {
+            code: rc.code,
+            title: rc.title,
+            status: rc.status,
+            description: rc.description,
+            activities: activitiesJson,
+            projectId: projectId
+          }
+        });
+      }
+    }
+
+    res.json({ 
+      message: `Cập nhật thành công thông tin chung và ${parsedRCs.length} nội dung nghiên cứu`, 
+      data: updated,
+      researchContentsCount: parsedRCs.length
+    });
   } catch (error: any) {
     res.status(500).json({ message: 'Error importing docx', error: error.message });
   }
