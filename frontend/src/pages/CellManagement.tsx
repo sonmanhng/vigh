@@ -105,7 +105,7 @@ const isLow = (c: Cell) => {
 
 export const CellManagement: React.FC = () => {
   const { user } = useAuth();
-  const socket = useSocket();
+  const { socket } = useSocket();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<'warehouse' | 'proposals' | 'statistics' | 'history'>('warehouse');
