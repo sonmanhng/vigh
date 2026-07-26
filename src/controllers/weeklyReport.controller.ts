@@ -206,13 +206,16 @@ export const downloadResultFile = async (req: Request, res: Response): Promise<a
     if (result.fileUrl) {
       const diskPath = path.join(__dirname, '../../', result.fileUrl);
       if (fs.existsSync(diskPath)) {
-        return res.download(diskPath, result.fileName || 'result_file');
+        const asciiName = (result.fileName || 'result_file').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^a-zA-Z0-9._-]/g, '_');
+        return res.download(diskPath, asciiName);
       }
     }
 
     if (result.fileData) {
       const buffer = Buffer.from(result.fileData, 'base64');
-      res.setHeader('Content-Disposition', `attachment; filename="${result.fileName || 'result_file'}"`);
+      const asciiName = (result.fileName || 'result_file').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const encodedName = encodeURIComponent(result.fileName || 'result_file');
+      res.setHeader('Content-Disposition', `attachment; filename="${asciiName}"; filename*=UTF-8''${encodedName}`);
       res.setHeader('Content-Type', 'application/octet-stream');
       return res.send(buffer);
     }
@@ -448,7 +451,7 @@ export const downloadReportDocx = async (req: Request, res: Response): Promise<a
     });
 
     const buffer = await Packer.toBuffer(doc);
-    res.setHeader('Content-Disposition', `attachment; filename=Bao_cao_tuan_${report.reporter.name ? report.reporter.name.replace(/\s+/g, '_') : 'CB'}_${Date.now()}.docx`);
+    res.setHeader('Content-Disposition', `attachment; filename="Bao_cao_tuan_${report.id}_${Date.now()}.docx"`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     return res.send(buffer);
   } catch (error: any) {
