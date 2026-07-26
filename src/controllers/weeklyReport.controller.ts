@@ -14,7 +14,7 @@ if (!fs.existsSync(uploadDir)) {
 
 export const createReport = async (req: Request, res: Response): Promise<any> => {
   try {
-    const reporterId = (req as any).user?.userId;
+    const reporterId = (req as any).user?.id;
     if (!reporterId) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -115,7 +115,7 @@ export const createReport = async (req: Request, res: Response): Promise<any> =>
 
 export const getReports = async (req: Request, res: Response): Promise<any> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     const role = (req as any).user?.role;
     const { tab } = req.query; // 'sent' | 'received' | 'all'
 
@@ -165,7 +165,7 @@ export const getReports = async (req: Request, res: Response): Promise<any> => {
 
 export const deleteReport = async (req: Request, res: Response): Promise<any> => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     const role = (req as any).user?.role;
     const { id } = req.params;
 

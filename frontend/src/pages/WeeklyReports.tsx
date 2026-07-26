@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, Upload, Plus, Trash2, Download, Send, 
-  CheckCircle2, User as UserIcon, Folder, Calendar, 
-  Briefcase, AlertCircle, ChevronDown, ChevronUp, File 
-} from 'lucide-react';
 import { apiClient } from '../api/client';
 import { 
   weeklyReportService, 
@@ -160,7 +155,7 @@ export const WeeklyReports: React.FC = () => {
     setIsSubmitting(true);
     try {
       await weeklyReportService.createReport(Number(recipientId), results, plans);
-      alert('🎉 Nộp báo cáo tuần thành công!');
+      alert('Nộp báo cáo tuần thành công!');
       // Reset form
       setRecipientId('');
       setResults([{ projectId: null, description: '', file: null, fileName: '' }]);
@@ -193,76 +188,91 @@ export const WeeklyReports: React.FC = () => {
   return (
     <div className="content-area" style={{ padding: '1.5rem 2rem', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Top Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <FileText size={28} style={{ color: '#2B579A' }} />
-            Hệ Thống Báo Cáo Công Việc Tuần
-          </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginTop: '0.25rem' }}>
-            Tổng hợp kết quả, đính kèm tài liệu và đăng ký kế hoạch hoạt động theo tuần cho Lãnh đạo & Chủ nhiệm
-          </p>
-        </div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+          Hệ Thống Báo Cáo Công Việc Tuần
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+          Tổng hợp kết quả, đính kèm tài liệu và đăng ký kế hoạch hoạt động theo tuần cho Lãnh đạo & Chủ nhiệm
+        </p>
+      </div>
 
-        {/* Main Tab Switcher */}
-        <div style={{ display: 'flex', backgroundColor: '#F1F5F9', padding: '0.35rem', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-          <button
-            style={{
-              padding: '0.65rem 1.25rem',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.95rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              backgroundColor: activeTab === 'submit' ? '#2B579A' : 'transparent',
-              color: activeTab === 'submit' ? '#FFFFFF' : '#475569',
-              boxShadow: activeTab === 'submit' ? '0 2px 4px rgba(43, 87, 154, 0.2)' : 'none'
-            }}
-            onClick={() => setActiveTab('submit')}
-          >
-            <Send size={18} />
-            Nộp Báo Cáo Tuần
-          </button>
-          <button
-            style={{
-              padding: '0.65rem 1.25rem',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.95rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              backgroundColor: activeTab === 'manage' ? '#2B579A' : 'transparent',
-              color: activeTab === 'manage' ? '#FFFFFF' : '#475569',
-              boxShadow: activeTab === 'manage' ? '0 2px 4px rgba(43, 87, 154, 0.2)' : 'none'
-            }}
-            onClick={() => setActiveTab('manage')}
-          >
-            <Folder size={18} />
-            Quản Lý Báo Cáo
-          </button>
-        </div>
+      {/* Main Tab Switcher - Styled like ProjectDetail.tsx Chuyên môn / Hành chính */}
+      <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--border-color)', marginBottom: '1.75rem' }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab('submit')}
+          style={{
+            backgroundColor: activeTab === 'submit' ? 'var(--primary)' : 'transparent',
+            color: activeTab === 'submit' ? '#FFFFFF' : 'var(--text-muted)',
+            border: 'none',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            cursor: 'pointer',
+            borderTop: activeTab === 'submit' ? '3px solid var(--primary-light)' : '3px solid transparent',
+            transition: 'all 0.2s ease',
+            boxShadow: activeTab === 'submit' ? 'var(--shadow-sm)' : 'none'
+          }}
+        >
+          Nộp báo cáo tuần
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('manage')}
+          style={{
+            backgroundColor: activeTab === 'manage' ? 'var(--primary)' : 'transparent',
+            color: activeTab === 'manage' ? '#FFFFFF' : 'var(--text-muted)',
+            border: 'none',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+            fontWeight: 700,
+            fontSize: '0.95rem',
+            cursor: 'pointer',
+            borderTop: activeTab === 'manage' ? '3px solid var(--primary-light)' : '3px solid transparent',
+            transition: 'all 0.2s ease',
+            boxShadow: activeTab === 'manage' ? 'var(--shadow-sm)' : 'none'
+          }}
+        >
+          Quản lý báo cáo
+        </button>
       </div>
 
       {/* TAB 1: SUBMIT REPORT */}
       {activeTab === 'submit' && (
         <form onSubmit={handleSubmitReport}>
+          {/* Info Banner box like ProjectDetail.tsx */}
+          <div style={{
+            backgroundColor: 'rgba(52, 144, 139, 0.08)',
+            border: '1px solid rgba(52, 144, 139, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.75rem',
+            color: 'var(--text-main)',
+            fontSize: '0.9rem',
+            lineHeight: 1.6
+          }}>
+            <strong style={{ color: 'var(--primary)', fontWeight: 700 }}>Hướng dẫn Nộp báo cáo tuần:</strong> Tổng hợp đầy đủ tiến độ các Nội dung và công việc đã hoàn thành trong tuần, đính kèm file minh chứng kết quả và đăng ký phương án triển khai cho tuần tới. Dữ liệu báo cáo được đồng bộ trực tiếp với Cơ sở dữ liệu và gửi thông báo đến Lãnh đạo.
+          </div>
+
           {/* Card 0: Recipient Selector */}
-          <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid #2B579A', backgroundColor: '#F8FAFC' }}>
-            <label style={{ display: 'block', fontSize: '1rem', fontWeight: 700, color: '#1E293B', marginBottom: '0.75rem', displayFlex: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <UserIcon size={18} style={{ color: '#2B579A', display: 'inline' }} />
-              Chọn người báo cáo tới (Lãnh đạo / Chủ nhiệm / Quản lý): <span style={{ color: '#EF4444' }}>*</span>
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)',
+            boxShadow: 'var(--shadow-sm)',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+            borderLeft: '4px solid var(--primary)'
+          }}>
+            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+              Chọn người nhận báo cáo (Lãnh đạo / Chủ nhiệm / Quản lý): <span style={{ color: 'var(--accent-red)' }}>*</span>
             </label>
             <select
               className="input-field"
-              style={{ maxWidth: '450px', fontWeight: 500 }}
+              style={{ maxWidth: '500px', fontWeight: 500, width: '100%' }}
               value={recipientId}
               onChange={(e) => setRecipientId(e.target.value ? Number(e.target.value) : '')}
               required
@@ -281,39 +291,57 @@ export const WeeklyReports: React.FC = () => {
           {/* Section 1: Weekly Results */}
           <div style={{ marginBottom: '2.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ backgroundColor: '#10B981', color: '#fff', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                1
+              <span style={{ backgroundColor: 'var(--primary)', color: '#FFFFFF', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem' }}>
+                I
               </span>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
-                Kết Quả Thực Hiện Trong Tuần
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, textTransform: 'uppercase' }}>
+                Kết quả thực hiện trong tuần
               </h2>
             </div>
 
             {results.map((item, idx) => (
-              <div key={idx} className="card" style={{ padding: '1.5rem', marginBottom: '1.25rem', border: '1px solid #E2E8F0', position: 'relative', transition: 'box-shadow 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px dashed #E2E8F0' }}>
-                  <span style={{ fontWeight: 700, color: '#2B579A', fontSize: '1.05rem' }}>
-                    Thẻ Kết Quả #{idx + 1}
+              <div key={idx} style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: 'var(--shadow-sm)',
+                padding: '1.5rem',
+                marginBottom: '1.25rem',
+                borderLeft: '4px solid var(--primary)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px dashed var(--border-color)' }}>
+                  <span style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '1rem', textTransform: 'uppercase' }}>
+                    Thẻ kết quả #{idx + 1}
                   </span>
                   {results.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveResultCard(idx)}
-                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', fontWeight: 600 }}
-                      title="Xóa thẻ này"
+                      style={{
+                        backgroundColor: '#FEE2E2',
+                        color: '#DC2626',
+                        border: 'none',
+                        borderRadius: '20px',
+                        padding: '0.35rem 0.9rem',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        transition: 'opacity 0.2s'
+                      }}
                     >
-                      <Trash2 size={16} /> Xóa thẻ
+                      Xóa thẻ
                     </button>
                   )}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
                       Chọn đề tài liên quan (tùy chọn):
                     </label>
                     <select
                       className="input-field"
+                      style={{ width: '100%' }}
                       value={item.projectId || ''}
                       onChange={(e) => handleResultChange(idx, 'projectId', e.target.value ? Number(e.target.value) : null)}
                     >
@@ -327,26 +355,23 @@ export const WeeklyReports: React.FC = () => {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>
-                      Tải lên file minh chứng / kết quả (lưu database):
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                      Tải lên file minh chứng / kết quả (lưu hệ thống):
                     </label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <label style={{
-                        padding: '0.55rem 1rem',
-                        backgroundColor: '#F1F5F9',
-                        color: '#334155',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '6px',
+                        padding: '0.6rem 1.2rem',
+                        backgroundColor: '#FFFFFF',
+                        color: 'var(--primary)',
+                        border: '1.5px solid var(--primary)',
+                        borderRadius: '20px',
                         cursor: 'pointer',
                         fontWeight: 600,
                         fontSize: '0.85rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        transition: 'background-color 0.2s'
+                        display: 'inline-block',
+                        transition: 'all 0.2s'
                       }}>
-                        <Upload size={16} />
-                        {item.fileName ? 'Thay file khác' : 'Chọn file đính kèm...'}
+                        {item.fileName ? 'Thay file khác...' : 'Chọn file đính kèm...'}
                         <input
                           type="file"
                           style={{ display: 'none' }}
@@ -354,9 +379,8 @@ export const WeeklyReports: React.FC = () => {
                         />
                       </label>
                       {item.fileName ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#059669', fontWeight: 600 }}>
-                          <File size={16} />
-                          <span style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#137333', fontWeight: 600, backgroundColor: '#E6F4EA', padding: '0.4rem 0.8rem', borderRadius: '20px' }}>
+                          <span style={{ maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {item.fileName}
                           </span>
                           <button
@@ -365,24 +389,25 @@ export const WeeklyReports: React.FC = () => {
                               handleResultChange(idx, 'file', null);
                               handleResultChange(idx, 'fileName', '');
                             }}
-                            style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0 }}
+                            style={{ background: 'none', border: 'none', color: '#137333', cursor: 'pointer', padding: 0, fontWeight: 700, fontSize: '1rem', marginLeft: '0.2rem' }}
                           >
                             ×
                           </button>
                         </div>
                       ) : (
-                        <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontStyle: 'italic' }}>Chưa chọn file</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Chưa đính kèm file</span>
                       )}
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>
-                    Mô tả chi tiết kết quả thực hiện trong tuần: <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                    Mô tả chi tiết kết quả thực hiện trong tuần: <span style={{ color: 'var(--accent-red)' }}>*</span>
                   </label>
                   <textarea
                     className="input-field"
+                    style={{ width: '100%' }}
                     rows={3}
                     placeholder="VD: Đã hoàn thành phỏng vấn 50 mẫu khảo sát tại cơ sở; phân tích số liệu sơ bộ và soạn thảo chương 1..."
                     value={item.description || ''}
@@ -399,61 +424,75 @@ export const WeeklyReports: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '0.85rem',
-                border: '2px dashed #10B981',
-                borderRadius: '10px',
-                backgroundColor: '#ECFDF5',
-                color: '#059669',
+                border: '1.5px dashed var(--primary)',
+                borderRadius: '20px',
+                backgroundColor: '#FFFFFF',
+                color: 'var(--primary)',
                 fontWeight: 700,
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
+                fontSize: '0.9rem',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                boxShadow: 'var(--shadow-sm)'
               }}
             >
-              <Plus size={20} />
-              + Thêm Thẻ Kết Quả Trong Tuần
+              + Thêm thẻ kết quả trong tuần
             </button>
           </div>
 
           {/* Section 2: Next Week Plans */}
           <div style={{ marginBottom: '3rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ backgroundColor: '#3B82F6', color: '#fff', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                2
+              <span style={{ backgroundColor: '#D97706', color: '#FFFFFF', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem' }}>
+                II
               </span>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
-                Kế Hoạch Tuần Tiếp Theo
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, textTransform: 'uppercase' }}>
+                Kế hoạch tuần tiếp theo
               </h2>
             </div>
 
             {plans.map((item, idx) => (
-              <div key={idx} className="card" style={{ padding: '1.5rem', marginBottom: '1.25rem', border: '1px solid #E2E8F0', position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px dashed #E2E8F0' }}>
-                  <span style={{ fontWeight: 700, color: '#1D4ED8', fontSize: '1.05rem' }}>
-                    Thẻ Kế Hoạch #{idx + 1}
+              <div key={idx} style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-color)',
+                boxShadow: 'var(--shadow-sm)',
+                padding: '1.5rem',
+                marginBottom: '1.25rem',
+                borderLeft: '4px solid #D97706'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px dashed var(--border-color)' }}>
+                  <span style={{ fontWeight: 700, color: '#D97706', fontSize: '1rem', textTransform: 'uppercase' }}>
+                    Thẻ kế hoạch #{idx + 1}
                   </span>
                   {plans.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemovePlanCard(idx)}
-                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', fontWeight: 600 }}
-                      title="Xóa thẻ này"
+                      style={{
+                        backgroundColor: '#FEE2E2',
+                        color: '#DC2626',
+                        border: 'none',
+                        borderRadius: '20px',
+                        padding: '0.35rem 0.9rem',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                        transition: 'opacity 0.2s'
+                      }}
                     >
-                      <Trash2 size={16} /> Xóa thẻ
+                      Xóa thẻ
                     </button>
                   )}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: item.projectId === -1 ? '1fr 1fr' : '1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
                       Chọn đề tài hoặc mục công việc:
                     </label>
                     <select
                       className="input-field"
+                      style={{ width: '100%' }}
                       value={item.projectId === null && item.customTitle !== '' ? -1 : (item.projectId || '')}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -475,18 +514,19 @@ export const WeeklyReports: React.FC = () => {
                           {p.topicCode ? `[${p.topicCode}] ` : ''}{p.name}
                         </option>
                       ))}
-                      <option value="-1" style={{ fontWeight: 700, color: '#2B579A' }}>+ Khác (Nhập tên công việc / mục tiêu ngoài đề tài)</option>
+                      <option value="-1" style={{ fontWeight: 700, color: 'var(--primary)' }}>+ Khác (Nhập tên công việc / mục tiêu ngoài đề tài)</option>
                     </select>
                   </div>
 
                   {(item.projectId === null && (item.customTitle || item.customTitle === 'Khác')) && (
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>
-                        Tên công việc / mục tiêu khác: <span style={{ color: '#EF4444' }}>*</span>
+                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                        Tên công việc / mục tiêu khác: <span style={{ color: 'var(--accent-red)' }}>*</span>
                       </label>
                       <input
                         type="text"
                         className="input-field"
+                        style={{ width: '100%' }}
                         placeholder="VD: Viết bài báo hội thảo, Tổ chức seminar..."
                         value={item.customTitle === 'Khác' ? '' : (item.customTitle || '')}
                         onChange={(e) => handlePlanChange(idx, 'customTitle', e.target.value || 'Khác')}
@@ -497,11 +537,12 @@ export const WeeklyReports: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>
-                    Mô tả kế hoạch / dự kiến đầu ra trong tuần tới: <span style={{ color: '#EF4444' }}>*</span>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                    Mô tả kế hoạch / dự kiến đầu ra trong tuần tới: <span style={{ color: 'var(--accent-red)' }}>*</span>
                   </label>
                   <textarea
                     className="input-field"
+                    style={{ width: '100%' }}
                     rows={2}
                     placeholder="VD: Triển khai thí nghiệm mô hình đợt 2; hoàn thiện chỉnh sửa chuyên đề số 3..."
                     value={item.description || ''}
@@ -518,44 +559,40 @@ export const WeeklyReports: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '0.85rem',
-                border: '2px dashed #3B82F6',
-                borderRadius: '10px',
-                backgroundColor: '#EFF6FF',
-                color: '#1D4ED8',
+                border: '1.5px dashed #D97706',
+                borderRadius: '20px',
+                backgroundColor: '#FFFFFF',
+                color: '#D97706',
                 fontWeight: 700,
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
+                fontSize: '0.9rem',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                boxShadow: 'var(--shadow-sm)'
               }}
             >
-              <Plus size={20} />
-              + Thêm Thẻ Kế Hoạch Tuần Tới
+              + Thêm thẻ kế hoạch tuần tới
             </button>
           </div>
 
-          {/* Submit Action Bar */}
+          {/* Submit Action Bar - Styled cleanly like bottom actions */}
           <div style={{ 
             padding: '1.5rem', 
             backgroundColor: '#FFFFFF', 
-            borderRadius: '12px', 
-            boxShadow: '0 4px 15px rgba(0,0,0,0.08)', 
-            border: '1px solid #E2E8F0',
+            borderRadius: 'var(--radius-lg)', 
+            boxShadow: 'var(--shadow-md)', 
+            border: '1px solid var(--border-color)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             position: 'sticky',
-            bottom: '1rem',
+            bottom: '1.5rem',
             zIndex: 10
           }}>
             <div>
-              <span style={{ fontWeight: 700, color: '#0F172A', fontSize: '1.05rem', display: 'block' }}>
+              <span style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem', display: 'block' }}>
                 Hoàn tất soạn thảo?
               </span>
-              <span style={{ fontSize: '0.85rem', color: '#64748B' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                 Báo cáo sẽ được gửi tới <strong>{users.find(u => u.id === Number(recipientId))?.name || 'Người nhận'}</strong>
               </span>
             </div>
@@ -564,23 +601,19 @@ export const WeeklyReports: React.FC = () => {
               type="submit"
               disabled={isSubmitting || !recipientId}
               style={{
-                padding: '0.85rem 2rem',
-                backgroundColor: isSubmitting || !recipientId ? '#94A3B8' : '#2B579A',
+                padding: '0.75rem 2.5rem',
+                backgroundColor: isSubmitting || !recipientId ? '#94A3B8' : 'var(--primary)',
                 color: '#FFFFFF',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '20px',
                 fontWeight: 700,
-                fontSize: '1.05rem',
+                fontSize: '0.95rem',
                 cursor: isSubmitting || !recipientId ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                boxShadow: isSubmitting || !recipientId ? 'none' : '0 4px 12px rgba(43, 87, 154, 0.3)',
+                boxShadow: isSubmitting || !recipientId ? 'none' : 'var(--shadow-sm)',
                 transition: 'all 0.2s'
               }}
             >
-              <Send size={20} />
-              {isSubmitting ? 'Đang gửi báo cáo...' : 'Nộp Báo Cáo Tuần'}
+              {isSubmitting ? 'Đang gửi báo cáo...' : 'Nộp báo cáo tuần'}
             </button>
           </div>
         </form>
@@ -589,56 +622,88 @@ export const WeeklyReports: React.FC = () => {
       {/* TAB 2: MANAGE REPORTS */}
       {activeTab === 'manage' && (
         <div>
-          {/* Sub-filter Bar */}
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.75rem', borderBottom: '2px solid #E2E8F0', paddingBottom: '0.75rem' }}>
+          {/* Sub-filter Bar - Styled EXACTLY like ProjectDetail.tsx sub-tab bar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 1.5rem',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1.75rem',
+            gap: '2.5rem',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
             <button
-              style={{
-                padding: '0.5rem 1.25rem',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                cursor: 'pointer',
-                backgroundColor: manageFilter === 'received' ? '#EFF6FF' : 'transparent',
-                color: manageFilter === 'received' ? '#1D4ED8' : '#64748B',
-                borderBottom: manageFilter === 'received' ? '2px solid #1D4ED8' : 'none'
-              }}
+              type="button"
               onClick={() => setManageFilter('received')}
-            >
-              📥 Báo Cáo Nhận Được (Gửi đến tôi)
-            </button>
-            <button
               style={{
-                padding: '0.5rem 1.25rem',
-                borderRadius: '8px',
+                background: 'none',
                 border: 'none',
-                fontWeight: 700,
+                padding: '1rem 0',
+                color: manageFilter === 'received' ? 'var(--primary)' : 'var(--text-muted)',
+                fontWeight: manageFilter === 'received' ? 700 : 600,
                 fontSize: '0.95rem',
                 cursor: 'pointer',
-                backgroundColor: manageFilter === 'sent' ? '#ECFDF5' : 'transparent',
-                color: manageFilter === 'sent' ? '#059669' : '#64748B',
-                borderBottom: manageFilter === 'sent' ? '2px solid #059669' : 'none'
+                borderBottom: manageFilter === 'received' ? '3px solid var(--primary)' : '3px solid transparent'
               }}
-              onClick={() => setManageFilter('sent')}
             >
-              📤 Báo Cáo Tôi Đã Gửi
+              Báo cáo nhận được ({reports.filter(r => r.reportedTo?.id === currentUser?.id || manageFilter === 'received').length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setManageFilter('sent')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '1rem 0',
+                color: manageFilter === 'sent' ? 'var(--primary)' : 'var(--text-muted)',
+                fontWeight: manageFilter === 'sent' ? 700 : 600,
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                borderBottom: manageFilter === 'sent' ? '3px solid var(--primary)' : '3px solid transparent'
+              }}
+            >
+              Báo cáo tôi đã gửi
             </button>
           </div>
 
+          {/* Info Banner box */}
+          <div style={{
+            backgroundColor: 'rgba(52, 144, 139, 0.08)',
+            border: '1px solid rgba(52, 144, 139, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.75rem',
+            color: 'var(--text-main)',
+            fontSize: '0.9rem',
+            lineHeight: 1.6
+          }}>
+            <strong style={{ color: 'var(--primary)', fontWeight: 700 }}>Quản lý Báo cáo tuần:</strong> Theo dõi chi tiết các kết quả thực hiện công việc và kế hoạch tuần tới của cán bộ/thành viên. Hỗ trợ tải trực tiếp từng file đính kèm hoặc xuất toàn bộ văn bản tổng hợp theo định dạng chuẩn (.docx).
+          </div>
+
           {isLoadingReports ? (
-            <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B', fontSize: '1.1rem' }}>
-              ⏳ Đang tải danh sách báo cáo...
+            <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>
+              Đang tải danh sách báo cáo...
             </div>
           ) : reports.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '4rem', backgroundColor: '#F8FAFC', borderRadius: '12px', border: '1px dashed #CBD5E1', color: '#64748B' }}>
-              <AlertCircle size={48} style={{ margin: '0 auto 1rem', color: '#94A3B8' }} />
-              <div style={{ fontWeight: 700, fontSize: '1.2rem', color: '#334155', marginBottom: '0.5rem' }}>
+            <div style={{
+              textAlign: 'center',
+              padding: '4rem 2rem',
+              backgroundColor: '#FFFFFF',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-muted)',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <div style={{ fontWeight: 700, fontSize: '1.15rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
                 Chưa có báo cáo tuần nào
               </div>
-              <div>
+              <div style={{ fontSize: '0.95rem' }}>
                 {manageFilter === 'received' 
                   ? 'Bạn chưa nhận được báo cáo công việc tuần từ cán bộ nào.' 
-                  : 'Bạn chưa nộp báo cáo tuần nào. Hãy chuyển sang tab "Nộp Báo Cáo Tuần" để tạo mới!'}
+                  : 'Bạn chưa nộp báo cáo tuần nào. Hãy chuyển sang tab "Nộp báo cáo tuần" để tạo mới!'}
               </div>
             </div>
           ) : (
@@ -650,163 +715,171 @@ export const WeeklyReports: React.FC = () => {
                 });
 
                 return (
-                  <div key={report.id} className="card" style={{ padding: '1.5rem', border: '1px solid #E2E8F0', transition: 'box-shadow 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                  <div key={report.id} style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--border-color)',
+                    boxShadow: 'var(--shadow-sm)',
+                    padding: '1.5rem',
+                    borderLeft: '4px solid var(--primary)'
+                  }}>
                     {/* Header Row */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.2rem', color: '#2B579A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                        <div style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(52, 144, 139, 0.15)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: '1.2rem',
+                          color: 'var(--primary)'
+                        }}>
                           {report.reporter?.name ? report.reporter.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div>
-                          <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A' }}>
+                          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', textTransform: 'uppercase' }}>
                             {manageFilter === 'received' 
-                              ? `Người gửi: ${report.reporter?.name || 'Cán bộ'} (${report.reporter?.department || 'Chung'})`
-                              : `Gửi tới: ${report.recipient?.name || 'Lãnh đạo'} (${report.recipient?.department || 'Chung'})`}
+                              ? `Người gửi: ${report.reporter?.name || 'Cán bộ'} (${report.reporter?.department || 'Phòng ban chung'})`
+                              : `Gửi tới: ${report.recipient?.name || 'Lãnh đạo'} (${report.recipient?.department || 'Phòng ban chung'})`}
                           </div>
-                          <div style={{ fontSize: '0.85rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.2rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                              <Calendar size={14} /> {dateFormatted}
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
+                            <span>
+                              Ngày nộp: <strong>{dateFormatted}</strong>
                             </span>
-                            <span style={{ backgroundColor: '#EFF6FF', color: '#1D4ED8', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 700 }}>
+                            <span style={{ backgroundColor: '#E6F4EA', color: '#137333', padding: '0.2rem 0.7rem', borderRadius: '20px', fontWeight: 700, fontSize: '0.75rem' }}>
                               {report.results?.length || 0} kết quả
                             </span>
-                            <span style={{ backgroundColor: '#F0FDF4', color: '#15803D', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 700 }}>
+                            <span style={{ backgroundColor: '#FEF3C7', color: '#D97706', padding: '0.2rem 0.7rem', borderRadius: '20px', fontWeight: 700, fontSize: '0.75rem' }}>
                               {report.plans?.length || 0} kế hoạch
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      {/* Action Buttons - Pure text, zero icons, rounded pill buttons */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <button
                           type="button"
                           onClick={() => weeklyReportService.downloadDocx(report.id, report.reporter?.name)}
                           style={{
-                            padding: '0.55rem 1rem',
-                            backgroundColor: '#1E3A8A',
+                            padding: '0.55rem 1.25rem',
+                            backgroundColor: 'var(--primary)',
                             color: '#FFFFFF',
                             border: 'none',
-                            borderRadius: '8px',
-                            fontWeight: 700,
+                            borderRadius: '20px',
+                            fontWeight: 600,
                             fontSize: '0.85rem',
                             cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            boxShadow: '0 2px 4px rgba(30, 58, 138, 0.2)'
+                            boxShadow: 'var(--shadow-sm)',
+                            transition: 'all 0.2s'
                           }}
                           title="Tải báo cáo DOCX chuẩn"
                         >
-                          <Download size={16} />
-                          Tải Báo Cáo DOCX
+                          Tải báo cáo DOCX
                         </button>
 
                         <button
                           type="button"
                           onClick={() => toggleExpandReport(report.id)}
                           style={{
-                            padding: '0.55rem 1rem',
-                            backgroundColor: '#F1F5F9',
-                            color: '#334155',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '8px',
+                            padding: '0.55rem 1.25rem',
+                            backgroundColor: '#FFFFFF',
+                            color: 'var(--text-main)',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '20px',
                             fontWeight: 600,
                             fontSize: '0.85rem',
                             cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
+                            transition: 'all 0.2s'
                           }}
                         >
-                          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                          {isExpanded ? 'Thu gọn' : 'Xem Chi Tiết'}
+                          {isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleDeleteReport(report.id)}
                           style={{
-                            padding: '0.55rem',
+                            padding: '0.55rem 1rem',
                             backgroundColor: '#FEE2E2',
                             color: '#DC2626',
                             border: 'none',
-                            borderRadius: '8px',
+                            borderRadius: '20px',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
                             cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
+                            transition: 'all 0.2s'
                           }}
                           title="Xóa báo cáo này"
                         >
-                          <Trash2 size={16} />
+                          Xóa
                         </button>
                       </div>
                     </div>
 
                     {/* Expanded Details Section */}
                     {isExpanded && (
-                      <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #E2E8F0' }}>
+                      <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
                         {/* Results Table */}
-                        <div style={{ marginBottom: '1.5rem' }}>
-                          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <CheckCircle2 size={18} style={{ color: '#10B981' }} />
-                            I. Kết Quả Thực Hiện Trong Tuần ({report.results?.length || 0})
+                        <div style={{ marginBottom: '2rem' }}>
+                          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
+                            I. Kết quả thực hiện trong tuần ({report.results?.length || 0})
                           </h4>
                           
-                          <div style={{ backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+                          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                               <thead>
-                                <tr style={{ backgroundColor: '#E2E8F0', color: '#334155' }}>
-                                  <th style={{ padding: '0.75rem 1rem', width: '5%' }}>STT</th>
-                                  <th style={{ padding: '0.75rem 1rem', width: '30%' }}>Đề tài / Công việc</th>
-                                  <th style={{ padding: '0.75rem 1rem', width: '45%' }}>Mô tả kết quả</th>
-                                  <th style={{ padding: '0.75rem 1rem', width: '20%', textAlign: 'center' }}>Minh chứng / File</th>
+                                <tr style={{ backgroundColor: '#F8FAFC', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)' }}>
+                                  <th style={{ padding: '0.85rem 1rem', width: '5%', fontWeight: 700 }}>STT</th>
+                                  <th style={{ padding: '0.85rem 1rem', width: '30%', fontWeight: 700 }}>Đề tài / Công việc</th>
+                                  <th style={{ padding: '0.85rem 1rem', width: '45%', fontWeight: 700 }}>Mô tả kết quả</th>
+                                  <th style={{ padding: '0.85rem 1rem', width: '20%', textAlign: 'center', fontWeight: 700 }}>Minh chứng</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {(!report.results || report.results.length === 0) ? (
                                   <tr>
-                                    <td colSpan={4} style={{ padding: '1rem', textAlign: 'center', color: '#94A3B8', fontStyle: 'italic' }}>Chưa có kết quả</td>
+                                    <td colSpan={4} style={{ padding: '1.25rem', textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic' }}>Chưa có mục kết quả nào</td>
                                   </tr>
                                 ) : report.results.map((r, idx) => (
-                                  <tr key={r.id || idx} style={{ borderTop: '1px solid #E2E8F0' }}>
-                                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700 }}>{idx + 1}</td>
-                                    <td style={{ padding: '0.75rem 1rem' }}>
+                                  <tr key={r.id || idx} style={{ borderTop: idx > 0 ? '1px solid var(--border-color)' : 'none' }}>
+                                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700 }}>{idx + 1}</td>
+                                    <td style={{ padding: '0.85rem 1rem' }}>
                                       {r.project ? (
-                                        <span style={{ fontWeight: 700, color: '#1E3A8A' }}>
+                                        <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>
                                           {r.project.topicCode ? `[${r.project.topicCode}] ` : ''}{r.project.name}
                                         </span>
                                       ) : (
-                                        <span style={{ fontStyle: 'italic', color: '#64748B' }}>Công việc chung / Khác</span>
+                                        <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>Công việc chung / Khác</span>
                                       )}
                                     </td>
-                                    <td style={{ padding: '0.75rem 1rem', whiteSpace: 'pre-wrap', color: '#334155' }}>{r.description}</td>
-                                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                                    <td style={{ padding: '0.85rem 1rem', whiteSpace: 'pre-wrap', color: 'var(--text-main)' }}>{r.description}</td>
+                                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
                                       {r.fileName && r.id ? (
                                         <button
                                           type="button"
                                           onClick={() => weeklyReportService.downloadFile(r.id!, r.fileName!)}
                                           style={{
-                                            padding: '0.4rem 0.75rem',
-                                            backgroundColor: '#10B981',
-                                            color: '#FFFFFF',
+                                            padding: '0.4rem 0.9rem',
+                                            backgroundColor: '#E6F4EA',
+                                            color: '#137333',
                                             border: 'none',
-                                            borderRadius: '6px',
+                                            borderRadius: '20px',
                                             fontWeight: 600,
                                             fontSize: '0.8rem',
                                             cursor: 'pointer',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '0.35rem'
+                                            transition: 'all 0.2s'
                                           }}
                                           title="Tải xuống file kết quả"
                                         >
-                                          <Download size={14} />
-                                          {r.fileName.length > 18 ? r.fileName.substring(0, 15) + '...' : r.fileName}
+                                          Tải file ({r.fileName.length > 15 ? r.fileName.substring(0, 12) + '...' : r.fileName})
                                         </button>
                                       ) : (
-                                        <span style={{ color: '#94A3B8', fontStyle: 'italic', fontSize: '0.8rem' }}>Không có</span>
+                                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.85rem' }}>Không có</span>
                                       )}
                                     </td>
                                   </tr>
@@ -818,36 +891,35 @@ export const WeeklyReports: React.FC = () => {
 
                         {/* Plans Table */}
                         <div>
-                          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#1E3A8A', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Briefcase size={18} style={{ color: '#3B82F6' }} />
-                            II. Kế Hoạch Tuần Tiếp Theo ({report.plans?.length || 0})
+                          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#D97706', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
+                            II. Kế hoạch tuần tiếp theo ({report.plans?.length || 0})
                           </h4>
 
-                          <div style={{ backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+                          <div style={{ backgroundColor: '#FFFFFF', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                               <thead>
-                                <tr style={{ backgroundColor: '#E2E8F0', color: '#334155' }}>
-                                  <th style={{ padding: '0.75rem 1rem', width: '5%' }}>STT</th>
-                                  <th style={{ padding: '0.75rem 1rem', width: '35%' }}>Đề tài / Công việc tuần tới</th>
-                                  <th style={{ padding: '0.75rem 1rem', width: '60%' }}>Kế hoạch / Dự kiến kết quả đầu ra</th>
+                                <tr style={{ backgroundColor: '#F8FAFC', color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)' }}>
+                                  <th style={{ padding: '0.85rem 1rem', width: '5%', fontWeight: 700 }}>STT</th>
+                                  <th style={{ padding: '0.85rem 1rem', width: '35%', fontWeight: 700 }}>Đề tài / Công việc tuần tới</th>
+                                  <th style={{ padding: '0.85rem 1rem', width: '60%', fontWeight: 700 }}>Kế hoạch / Dự kiến kết quả đầu ra</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {(!report.plans || report.plans.length === 0) ? (
                                   <tr>
-                                    <td colSpan={3} style={{ padding: '1rem', textAlign: 'center', color: '#94A3B8', fontStyle: 'italic' }}>Chưa có kế hoạch</td>
+                                    <td colSpan={3} style={{ padding: '1.25rem', textAlign: 'center', color: 'var(--text-muted)', fontStyle: 'italic' }}>Chưa có kế hoạch nào</td>
                                   </tr>
                                 ) : report.plans.map((p, idx) => (
-                                  <tr key={p.id || idx} style={{ borderTop: '1px solid #E2E8F0' }}>
-                                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700 }}>{idx + 1}</td>
-                                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#1E3A8A' }}>
+                                  <tr key={p.id || idx} style={{ borderTop: idx > 0 ? '1px solid var(--border-color)' : 'none' }}>
+                                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700 }}>{idx + 1}</td>
+                                    <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: 'var(--text-main)' }}>
                                       {p.project ? (
                                         <span>{p.project.topicCode ? `[${p.project.topicCode}] ` : ''}{p.project.name}</span>
                                       ) : (
                                         <span>{p.customTitle || 'Khác'}</span>
                                       )}
                                     </td>
-                                    <td style={{ padding: '0.75rem 1rem', whiteSpace: 'pre-wrap', color: '#334155' }}>{p.description}</td>
+                                    <td style={{ padding: '0.85rem 1rem', whiteSpace: 'pre-wrap', color: 'var(--text-main)' }}>{p.description}</td>
                                   </tr>
                                 ))}
                               </tbody>
