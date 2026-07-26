@@ -100,22 +100,31 @@ export const WeeklyReports: React.FC = () => {
     setResults(results.filter((_, idx) => idx !== index));
   };
 
-  const handleResultChange = (index: number, field: keyof WeeklyReportResultItem, value: any) => {
-    const newResults = [...results];
-    newResults[index] = { ...newResults[index], [field]: value };
-    setResults(newResults);
+  const handleResultChange = (
+    index: number,
+    fieldOrFields: keyof WeeklyReportResultItem | Partial<WeeklyReportResultItem>,
+    value?: any
+  ) => {
+    setResults(prev => {
+      const newResults = [...prev];
+      if (typeof fieldOrFields === 'string') {
+        newResults[index] = { ...newResults[index], [fieldOrFields]: value };
+      } else {
+        newResults[index] = { ...newResults[index], ...fieldOrFields };
+      }
+      return newResults;
+    });
   };
 
   const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      handleResultChange(index, 'file', file);
-      handleResultChange(index, 'fileName', file.name);
+      handleResultChange(index, { file, fileName: file.name });
     }
   };
 
   const handleAddPlanCard = () => {
-    setPlans([...plans, { projectId: null, customTitle: '', description: '' }]);
+    setPlans(prev => [...prev, { projectId: null, customTitle: '', description: '' }]);
   };
 
   const handleRemovePlanCard = (index: number) => {
@@ -123,13 +132,23 @@ export const WeeklyReports: React.FC = () => {
       alert('Cần ít nhất 1 mục kế hoạch cho tuần tới!');
       return;
     }
-    setPlans(plans.filter((_, idx) => idx !== index));
+    setPlans(prev => prev.filter((_, idx) => idx !== index));
   };
 
-  const handlePlanChange = (index: number, field: keyof WeeklyReportPlanItem, value: any) => {
-    const newPlans = [...plans];
-    newPlans[index] = { ...newPlans[index], [field]: value };
-    setPlans(newPlans);
+  const handlePlanChange = (
+    index: number,
+    fieldOrFields: keyof WeeklyReportPlanItem | Partial<WeeklyReportPlanItem>,
+    value?: any
+  ) => {
+    setPlans(prev => {
+      const newPlans = [...prev];
+      if (typeof fieldOrFields === 'string') {
+        newPlans[index] = { ...newPlans[index], [fieldOrFields]: value };
+      } else {
+        newPlans[index] = { ...newPlans[index], ...fieldOrFields };
+      }
+      return newPlans;
+    });
   };
 
   const handleSubmitReport = async (e: React.FormEvent) => {
@@ -386,8 +405,7 @@ export const WeeklyReports: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              handleResultChange(idx, 'file', null);
-                              handleResultChange(idx, 'fileName', '');
+                              handleResultChange(idx, { file: null, fileName: '' });
                             }}
                             style={{ background: 'none', border: 'none', color: '#137333', cursor: 'pointer', padding: 0, fontWeight: 700, fontSize: '1rem', marginLeft: '0.2rem' }}
                           >
@@ -497,14 +515,11 @@ export const WeeklyReports: React.FC = () => {
                       onChange={(e) => {
                         const val = e.target.value;
                         if (val === '-1') {
-                          handlePlanChange(idx, 'projectId', null);
-                          handlePlanChange(idx, 'customTitle', 'Khác');
+                          handlePlanChange(idx, { projectId: null, customTitle: 'Khác' });
                         } else if (val === '') {
-                          handlePlanChange(idx, 'projectId', null);
-                          handlePlanChange(idx, 'customTitle', '');
+                          handlePlanChange(idx, { projectId: null, customTitle: '' });
                         } else {
-                          handlePlanChange(idx, 'projectId', Number(val));
-                          handlePlanChange(idx, 'customTitle', '');
+                          handlePlanChange(idx, { projectId: Number(val), customTitle: '' });
                         }
                       }}
                     >
