@@ -345,19 +345,6 @@ export const downloadReportDocx = async (req: Request, res: Response): Promise<a
     const docChildren = [
       new Paragraph({
         children: [
-          new TextRun({ text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', bold: true, size: 24 })
-        ],
-        alignment: AlignmentType.CENTER
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: 'Độc lập - Tự do - Hạnh phúc', bold: true, size: 22 })
-        ],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 300 }
-      }),
-      new Paragraph({
-        children: [
           new TextRun({ text: 'BÁO CÁO CÔNG VIỆC TUẦN', bold: true, size: 32, color: '2B579A' })
         ],
         alignment: AlignmentType.CENTER,
