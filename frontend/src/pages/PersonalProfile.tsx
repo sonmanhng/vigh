@@ -290,6 +290,9 @@ export const PersonalProfile: React.FC<{ userId?: string, onBack?: () => void }>
           <button className="menu-item" onClick={() => navigate('/dashboard?tab=chemicals')}>
             <span>Quản lý hoá chất</span>
           </button>
+          <button className="menu-item" onClick={() => navigate('/dashboard?tab=cells')}>
+            <span>Quản lý tế bào</span>
+          </button>
           <button className="menu-item" onClick={() => navigate('/dashboard?tab=machines')}>
             <span>Máy - Giờ công</span>
           </button>

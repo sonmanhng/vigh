@@ -27,6 +27,9 @@ model User {
   chemicalProposals ChemicalProposal[] @relation("CreatorProposals")
   approved1Proposals ChemicalProposal[] @relation("Approver1Proposals")
   approved2Proposals ChemicalProposal[] @relation("Approver2Proposals")
+  cellProposals          CellProposal[] @relation("CellCreatorProposals")
+  cellApproved1Proposals CellProposal[] @relation("CellApprover1Proposals")
+  cellApproved2Proposals CellProposal[] @relation("CellApprover2Proposals")
   machineLogs      MachineLog[] @relation("MachineLogCreator")
   laborLogs        LaborLog[]   @relation("UserLaborLogs")
   overtimeRequests        OvertimeRequest[] @relation("OvertimeRequester")
@@ -63,6 +66,7 @@ model Project {
   tasks            Task[]
   researchContents ResearchContent[]
   chemicalProposalItems ChemicalProposalItem[]
+  cellProposalItems     CellProposalItem[]
   machineLogs          MachineLog[]
   laborLogs            LaborLog[]           @relation("ProjectLaborLogs")
   weeklyReportResults  WeeklyReportResult[] @relation("ProjectWeeklyResults")
@@ -159,6 +163,76 @@ model ChemicalProposalItem {
   projectId    Int?
   project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectCode  String?
+}
+
+model Cell {
+  id             Int               @id @default(autoincrement())
+  code           String            @unique   // Mã quản lý nội bộ (VD: TB-001)
+  name           String            // Tên tế bào / chủng tế bào
+  ref            String?           // REF - Mã tham chiếu / Catalog number
+  lot            String?           // LOT - Số lô
+  v              String?           // V - Thể tích / Độ sống / Nồng độ
+  p              String?           // P - Passage number / Số lần cấy chuyển
+  unit           String            @default("Ống") // Đơn vị
+  quantity       Float             // Số lượng tồn kho hiện tại
+  maxQuantity    Float             @default(0) // Định mức tối đa
+  specification  Float             @default(1) // Quy cách
+  invoicePrice   Float             @default(0) // Giá hoá đơn
+  unitPrice      Float             @default(0) // Đơn giá
+  importDate     DateTime          @default(now()) // Ngày nhập kho
+  alertThreshold Float             @default(10) // Ngưỡng cảnh báo (%)
+  department     String?           // Phòng ban quản lý
+  location       String?           // Vị trí lưu trữ
+  note           String?           // Ghi chú thêm
+  transactions   CellTransaction[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model CellTransaction {
+  id          Int      @id @default(autoincrement())
+  type        String   // IMPORT | EXPORT
+  cellId      Int
+  cell        Cell     @relation(fields: [cellId], references: [id], onDelete: Cascade)
+  projectCode String?  // Mã dự án (khi xuất)
+  quantity    Float    // Số lượng nhập/xuất
+  note        String?
+  createdById Int?
+  createdAt   DateTime @default(now())
+}
+
+model CellProposal {
+  id           Int                @id @default(autoincrement())
+  status       String             @default("PENDING") // PENDING, PENDING_LEVEL_2, APPROVED, REJECTED
+  createdById  Int?
+  creator      User?              @relation("CellCreatorProposals", fields: [createdById], references: [id], onDelete: SetNull)
+  approver1Id  Int?
+  approver1    User?              @relation("CellApprover1Proposals", fields: [approver1Id], references: [id], onDelete: SetNull)
+  approver2Id  Int?
+  approver2    User?              @relation("CellApprover2Proposals", fields: [approver2Id], references: [id], onDelete: SetNull)
+  level1Status String             @default("PENDING") // PENDING, APPROVED, REJECTED
+  level2Status String             @default("PENDING") // PENDING, APPROVED, REJECTED
+  note         String?
+  items        CellProposalItem[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+model CellProposalItem {
+  id          Int          @id @default(autoincrement())
+  proposalId  Int
+  proposal    CellProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  cellName    String
+  ref         String?
+  lot         String?
+  v           String?
+  p           String?
+  unit        String       @default("Ống")
+  quantity    Float
+  phase       String?      // Giai đoạn
+  projectId   Int?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectCode String?
 }
 
 model Machine {

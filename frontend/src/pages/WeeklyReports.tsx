@@ -89,7 +89,7 @@ export const WeeklyReports: React.FC = () => {
 
   // Form Handlers
   const handleAddResultCard = () => {
-    setResults([...results, { projectId: null, description: '', file: null, fileName: '' }]);
+    setResults(prev => [...prev, { projectId: null, description: '', file: null, fileName: '' }]);
   };
 
   const handleRemoveResultCard = (index: number) => {
@@ -97,7 +97,7 @@ export const WeeklyReports: React.FC = () => {
       alert('Cần ít nhất 1 mục kết quả trong báo cáo!');
       return;
     }
-    setResults(results.filter((_, idx) => idx !== index));
+    setResults(prev => prev.filter((_, idx) => idx !== index));
   };
 
   const handleResultChange = (
@@ -106,13 +106,14 @@ export const WeeklyReports: React.FC = () => {
     value?: any
   ) => {
     setResults(prev => {
-      const newResults = [...prev];
-      if (typeof fieldOrFields === 'string') {
-        newResults[index] = { ...newResults[index], [fieldOrFields]: value };
-      } else {
-        newResults[index] = { ...newResults[index], ...fieldOrFields };
-      }
-      return newResults;
+      return prev.map((item, i) => {
+        if (i !== index) return item;
+        if (typeof fieldOrFields === 'string') {
+          return { ...item, [fieldOrFields]: value };
+        } else {
+          return { ...item, ...fieldOrFields };
+        }
+      });
     });
   };
 
@@ -141,13 +142,14 @@ export const WeeklyReports: React.FC = () => {
     value?: any
   ) => {
     setPlans(prev => {
-      const newPlans = [...prev];
-      if (typeof fieldOrFields === 'string') {
-        newPlans[index] = { ...newPlans[index], [fieldOrFields]: value };
-      } else {
-        newPlans[index] = { ...newPlans[index], ...fieldOrFields };
-      }
-      return newPlans;
+      return prev.map((item, i) => {
+        if (i !== index) return item;
+        if (typeof fieldOrFields === 'string') {
+          return { ...item, [fieldOrFields]: value };
+        } else {
+          return { ...item, ...fieldOrFields };
+        }
+      });
     });
   };
 
@@ -503,7 +505,7 @@ export const WeeklyReports: React.FC = () => {
                   )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: item.projectId === -1 ? '1fr 1fr' : '1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: (item.projectId === null && item.customTitle !== null && item.customTitle !== undefined && item.customTitle !== '') ? '1fr 1fr' : '1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
                       Chọn đề tài hoặc mục công việc:
@@ -511,12 +513,12 @@ export const WeeklyReports: React.FC = () => {
                     <select
                       className="input-field"
                       style={{ width: '100%' }}
-                      value={item.projectId === null && item.customTitle !== '' ? -1 : (item.projectId || '')}
+                      value={item.projectId !== null && item.projectId !== undefined ? String(item.projectId) : (item.customTitle !== null && item.customTitle !== undefined && item.customTitle !== '' ? '-1' : '')}
                       onChange={(e) => {
                         const val = e.target.value;
                         if (val === '-1') {
                           handlePlanChange(idx, { projectId: null, customTitle: 'Khác' });
-                        } else if (val === '') {
+                        } else if (!val || val === '') {
                           handlePlanChange(idx, { projectId: null, customTitle: '' });
                         } else {
                           handlePlanChange(idx, { projectId: Number(val), customTitle: '' });
@@ -525,7 +527,7 @@ export const WeeklyReports: React.FC = () => {
                     >
                       <option value="">-- Chọn đề tài nghiên cứu --</option>
                       {projects.map(p => (
-                        <option key={p.id} value={p.id}>
+                        <option key={p.id} value={String(p.id)}>
                           {p.topicCode ? `[${p.topicCode}] ` : ''}{p.name}
                         </option>
                       ))}
@@ -533,7 +535,7 @@ export const WeeklyReports: React.FC = () => {
                     </select>
                   </div>
 
-                  {(item.projectId === null && (item.customTitle || item.customTitle === 'Khác')) && (
+                  {(item.projectId === null && item.customTitle !== null && item.customTitle !== undefined && item.customTitle !== '') && (
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
                         Tên công việc / mục tiêu khác: <span style={{ color: 'var(--accent-red)' }}>*</span>

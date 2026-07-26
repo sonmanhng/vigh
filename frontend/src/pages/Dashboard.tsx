@@ -5,23 +5,26 @@ import { apiClient } from '../api/client';
 import { Navbar } from '../components/Navbar';
 import { PersonnelManagement } from './PersonnelManagement';
 import { ChemicalManagement } from './ChemicalManagement';
+import { CellManagement } from './CellManagement';
 import { MachineManagement } from './MachineManagement';
 import { WeeklyReports } from './WeeklyReports';
 
-type Tab = 'projects' | 'personnel' | 'chemicals' | 'machines' | 'weekly-reports';
+type Tab = 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
-  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : 'projects')));
+  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'cells' ? 'cells' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : 'projects'))));
   
   const setActiveTab = (tab: Tab) => {
     if (tab === 'personnel') {
       setSearchParams({ tab: 'personnel' });
     } else if (tab === 'chemicals') {
       setSearchParams({ tab: 'chemicals' });
+    } else if (tab === 'cells') {
+      setSearchParams({ tab: 'cells' });
     } else if (tab === 'machines') {
       setSearchParams({ tab: 'machines' });
     } else if (tab === 'weekly-reports') {
@@ -149,6 +152,13 @@ export const Dashboard: React.FC = () => {
           </button>
 
           <button 
+            className={`menu-item ${activeTab === 'cells' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cells')}
+          >
+            <span>Quản lý tế bào</span>
+          </button>
+
+          <button 
             className={`menu-item ${activeTab === 'machines' ? 'active' : ''}`}
             onClick={() => setActiveTab('machines')}
           >
@@ -172,6 +182,8 @@ export const Dashboard: React.FC = () => {
           <PersonnelManagement />
         ) : activeTab === 'chemicals' ? (
           <ChemicalManagement />
+        ) : activeTab === 'cells' ? (
+          <CellManagement />
         ) : activeTab === 'machines' ? (
           <MachineManagement />
         ) : activeTab === 'weekly-reports' ? (

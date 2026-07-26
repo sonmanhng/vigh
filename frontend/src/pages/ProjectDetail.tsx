@@ -564,6 +564,12 @@ export const ProjectDetail: React.FC = () => {
           </button>
           <button
             className="menu-item"
+            onClick={() => navigate('/dashboard?tab=cells')}
+          >
+            <span>Quản lý tế bào</span>
+          </button>
+          <button
+            className="menu-item"
             onClick={() => navigate('/dashboard?tab=machines')}
           >
             <span>Máy - Giờ công</span>
