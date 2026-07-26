@@ -251,7 +251,7 @@ export const CellManagement: React.FC = () => {
         "REF": "CRL-2266",
         "LOT": "8051234",
         "V (Thể tích/Nồng độ)": "1 mL",
-        "P (Passage)": "P5",
+        "P": "P5",
         "Đơn vị": "Ống",
         "Số lượng": 10,
         "Định mức tối đa": 100,
@@ -281,7 +281,7 @@ export const CellManagement: React.FC = () => {
       "REF": c.ref || "",
       "LOT": c.lot || "",
       "V (Thể tích/Nồng độ)": c.v || "",
-      "P (Passage)": c.p || "",
+      "P": c.p || "",
       "Đơn vị": c.unit,
       "Tồn kho": c.quantity,
       "Định mức tối đa": c.maxQuantity,
@@ -942,7 +942,7 @@ export const CellManagement: React.FC = () => {
                   <input type="text" className="input-field" placeholder="VD: 1 mL, 1x10^6 cells/mL..." value={importForm.v} onChange={e => setImportForm(p => ({ ...p, v: e.target.value }))} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>P (Passage number)</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>P</label>
                   <input type="text" className="input-field" placeholder="VD: P5, P12..." value={importForm.p} onChange={e => setImportForm(p => ({ ...p, p: e.target.value }))} />
                 </div>
                 <div>
