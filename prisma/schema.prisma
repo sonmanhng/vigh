@@ -19,6 +19,8 @@ model User {
   affiliations String[]  @default([])
   projects       Project[] @relation("ManagerProjects")
   memberProjects Project[] @relation("ProjectMembers")
+  createdProjects  Project[] @relation("CreatorProjects")
+  approvedProjects Project[] @relation("ApproverProjects")
   tasks          Task[]    @relation("AssigneeTasks")
   orcid          String?
   scholar        String?
@@ -58,6 +60,11 @@ model Project {
   generalObjective String?
   description      String?
   status           String    @default("PLANNING") // PLANNING, IN_PROGRESS, COMPLETED, ON_HOLD
+  approvalStatus   String    @default("APPROVED") // PENDING, APPROVED, REJECTED
+  creatorId        Int?
+  creator          User?     @relation("CreatorProjects", fields: [creatorId], references: [id])
+  approverId       Int?
+  approver         User?     @relation("ApproverProjects", fields: [approverId], references: [id])
   startDate        DateTime?
   endDate          DateTime?
   managerId        Int?

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createProject, getProjects, getProjectById, updateProject, deleteProject, exportProjectDocx, importProjectDocx } from '../controllers/project.controller';
+import { createProject, getProjects, getProjectById, updateProject, deleteProject, exportProjectDocx, importProjectDocx, approveProject } from '../controllers/project.controller';
 import multer from 'multer';
 import { createResearchContent, updateResearchContent, deleteResearchContent } from '../controllers/researchContent.controller';
 import { authenticateToken, authorizeRoles } from '../middlewares/auth.middleware';
@@ -11,8 +11,9 @@ router.use(authenticateToken);
 
 router.get('/', getProjects);
 router.get('/:id', getProjectById);
-router.post('/', authorizeRoles('ADMIN', 'MANAGER'), createProject);
+router.post('/', createProject);
 router.put('/:id', updateProject);
+router.put('/:id/approve', approveProject);
 router.delete('/:id', authorizeRoles('ADMIN', 'MANAGER'), deleteProject);
 router.get('/:id/export-docx', exportProjectDocx);
 router.post('/:id/import-docx', upload.single('file'), importProjectDocx);

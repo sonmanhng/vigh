@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Download, Plus, Search, Filter, Edit, Trash2, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface Machine {
@@ -109,6 +108,7 @@ interface OvertimeRequest {
 export const MachineManagement: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('machines');
+  const [search, setSearch] = useState('');
   
   // Data
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -425,6 +425,18 @@ export const MachineManagement: React.FC = () => {
     }
   };
 
+  const filteredMachines = machines.filter(m => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      (m.code && m.code.toLowerCase().includes(q)) ||
+      (m.name && m.name.toLowerCase().includes(q)) ||
+      (m.category && m.category.toLowerCase().includes(q)) ||
+      (m.department && m.department.toLowerCase().includes(q)) ||
+      (m.characteristics && m.characteristics.toLowerCase().includes(q))
+    );
+  });
+
   return (
     <div className="content-area">
       {/* HEADER */}
@@ -440,10 +452,10 @@ export const MachineManagement: React.FC = () => {
           {activeTab === 'labor' && (
             <>
               <button className="btn btn-secondary" onClick={() => setModal('overtime')}>
-                <Plus size={18} /> Đề xuất làm thêm giờ
+                Đề xuất làm thêm giờ
               </button>
               <button className="btn btn-primary" onClick={() => setModal('labor')}>
-                <Plus size={18} /> Thêm giờ công
+                Thêm giờ công
               </button>
             </>
           )}
@@ -451,17 +463,17 @@ export const MachineManagement: React.FC = () => {
 
             <>
               <a href="/may_moc_mau.xlsx" download className="btn btn-secondary" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Download size={18} /> File Excel Mẫu
+                File Excel Mẫu
               </a>
               <input type="file" accept=".xlsx, .xls, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
               <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={loading}>
-                <Upload size={18} /> {loading ? 'Đang tải...' : 'Nhập Excel'}
+                {loading ? 'Đang tải...' : 'Nhập Excel'}
               </button>
               <button className="btn btn-secondary" onClick={() => setModal('consume')}>
-                <Search size={18} /> Ghi tiêu hao
+                Ghi tiêu hao
               </button>
               <button className="btn btn-primary" onClick={() => setModal('import')}>
-                <Plus size={18} /> Nhập thiết bị
+                Nhập thiết bị
               </button>
             </>
           )}
@@ -506,56 +518,69 @@ export const MachineManagement: React.FC = () => {
 
       {/* TAB: MACHINES */}
       {activeTab === 'machines' && (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '1rem' }}>Mã TS</th>
-                  <th style={{ padding: '1rem' }}>Tên tài sản</th>
-                  <th style={{ padding: '1rem' }}>Phân loại</th>
-                  <th style={{ padding: '1rem' }}>Đơn vị sử dụng</th>
-                  <th style={{ padding: '1rem' }}>Đặc điểm</th>
-                  <th style={{ padding: '1rem' }}>Tình trạng</th>
-                  <th style={{ padding: '1rem', width: '100px', textAlign: 'center' }}>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {machines.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có thiết bị nào</td></tr>
-                ) : machines.map(m => (
-                  <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '1rem', fontWeight: 600 }}>{m.code}</td>
-                    <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--primary)' }}>{m.name}</td>
-                    <td style={{ padding: '1rem' }}>{m.category || '—'}</td>
-                    <td style={{ padding: '1rem' }}>{m.department}</td>
-                    <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{m.characteristics || '—'}</td>
-                    <td style={{ padding: '1rem' }}>
-                      <span style={{ 
-                        background: m.status === 'IN_USE' ? '#F6FFED' : '#F5F5F5', 
-                        color: m.status === 'IN_USE' ? '#389E0D' : '#8C8C8C', 
-                        border: `1px solid ${m.status === 'IN_USE' ? '#B7EB8F' : '#D9D9D9'}`, 
-                        borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.8rem', fontWeight: 600 
-                      }}>
-                        {m.status === 'IN_USE' ? 'Có sử dụng' : 'Không sử dụng'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                        <button className="btn btn-secondary btn-sm" onClick={() => handleEdit(m)} title="Sửa thông tin">
-                          Sửa
-                        </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(m.id)} title="Xóa thiết bị">
-                          Xóa
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* Search Bar */}
+          <div style={{ marginBottom: '1rem' }}>
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo mã tài sản, tên thiết bị, phân loại, phòng ban..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="input-field"
+              style={{ maxWidth: '450px' }}
+            />
           </div>
-        </div>
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '1rem' }}>Mã TS</th>
+                    <th style={{ padding: '1rem' }}>Tên tài sản</th>
+                    <th style={{ padding: '1rem' }}>Phân loại</th>
+                    <th style={{ padding: '1rem' }}>Đơn vị sử dụng</th>
+                    <th style={{ padding: '1rem' }}>Đặc điểm</th>
+                    <th style={{ padding: '1rem' }}>Tình trạng</th>
+                    <th style={{ padding: '1rem', width: '100px', textAlign: 'center' }}>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMachines.length === 0 ? (
+                    <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có thiết bị nào phù hợp</td></tr>
+                  ) : filteredMachines.map(m => (
+                    <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '1rem', fontWeight: 600 }}>{m.code}</td>
+                      <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--primary)' }}>{m.name}</td>
+                      <td style={{ padding: '1rem' }}>{m.category || '—'}</td>
+                      <td style={{ padding: '1rem' }}>{m.department}</td>
+                      <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>{m.characteristics || '—'}</td>
+                      <td style={{ padding: '1rem' }}>
+                        <span style={{ 
+                          background: m.status === 'IN_USE' ? '#F6FFED' : '#F5F5F5', 
+                          color: m.status === 'IN_USE' ? '#389E0D' : '#8C8C8C', 
+                          border: `1px solid ${m.status === 'IN_USE' ? '#B7EB8F' : '#D9D9D9'}`, 
+                          borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.8rem', fontWeight: 600 
+                        }}>
+                          {m.status === 'IN_USE' ? 'Có sử dụng' : 'Không sử dụng'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                          <button className="btn btn-secondary btn-sm" onClick={() => handleEdit(m)} title="Sửa thông tin">
+                            Sửa
+                          </button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(m.id)} title="Xóa thiết bị">
+                            Xóa
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* TAB: LABOR */}

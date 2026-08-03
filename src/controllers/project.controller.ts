@@ -25,12 +25,13 @@ const projectSchema = z.object({
   endDate: z.string().optional().nullable(),
   managerId: z.number().optional().nullable(),
   memberIds: z.array(z.number()).optional(),
+  approverId: z.number().optional().nullable(),
 });
 
 export const createProject = async (req: Request, res: Response) => {
   try {
     const data = projectSchema.parse(req.body);
-    const { managerId, memberIds, ...rest } = data;
+    const { managerId, memberIds, approverId, ...rest } = data;
 
     // Default managerId to current user if not specified
     const finalManagerId = managerId || req.user!.id;
@@ -41,6 +42,9 @@ export const createProject = async (req: Request, res: Response) => {
         startDate: rest.startDate ? new Date(rest.startDate) : null,
         endDate: rest.endDate ? new Date(rest.endDate) : null,
         managerId: finalManagerId,
+        creatorId: req.user!.id,
+        approverId: approverId || null,
+        approvalStatus: 'PENDING',
         members: memberIds && memberIds.length > 0 ? {
           connect: memberIds.map(id => ({ id }))
         } : undefined,
@@ -48,6 +52,8 @@ export const createProject = async (req: Request, res: Response) => {
       include: {
         manager: { select: { id: true, name: true, email: true, role: true, avatar: true } },
         members: { select: { id: true, name: true, email: true, role: true, avatar: true } },
+        creator: { select: { id: true, name: true, email: true, role: true } },
+        approver: { select: { id: true, name: true, email: true, role: true } },
       }
     });
     res.status(201).json(project);
@@ -66,6 +72,8 @@ export const getProjects = async (req: Request, res: Response) => {
         include: { 
           manager: { select: { id: true, name: true, email: true, role: true, avatar: true } },
           members: { select: { id: true, name: true, email: true, role: true, avatar: true } },
+          creator: { select: { id: true, name: true } },
+          approver: { select: { id: true, name: true } },
           tasks: { select: { status: true } }
         },
         orderBy: { createdAt: 'desc' }
@@ -74,6 +82,9 @@ export const getProjects = async (req: Request, res: Response) => {
       projects = await prisma.project.findMany({
         where: {
           OR: [
+            { approvalStatus: 'APPROVED' },
+            { creatorId: id },
+            { approverId: id },
             { managerId: id },
             { members: { some: { id } } },
             { tasks: { some: { assigneeId: id } } }
@@ -82,6 +93,8 @@ export const getProjects = async (req: Request, res: Response) => {
         include: { 
           manager: { select: { id: true, name: true, email: true, role: true, avatar: true } },
           members: { select: { id: true, name: true, email: true, role: true, avatar: true } },
+          creator: { select: { id: true, name: true } },
+          approver: { select: { id: true, name: true } },
           tasks: { select: { status: true } }
         },
         orderBy: { createdAt: 'desc' }
@@ -136,6 +149,36 @@ export const updateProject = async (req: Request, res: Response) => {
     res.json(updated);
   } catch (error: any) {
     res.status(400).json({ message: 'Error updating project', error: error.message });
+  }
+};
+
+export const approveProject = async (req: Request, res: Response) => {
+  try {
+    const projectId = parseInt(req.params.id as string);
+    const { action } = req.body; // 'APPROVE' or 'REJECT'
+    const { id, role } = req.user!;
+
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    if (!['SuperAdmin'].includes(role) && project.approverId !== id) {
+      return res.status(403).json({ message: 'Not authorized to approve this project' });
+    }
+
+    if (action !== 'APPROVE' && action !== 'REJECT') {
+      return res.status(400).json({ message: 'Invalid action' });
+    }
+
+    const updated = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        approvalStatus: action === 'APPROVE' ? 'APPROVED' : 'REJECTED'
+      }
+    });
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error approving project', error: error.message });
   }
 };
 

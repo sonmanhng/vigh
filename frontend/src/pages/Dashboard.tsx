@@ -46,6 +46,7 @@ export const Dashboard: React.FC = () => {
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [newProjectManager, setNewProjectManager] = useState<number | ''>('');
   const [newProjectMembers, setNewProjectMembers] = useState<number[]>([]);
+  const [newProjectApprover, setNewProjectApprover] = useState<number | ''>('');
   
   const isManagerOrAdmin = user && ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'].includes(user.role);
 
@@ -82,7 +83,8 @@ export const Dashboard: React.FC = () => {
         code: newProjectCode || null,
         description: newProjectDesc || 'Đề tài nghiên cứu Viện VIGH',
         managerId: newProjectManager ? Number(newProjectManager) : user?.id,
-        memberIds: newProjectMembers
+        memberIds: newProjectMembers,
+        approverId: newProjectApprover ? Number(newProjectApprover) : null
       });
       setShowCreateProjectModal(false);
       setNewProjectName('');
@@ -91,10 +93,22 @@ export const Dashboard: React.FC = () => {
       setNewProjectDesc('');
       setNewProjectManager('');
       setNewProjectMembers([]);
+      setNewProjectApprover('');
       await fetchProjects();
       navigate(`/project/${res.data.id}`);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Không có quyền tạo đề tài mới');
+    }
+  };
+
+  const handleApproveProject = async (e: React.MouseEvent, projectId: number, action: 'APPROVE' | 'REJECT') => {
+    e.stopPropagation();
+    if (!window.confirm(`Bạn có chắc chắn muốn ${action === 'APPROVE' ? 'Duyệt' : 'Từ chối'} đề tài này?`)) return;
+    try {
+      await apiClient.put(`/projects/${projectId}/approve`, { action });
+      await fetchProjects();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Lỗi duyệt đề tài');
     }
   };
 
@@ -199,11 +213,9 @@ export const Dashboard: React.FC = () => {
                 </p>
               </div>
 
-              {isManagerOrAdmin && (
-                <button className="btn btn-primary" onClick={() => setShowCreateProjectModal(true)}>
-                  Khởi Tạo Đề Tài Mới
-                </button>
-              )}
+              <button className="btn btn-primary" onClick={() => setShowCreateProjectModal(true)}>
+                Khởi Tạo Đề Tài Mới
+              </button>
             </div>
 
             {/* Projects Grid */}
@@ -259,7 +271,40 @@ export const Dashboard: React.FC = () => {
                             <span>{p.name}</span>
                           </h3>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span className="badge badge-success" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Hoạt Động</span>
+                            {p.approvalStatus === 'PENDING' ? (
+                              <span className="badge" style={{ backgroundColor: '#f59e0b', color: '#fff', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Chờ Duyệt</span>
+                            ) : p.approvalStatus === 'REJECTED' ? (
+                              <span className="badge badge-danger" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Từ chối</span>
+                            ) : (
+                              <span className="badge badge-success" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Hoạt Động</span>
+                            )}
+                            
+                            {p.approvalStatus === 'PENDING' && (user?.id === p.approverId || user?.role === 'SuperAdmin') && (
+                              <>
+                                <button 
+                                  type="button"
+                                  onClick={(e) => handleApproveProject(e, p.id, 'APPROVE')}
+                                  style={{
+                                    background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)',
+                                    color: '#10b981', borderRadius: 'var(--radius-sm)', padding: '0.2rem 0.5rem',
+                                    fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600
+                                  }}
+                                >
+                                  Duyệt
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={(e) => handleApproveProject(e, p.id, 'REJECT')}
+                                  style={{
+                                    background: 'rgba(255, 77, 79, 0.1)', border: '1px solid rgba(255, 77, 79, 0.3)',
+                                    color: 'var(--accent-pink)', borderRadius: 'var(--radius-sm)', padding: '0.2rem 0.5rem',
+                                    fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600
+                                  }}
+                                >
+                                  Từ chối
+                                </button>
+                              </>
+                            )}
                             {isManagerOrAdmin && (
                               <button 
                                 type="button"
@@ -391,6 +436,21 @@ export const Dashboard: React.FC = () => {
                   >
                     <option value="">-- Chọn Chủ nhiệm đề tài --</option>
                     {usersList.map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Người duyệt tạo đề tài (*)</label>
+                  <select 
+                    className="select-field" 
+                    value={newProjectApprover} 
+                    onChange={(e) => setNewProjectApprover(e.target.value ? Number(e.target.value) : '')}
+                    required
+                  >
+                    <option value="">-- Chọn Người duyệt --</option>
+                    {usersList.filter(u => ['TruongPhong', 'VienPho', 'VienTruong', 'ADMIN', 'MANAGER', 'SuperAdmin'].includes(u.role)).map(u => (
                       <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                     ))}
                   </select>
