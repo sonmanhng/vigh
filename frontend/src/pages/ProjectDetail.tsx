@@ -1298,7 +1298,7 @@ export const ProjectDetail: React.FC = () => {
                                 const d = typeof t.description === 'string' ? JSON.parse(t.description) : t.description;
                                 actCode = d?.activityCode || '';
                               } catch (e) { }
-                              return actCode === actId || actCode === `${rc.code}.${idx + 1}` || t.title === actId || t.title?.includes(act.activity?.slice(0, 20));
+                              return actCode === actId || actCode === `${rc.code}.${idx + 1}` || t.title === actId || t.title?.startsWith(`${actId}:`) || (act.activity && t.title?.includes(act.activity));
                             });
 
                             if (matchingTasks.some((t: any) => t.status === 'DONE') || act.status === 'DONE' || act.status === 'Hoàn thành') {
@@ -1360,7 +1360,7 @@ export const ProjectDetail: React.FC = () => {
                                           const d = typeof t.description === 'string' ? JSON.parse(t.description) : t.description;
                                           actCode = d?.activityCode || '';
                                         } catch (e) { }
-                                        return actCode === actId || actCode === `${rc.code}.${idx + 1}` || t.title === actId || t.title?.includes(act.activity?.slice(0, 20));
+                                        return actCode === actId || actCode === `${rc.code}.${idx + 1}` || t.title === actId || t.title?.startsWith(`${actId}:`) || (act.activity && t.title?.includes(act.activity));
                                       });
 
                                       const isDone = matchingTasks.some((t: any) => t.status === 'DONE') || act.status === 'DONE' || act.status === 'Hoàn thành';
