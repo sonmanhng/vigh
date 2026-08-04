@@ -373,7 +373,7 @@ export const MachineManagement: React.FC = () => {
         machineId: Number(consumeForm.machineId),
         date: new Date(consumeForm.date).toISOString(),
         minutes: Number(consumeForm.minutes),
-        projectId: consumeForm.projectId
+        projectId: Number(consumeForm.projectId)
       });
       setConsumeForm({ machineId: '', machineSearch: '', date: new Date().toISOString().split('T')[0], minutes: '', projectId: '' });
       setModal('none');
