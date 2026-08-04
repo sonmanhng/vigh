@@ -892,12 +892,12 @@ export const ChemicalManagement: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
                   <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label className="input-label">Quy Cách (*)</label>
-                    <input type="number" step="any" min="0.001" className="input-field" required placeholder="VD: 10" value={importForm.specification} onChange={e => setImportForm(p => ({ ...p, specification: e.target.value === '' ? '' : Number(e.target.value) }))} />
+                    <label className="input-label">Quy Cách</label>
+                    <input type="number" step="any" min="0" className="input-field" placeholder="VD: 10" value={importForm.specification} onChange={e => setImportForm(p => ({ ...p, specification: e.target.value === '' ? '' : Number(e.target.value) }))} />
                   </div>
                   <div className="input-group" style={{ marginBottom: 0 }}>
-                    <label className="input-label">Giá Hoá Đơn (VNĐ) (*)</label>
-                    <input type="number" step="any" min="0" className="input-field" required placeholder="Tổng tiền" value={importForm.invoicePrice} onChange={e => setImportForm(p => ({ ...p, invoicePrice: e.target.value === '' ? '' : Number(e.target.value) }))} />
+                    <label className="input-label">Giá Hoá Đơn (VNĐ)</label>
+                    <input type="number" step="any" min="0" className="input-field" placeholder="Tổng tiền" value={importForm.invoicePrice} onChange={e => setImportForm(p => ({ ...p, invoicePrice: e.target.value === '' ? '' : Number(e.target.value) }))} />
                   </div>
                   <div className="input-group" style={{ marginBottom: 0 }}>
                     <label className="input-label">Đơn Giá (tự tính)</label>

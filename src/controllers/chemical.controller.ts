@@ -47,8 +47,8 @@ const chemicalSchema = z.object({
   unit: z.string().min(1),
   quantity: z.number().min(0),
   maxQuantity: z.number().min(0),
-  specification: z.number().min(0.001),
-  invoicePrice: z.number().min(0),
+  specification: z.number().min(0).optional().default(1),
+  invoicePrice: z.number().min(0).optional().default(0),
   importDate: z.string(),
   alertThreshold: z.number().min(0).default(5),
   department: z.string().optional(),
@@ -200,7 +200,8 @@ export const getProjectStatistics = async (req: Request, res: Response) => {
 export const createChemical = async (req: Request, res: Response) => {
   try {
     const data = chemicalSchema.parse(req.body);
-    const unitPrice = data.invoicePrice / data.specification;
+    const spec = data.specification || 1;
+    const unitPrice = (data.invoicePrice || 0) / spec;
 
     const existing = await prisma.chemical.findUnique({ where: { code: data.code } });
 
@@ -277,7 +278,8 @@ export const updateChemical = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
     const data = chemicalSchema.parse(req.body);
-    const unitPrice = data.invoicePrice / data.specification;
+    const spec = data.specification || 1;
+    const unitPrice = (data.invoicePrice || 0) / spec;
 
     const chemical = await prisma.chemical.update({
       where: { id },
