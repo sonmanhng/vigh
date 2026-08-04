@@ -140,10 +140,8 @@ export const ChemicalManagement: React.FC = () => {
   const [importForm, setImportForm] = useState(emptyImport());
 
   // Export form
-  const [exportForm, setExportForm] = useState({ chemicalId: '', projectCode: '', quantity: '' as number | '', note: '' });
-
-  // Alert threshold form
-  const [alertForm, setAlertForm] = useState({ chemicalId: '', threshold: 50 });
+  const [exportForm, setExportForm] = useState({ chemicalId: '', chemicalSearch: '', projectCode: '', quantity: '' as number | string, note: '' });
+  const [alertForm, setAlertForm] = useState({ chemicalId: '', chemicalSearch: '', threshold: 0 });
 
   // Proposal form
   const [projects, setProjects] = useState<Project[]>([]);
@@ -1001,12 +999,29 @@ export const ChemicalManagement: React.FC = () => {
               <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
                 <div className="input-group">
                   <label className="input-label">Chọn Hoá Chất (*)</label>
-                  <select className="input-field" required value={exportForm.chemicalId} onChange={e => setExportForm(p => ({ ...p, chemicalId: e.target.value }))}>
-                    <option value="">— Chọn hoá chất —</option>
+                  <input
+                    type="text"
+                    list="chemical-export-list"
+                    className="input-field"
+                    required
+                    placeholder="Nhập mã hoặc tên hoá chất..."
+                    value={exportForm.chemicalSearch || ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const match = chemicals.find(c => `${c.code} — ${c.name}` === val);
+                      setExportForm({...exportForm, chemicalSearch: val, chemicalId: match ? match.id.toString() : ''});
+                    }}
+                  />
+                  <datalist id="chemical-export-list">
                     {chemicals.map(c => (
-                      <option key={c.id} value={c.id}>{c.code} — {c.name} (còn: {c.quantity} {c.unit})</option>
+                      <option key={c.id} value={`${c.code} — ${c.name}`} />
                     ))}
-                  </select>
+                  </datalist>
+                  {exportForm.chemicalId && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--primary)', marginTop: '4px', fontWeight: 600 }}>
+                      ✓ Đã chọn: Tồn kho còn {chemicals.find(c => c.id.toString() === exportForm.chemicalId)?.quantity} {chemicals.find(c => c.id.toString() === exportForm.chemicalId)?.unit}
+                    </div>
+                  )}
                 </div>
                 <div className="input-group">
                   <label className="input-label">Mã Dự Án (*)</label>
@@ -1051,13 +1066,21 @@ export const ChemicalManagement: React.FC = () => {
             <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
               <div className="input-group">
                 <label className="input-label">Chọn Hoá Chất</label>
-                <select className="input-field" value={alertForm.chemicalId} onChange={e => {
-                  const c = chemicals.find(x => x.id === Number(e.target.value));
-                  setAlertForm({ chemicalId: e.target.value, threshold: c?.alertThreshold || 50 });
-                }}>
-                  <option value="">— Chọn hoá chất —</option>
-                  {chemicals.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
-                </select>
+                <input
+                  type="text"
+                  list="chemical-alert-list"
+                  className="input-field"
+                  placeholder="Nhập mã hoặc tên hoá chất..."
+                  value={alertForm.chemicalSearch || ''}
+                  onChange={e => {
+                    const val = e.target.value;
+                    const match = chemicals.find(c => `${c.code} — ${c.name}` === val);
+                    setAlertForm({ chemicalSearch: val, chemicalId: match ? match.id.toString() : '', threshold: match ? (match.alertThreshold || 50) : 0 });
+                  }}
+                />
+                <datalist id="chemical-alert-list">
+                  {chemicals.map(c => <option key={c.id} value={`${c.code} — ${c.name}`} />)}
+                </datalist>
               </div>
               <div className="input-group" style={{ marginBottom: 0 }}>
                 <label className="input-label">Ngưỡng Cảnh Báo (Số lượng): <strong style={{ color: 'var(--primary)' }}>{alertForm.threshold} {chemicals.find(c => c.id === Number(alertForm.chemicalId))?.unit}</strong></label>

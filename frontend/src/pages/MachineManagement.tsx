@@ -158,7 +158,7 @@ export const MachineManagement: React.FC = () => {
   });
   
   const [consumeForm, setConsumeForm] = useState({
-    machineId: '', date: new Date().toISOString().split('T')[0], minutes: '', projectId: ''
+    machineId: '', machineSearch: '', date: new Date().toISOString().split('T')[0], minutes: '', projectId: ''
   });
 
   // Statistics filters
@@ -1019,12 +1019,24 @@ export const MachineManagement: React.FC = () => {
               <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
                 <div className="input-group">
                   <label className="input-label">Chọn máy móc (*)</label>
-                  <select className="input-field" required value={consumeForm.machineId} onChange={e => setConsumeForm({...consumeForm, machineId: e.target.value})}>
-                    <option value="">-- Chọn thiết bị --</option>
+                  <input
+                    type="text"
+                    list="machine-consume-list"
+                    className="input-field"
+                    required
+                    placeholder="Nhập mã hoặc tên thiết bị..."
+                    value={consumeForm.machineSearch || ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const match = machines.find(m => `${m.code} - ${m.name}` === val);
+                      setConsumeForm({...consumeForm, machineSearch: val, machineId: match ? match.id.toString() : ''});
+                    }}
+                  />
+                  <datalist id="machine-consume-list">
                     {machines.filter(m => m.status === 'IN_USE').map(m => (
-                      <option key={m.id} value={m.id}>{m.code} - {m.name}</option>
+                      <option key={m.id} value={`${m.code} - ${m.name}`} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 <div className="input-group">

@@ -124,6 +124,7 @@ export const CellManagement: React.FC = () => {
 
   const [exportForm, setExportForm] = useState({
     cellId: '' as number | '',
+    cellSearch: '',
     projectCode: '',
     quantity: '' as number | '',
     note: ''
@@ -1005,10 +1006,27 @@ export const CellManagement: React.FC = () => {
             <form onSubmit={handleExportSubmit}>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Chọn dòng tế bào *</label>
-                <select className="input-field" required value={exportForm.cellId} onChange={e => setExportForm(p => ({ ...p, cellId: Number(e.target.value) }))}>
-                  <option value="">-- Chọn tế bào --</option>
-                  {cells.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name} (Tòn: {c.quantity} {c.unit})</option>)}
-                </select>
+                <input
+                  type="text"
+                  list="cell-export-list"
+                  className="input-field"
+                  required
+                  placeholder="Nhập mã hoặc tên tế bào..."
+                  value={exportForm.cellSearch || ''}
+                  onChange={e => {
+                    const val = e.target.value;
+                    const match = cells.find(c => `${c.code} - ${c.name}` === val);
+                    setExportForm({...exportForm, cellSearch: val, cellId: match ? match.id : ''});
+                  }}
+                />
+                <datalist id="cell-export-list">
+                  {cells.map(c => <option key={c.id} value={`${c.code} - ${c.name}`} />)}
+                </datalist>
+                {exportForm.cellId && (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--primary)', marginTop: '4px', fontWeight: 600 }}>
+                    ✓ Đã chọn: Tồn kho còn {cells.find(c => c.id === exportForm.cellId)?.quantity} {cells.find(c => c.id === exportForm.cellId)?.unit}
+                  </div>
+                )}
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Đề tài sử dụng *</label>
