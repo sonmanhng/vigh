@@ -831,3 +831,26 @@ export const importChemicals = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi server khi import hoá chất' });
   }
 };
+
+export const undoChemicalTransaction = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const tx = await prisma.chemicalTransaction.findUnique({ where: { id } });
+    if (!tx) return res.status(404).json({ error: 'Không tìm thấy giao dịch' });
+
+    const multiplier = tx.type === 'EXPORT' ? 1 : -1;
+    await prisma.$transaction([
+      prisma.chemical.update({
+        where: { id: tx.chemicalId },
+        data: { quantity: { increment: tx.quantity * multiplier } }
+      }),
+      prisma.chemicalTransaction.delete({ where: { id } })
+    ]);
+    
+    getIO().emit('sync_chemicals');
+    res.json({ message: 'Đã hoàn tác giao dịch hoá chất' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi khi hoàn tác giao dịch hoá chất' });
+  }
+};

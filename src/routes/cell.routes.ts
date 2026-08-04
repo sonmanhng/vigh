@@ -12,7 +12,8 @@ import {
   exportProposalToExcel,
   getApprovers,
   getProjectStatistics,
-  importCells
+  importCells,
+  undoCellTransaction
 } from '../controllers/cell.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
@@ -30,6 +31,7 @@ router.get('/proposals/:id/export', exportProposalToExcel);
 // Regular Cell endpoints
 router.get('/statistics/projects', getProjectStatistics);
 router.get('/transactions', getTransactions);
+router.delete('/transactions/:id', undoCellTransaction);
 router.get('/', getCells);
 router.post('/', createCell);
 router.post('/import', importCells);

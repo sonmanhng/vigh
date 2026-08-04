@@ -696,3 +696,26 @@ export const exportProposalToExcel = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi xuất file Excel phiếu đề xuất' });
   }
 };
+
+export const undoCellTransaction = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const tx = await prisma.cellTransaction.findUnique({ where: { id } });
+    if (!tx) return res.status(404).json({ error: 'Không tìm thấy giao dịch' });
+
+    const multiplier = tx.type === 'EXPORT' ? 1 : -1;
+    await prisma.$transaction([
+      prisma.cell.update({
+        where: { id: tx.cellId },
+        data: { quantity: { increment: tx.quantity * multiplier } }
+      }),
+      prisma.cellTransaction.delete({ where: { id } })
+    ]);
+    
+    getIO().emit('sync_cells');
+    res.json({ message: 'Đã hoàn tác giao dịch tế bào' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi khi hoàn tác giao dịch tế bào' });
+  }
+};

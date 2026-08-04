@@ -841,6 +841,7 @@ export const ChemicalManagement: React.FC = () => {
                   <th style={{ padding: '0.9rem 1rem' }}>Mã Dự Án</th>
                   <th style={{ padding: '0.9rem 1rem' }}>Ghi Chú</th>
                   <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Thời Gian</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -863,6 +864,9 @@ export const ChemicalManagement: React.FC = () => {
                     <td style={{ padding: '0.85rem 1rem', fontSize: '0.88rem' }}>{t.projectCode || '—'}</td>
                     <td style={{ padding: '0.85rem 1rem', fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '200px' }}>{t.note || '—'}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{new Date(t.createdAt).toLocaleString('vi-VN')}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                      <button className="btn btn-sm" onClick={() => handleUndoTransaction(t.id)} style={{ background: '#FF4D4F', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>Hoàn tác</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

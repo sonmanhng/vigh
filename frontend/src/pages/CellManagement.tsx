@@ -405,13 +405,24 @@ export const CellManagement: React.FC = () => {
         quantity: Number(exportForm.quantity),
         note: exportForm.note,
       });
+      setExportForm({ cellId: '', cellSearch: '', projectCode: '', quantity: '', note: '' });
       setModal('none');
-      setExportForm({ cellId: '', projectCode: '', quantity: '', note: '' });
       fetchCells();
       fetchTransactions();
       if (activeTab === 'statistics') fetchStatistics();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi xuất tế bào');
+    }
+  };
+
+  const handleUndoTransaction = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn hoàn tác giao dịch này?')) return;
+    try {
+      await apiClient.delete(`/cells/transactions/${id}`);
+      fetchCells();
+      fetchTransactions();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi hoàn tác giao dịch');
     }
   };
 
@@ -871,6 +882,7 @@ export const CellManagement: React.FC = () => {
                     <th style={{ padding: '0.85rem 1rem' }}>Phòng Ban</th>
                     <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Số Lượng</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Đề Tài / Ghi Chú</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -901,6 +913,9 @@ export const CellManagement: React.FC = () => {
                       <td style={{ padding: '0.85rem 1rem', fontSize: '0.85rem' }}>
                         {t.projectCode && <div style={{ fontWeight: 700, color: 'var(--primary)' }}>{t.projectCode}</div>}
                         {t.note && <div style={{ color: 'var(--text-muted)' }}>{t.note}</div>}
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                        <button className="btn btn-sm" onClick={() => handleUndoTransaction(t.id)} style={{ background: '#FF4D4F', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>Hoàn tác</button>
                       </td>
                     </tr>
                   ))}

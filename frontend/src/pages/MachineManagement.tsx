@@ -371,18 +371,27 @@ export const MachineManagement: React.FC = () => {
     try {
       await apiClient.post('/machines/logs', {
         machineId: Number(consumeForm.machineId),
-        date: consumeForm.date,
+        date: new Date(consumeForm.date).toISOString(),
         minutes: Number(consumeForm.minutes),
-        projectId: Number(consumeForm.projectId)
+        projectId: consumeForm.projectId
       });
+      setConsumeForm({ machineId: '', machineSearch: '', date: new Date().toISOString().split('T')[0], minutes: '', projectId: '' });
       setModal('none');
-      setConsumeForm({ machineId: '', date: new Date().toISOString().split('T')[0], minutes: '', projectId: '' });
-      if (activeTab === 'history') fetchLogs();
+      fetchLogs();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi ghi nhận tiêu hao');
     }
   };
 
+  const handleUndoMachineLog = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn hoàn tác tiêu hao này?')) return;
+    try {
+      await apiClient.delete(`/machines/logs/${id}`);
+      fetchLogs();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi hoàn tác tiêu hao');
+    }
+  };
 
   const handleLaborSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -876,6 +885,7 @@ export const MachineManagement: React.FC = () => {
                   <th style={{ padding: '1rem' }}>Ngày tiêu hao</th>
                   <th style={{ padding: '1rem' }}>Số phút</th>
                   <th style={{ padding: '1rem' }}>Người ghi nhận</th>
+                  <th style={{ padding: '1rem', textAlign: 'center' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -891,6 +901,9 @@ export const MachineManagement: React.FC = () => {
                     <td style={{ padding: '1rem' }}>{new Date(l.date).toLocaleDateString('vi-VN')}</td>
                     <td style={{ padding: '1rem', fontWeight: 700, color: '#D46B08' }}>{l.minutes} phút</td>
                     <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{l.creator?.name || '—'}</td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <button className="btn btn-sm" onClick={() => handleUndoMachineLog(l.id)} style={{ background: '#FF4D4F', color: '#fff', border: 'none', padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}>Hoàn tác</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

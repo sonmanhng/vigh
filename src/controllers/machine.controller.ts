@@ -298,3 +298,18 @@ export const importMachines = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi server khi import máy móc' });
   }
 };
+export const deleteMachineLog = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const log = await prisma.machineLog.findUnique({ where: { id } });
+    if (!log) {
+      return res.status(404).json({ error: 'Không tìm thấy nhật ký tiêu hao' });
+    }
+    
+    await prisma.machineLog.delete({ where: { id } });
+    res.json({ message: 'Đã hoàn tác tiêu hao' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi khi hoàn tác tiêu hao' });
+  }
+};
