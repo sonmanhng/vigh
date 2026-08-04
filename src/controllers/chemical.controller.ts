@@ -358,6 +358,27 @@ export const deleteChemical = async (req: Request, res: Response) => {
   }
 };
 
+// POST /api/chemicals/bulk-delete — Xoá nhiều hoá chất
+export const bulkDeleteChemicals = async (req: Request, res: Response) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Danh sách ID không hợp lệ' });
+    }
+    await prisma.chemical.deleteMany({
+      where: {
+        id: { in: ids }
+      }
+    });
+    getIO().emit('sync_chemicals');
+    getIO().emit('sync_transactions');
+    res.json({ message: `Đã xoá ${ids.length} hoá chất thành công` });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi server khi xoá hoá chất hàng loạt' });
+  }
+};
+
 // POST /api/chemicals/:id/export — Xuất hoá chất
 export const exportChemical = async (req: Request, res: Response) => {
   try {

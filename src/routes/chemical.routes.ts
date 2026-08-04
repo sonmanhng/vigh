@@ -12,7 +12,8 @@ import {
   exportProposalToExcel,
   getApprovers,
   getProjectStatistics,
-  importChemicals
+  importChemicals,
+  bulkDeleteChemicals
 } from '../controllers/chemical.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
@@ -33,6 +34,7 @@ router.get('/transactions', getTransactions);
 router.get('/', getChemicals);
 router.post('/', createChemical);
 router.post('/import', importChemicals);
+router.post('/bulk-delete', bulkDeleteChemicals);
 router.put('/:id', updateChemical);
 router.delete('/:id', deleteChemical);
 router.post('/:id/export', exportChemical);

@@ -120,6 +120,7 @@ export const ChemicalManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('warehouse');
   const [proposalTab, setProposalTab] = useState<'my_proposals' | 'pending'>('my_proposals');
   const [chemicals, setChemicals] = useState<Chemical[]>([]);
+  const [selectedChemicals, setSelectedChemicals] = useState<number[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [projectStatistics, setProjectStatistics] = useState<ProjectStatistic[]>([]);
   const [loading, setLoading] = useState(false);
@@ -408,6 +409,18 @@ export const ChemicalManagement: React.FC = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedChemicals.length === 0) return;
+    if (!confirm(`Xoá ${selectedChemicals.length} hoá chất đã chọn? Hành động này không thể hoàn tác.`)) return;
+    try {
+      await apiClient.post('/chemicals/bulk-delete', { ids: selectedChemicals });
+      setSelectedChemicals([]);
+      fetchChemicals();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi xoá hoá chất hàng loạt');
+    }
+  };
+
   const openEdit = (c: Chemical) => {
     setEditingId(c.id);
     setImportForm({
@@ -552,6 +565,11 @@ export const ChemicalManagement: React.FC = () => {
             <button className="btn" onClick={() => fileInputRef.current?.click()} disabled={loading} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               ⬆ {loading ? 'Đang tải...' : 'Nhập Excel'}
             </button>
+            {selectedChemicals.length > 0 && (
+              <button className="btn" onClick={handleBulkDelete} disabled={loading} style={{ background: '#FF4D4F', color: '#fff', border: 'none' }}>
+                Xoá ({selectedChemicals.length})
+              </button>
+            )}
             <button className="btn" onClick={() => { setImportForm(emptyImport()); setModal('import'); }} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               Nhập Hoá Chất Thường
             </button>
@@ -592,6 +610,17 @@ export const ChemicalManagement: React.FC = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.82rem', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '0.9rem 1rem', width: '40px', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={filtered.length > 0 && selectedChemicals.length === filtered.length}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedChemicals(filtered.map(c => c.id));
+                            else setSelectedChemicals([]);
+                          }}
+                          style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
+                        />
+                      </th>
                       <th style={{ padding: '0.9rem 1rem' }}>Mã HC</th>
                       <th style={{ padding: '0.9rem 1rem' }}>Tên Hoá Chất</th>
                       <th style={{ padding: '0.9rem 1rem' }}>Phòng Quản Lý</th>
@@ -604,7 +633,7 @@ export const ChemicalManagement: React.FC = () => {
                   </thead>
                   <tbody>
                     {filtered.length === 0 ? (
-                      <tr><td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                         {chemicals.length === 0 ? 'Kho chưa có hoá chất nào. Bấm "Nhập Hoá Chất" để bắt đầu!' : 'Không tìm thấy kết quả.'}
                       </td></tr>
                     ) : filtered.map(c => {
@@ -612,6 +641,17 @@ export const ChemicalManagement: React.FC = () => {
                       const low = isLow(c);
                       return (
                         <tr key={c.id} style={{ borderBottom: '1px solid var(--border-color)', background: low ? '#FFF9F9' : '#fff', transition: 'background 0.2s' }}>
+                          <td style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedChemicals.includes(c.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedChemicals(prev => [...prev, c.id]);
+                                else setSelectedChemicals(prev => prev.filter(id => id !== c.id));
+                              }}
+                              style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
+                            />
+                          </td>
                           <td style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--primary)' }}>{c.code}</td>
                           <td style={{ padding: '0.9rem 1rem' }}>
                             <div style={{ fontWeight: 600 }}>{c.name}</div>
