@@ -277,6 +277,7 @@ model LaborLog {
   proHours    Float    @default(0) // Giờ chuyên môn
   cleanHours  Float    @default(0) // Giờ dọn dẹp
   projectId   Int?     // Dự án liên quan
+  note        String?  // Công việc khác / Ghi chú
   project     Project? @relation("ProjectLaborLogs", fields: [projectId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

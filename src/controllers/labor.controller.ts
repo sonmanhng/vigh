@@ -3,7 +3,7 @@ import prisma from '../utils/prisma';
 
 export const addLaborLog = async (req: Request, res: Response) => {
   try {
-    const { date, adminHours, proHours, cleanHours, projectId } = req.body;
+    const { date, adminHours, proHours, cleanHours, projectId, note } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -22,6 +22,7 @@ export const addLaborLog = async (req: Request, res: Response) => {
         proHours: Number(proHours) || 0,
         cleanHours: Number(cleanHours) || 0,
         projectId: projectId ? Number(projectId) : null,
+        note: note || null,
       }
     });
 

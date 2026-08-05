@@ -135,6 +135,7 @@ export const MachineManagement: React.FC = () => {
   const [laborForm, setLaborForm] = useState({
     date: new Date().toISOString().split('T')[0],
     projectId: '',
+    note: '',
     adminHours: '',
     proHours: '',
     cleanHours: ''
@@ -398,7 +399,7 @@ export const MachineManagement: React.FC = () => {
     try {
       await apiClient.post('/labor', laborForm);
       setModal('none');
-      setLaborForm({ date: new Date().toISOString().split('T')[0], projectId: '', adminHours: '', proHours: '', cleanHours: '' });
+      setLaborForm({ date: new Date().toISOString().split('T')[0], projectId: '', note: '', adminHours: '', proHours: '', cleanHours: '' });
       fetchLaborLogs();
       fetchLaborStats();
     } catch (e: any) {
@@ -669,7 +670,7 @@ export const MachineManagement: React.FC = () => {
                   ) : laborLogs.map(l => (
                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                       <td style={{ padding: '1rem', fontWeight: 600 }}>{new Date(l.date).toLocaleDateString('vi-VN')}</td>
-                      <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>{l.project?.name || '—'}</td>
+                      <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 600 }}>{l.project?.name || l.note || '—'}</td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.adminHours}</td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.proHours}</td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.cleanHours}</td>
@@ -1099,14 +1100,21 @@ export const MachineManagement: React.FC = () => {
                 </div>
 
                 <div className="input-group">
-                  <label className="input-label">Dự án thực hiện (*)</label>
-                  <select className="input-field" required value={laborForm.projectId} onChange={e => setLaborForm({...laborForm, projectId: e.target.value})}>
-                    <option value="">-- Chọn dự án --</option>
+                  <label className="input-label">Dự án thực hiện</label>
+                  <select className="input-field" value={laborForm.projectId} onChange={e => setLaborForm({...laborForm, projectId: e.target.value})}>
+                    <option value="">-- Không chọn dự án --</option>
                     {projects.map(p => (
                       <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
                     ))}
                   </select>
                 </div>
+
+                {!laborForm.projectId && (
+                  <div className="input-group">
+                    <label className="input-label">Tên công việc / Ghi chú (*)</label>
+                    <input type="text" className="input-field" required placeholder="Nhập tên công việc bạn đã làm..." value={laborForm.note} onChange={e => setLaborForm({...laborForm, note: e.target.value})} />
+                  </div>
+                )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                   <div className="input-group" style={{ marginBottom: 0 }}>
