@@ -115,32 +115,7 @@ export const getTransactions = async (req: Request, res: Response) => {
 // GET /api/chemicals/statistics/projects — Thống kê sử dụng hoá chất theo dự án
 export const getProjectStatistics = async (req: Request, res: Response) => {
   try {
-    const role = (req as any).user?.role;
-    const userId = (req as any).user?.id;
-
-    let projectCodes: string[] | undefined = undefined;
-
-    if (!['SuperAdmin', 'VienTruong', 'VienPho'].includes(role)) {
-      // Find projects this user belongs to
-      const userProjects = await prisma.project.findMany({
-        where: {
-          OR: [
-            { managerId: userId },
-            { members: { some: { id: userId } } }
-          ]
-        },
-        select: { code: true }
-      });
-      projectCodes = userProjects.map(p => p.code).filter(Boolean) as string[];
-      if (projectCodes.length === 0) {
-        return res.json([]);
-      }
-    }
-
     const whereClause: any = { type: 'EXPORT', projectCode: { not: null } };
-    if (projectCodes) {
-      whereClause.projectCode = { in: projectCodes };
-    }
 
     const transactions = await prisma.chemicalTransaction.findMany({
       where: whereClause,
