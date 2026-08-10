@@ -349,6 +349,17 @@ export const ChemicalManagement: React.FC = () => {
     }
   };
 
+  const handleUndoTransaction = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn hoàn tác giao dịch này?')) return;
+    try {
+      await apiClient.delete(`/chemicals/transactions/${id}`);
+      fetchChemicals();
+      fetchTransactions();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi hoàn tác giao dịch');
+    }
+  };
+
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingId) return;
