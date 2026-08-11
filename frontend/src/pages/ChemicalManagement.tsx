@@ -266,6 +266,28 @@ export const ChemicalManagement: React.FC = () => {
     }
   };
 
+  const handleExportInventoryExcel = () => {
+    const dataToExport = chemicals.map(c => ({
+      'Mã (*bắt buộc)': c.code,
+      'Tên hoá chất (*bắt buộc)': c.name,
+      'Đơn vị': c.unit,
+      'Tồn kho hiện tại': c.quantity,
+      'Dung tích chai (Max Qty)': c.maxQuantity,
+      'Quy cách đóng gói': c.specification,
+      'Giá xuất hoá đơn': c.invoicePrice,
+      'Ngày nhập (YYYY-MM-DD)': c.importDate ? new Date(c.importDate).toISOString().split('T')[0] : '',
+      'Ngưỡng cảnh báo': c.alertThreshold,
+      'Phòng ban': c.department,
+      'Vị trí': c.location || '',
+      'Ghi chú': c.note || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'HoaChat');
+    XLSX.writeFile(workbook, `Danh_Sach_Hoa_Chat_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -573,6 +595,9 @@ export const ChemicalManagement: React.FC = () => {
             <input type="file" accept=".xlsx, .xls, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
             <button className="btn" onClick={() => fileInputRef.current?.click()} disabled={loading} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               ⬆ {loading ? 'Đang tải...' : 'Nhập Excel'}
+            </button>
+            <button className="btn" onClick={handleExportInventoryExcel} disabled={loading} style={{ background: '#52c41a', color: '#fff', border: 'none' }}>
+              ⬇ Tải Excel Hiện Tại
             </button>
             {selectedChemicals.length > 0 && (
               <button className="btn" onClick={handleBulkDelete} disabled={loading} style={{ background: '#FF4D4F', color: '#fff', border: 'none' }}>

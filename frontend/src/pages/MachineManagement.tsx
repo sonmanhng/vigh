@@ -277,6 +277,22 @@ export const MachineManagement: React.FC = () => {
   useEffect(() => { if (activeTab === 'labor') { fetchLaborLogs(); fetchLaborStats(); fetchMyOvertimeRequests(); } }, [activeTab, fetchLaborLogs, fetchLaborStats, fetchMyOvertimeRequests]);
   useEffect(() => { if (activeTab === 'overtime-approval') { fetchPendingOvertimeRequests(); } }, [activeTab, fetchPendingOvertimeRequests]);
 
+  const handleExportExcel = () => {
+    const dataToExport = machines.map(m => ({
+      'Mã': m.code,
+      'Tên máy móc': m.name,
+      'Danh mục': m.category,
+      'Đơn vị quản lý': m.department,
+      'Đặc tính': m.characteristics || '',
+      'Trạng thái': m.status
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'MayMoc');
+    XLSX.writeFile(workbook, `Danh_Sach_May_Moc_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -478,6 +494,9 @@ export const MachineManagement: React.FC = () => {
               <input type="file" accept=".xlsx, .xls, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
               <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={loading}>
                 {loading ? 'Đang tải...' : 'Nhập Excel'}
+              </button>
+              <button className="btn btn-secondary" onClick={handleExportExcel} disabled={loading} style={{ background: '#52c41a', color: '#fff', border: 'none' }}>
+                Tải Excel Hiện Tại
               </button>
               <button className="btn btn-secondary" onClick={() => setModal('consume')}>
                 Ghi tiêu hao
