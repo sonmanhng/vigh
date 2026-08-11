@@ -40,6 +40,7 @@ model User {
   notifications           Notification[]    @relation("UserNotifications")
   submittedReports        WeeklyReport[]    @relation("ReportedBy")
   receivedReports         WeeklyReport[]    @relation("ReportedTo")
+  researchComments        ResearchContentComment[] @relation("UserResearchComments")
   createdAt        DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -106,8 +107,20 @@ model ResearchContent {
   activities  String?  // JSON string: '[{"activity":"...","result":"..."}]'
   projectId   Int
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  comments    ResearchContentComment[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ResearchContentComment {
+  id                Int             @id @default(autoincrement())
+  content           String
+  researchContentId Int
+  researchContent   ResearchContent @relation(fields: [researchContentId], references: [id], onDelete: Cascade)
+  userId            Int
+  user              User            @relation("UserResearchComments", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model Chemical {

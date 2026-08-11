@@ -143,7 +143,15 @@ export const updateProject = async (req: Request, res: Response) => {
       include: {
         manager: { select: { id: true, name: true, email: true, role: true, avatar: true } },
         members: { select: { id: true, name: true, email: true, role: true, avatar: true } },
-        researchContents: { orderBy: { id: 'asc' } },
+        researchContents: { 
+          orderBy: { id: 'asc' },
+          include: {
+            comments: {
+              include: { user: { select: { id: true, name: true, avatar: true } } },
+              orderBy: { createdAt: 'asc' }
+            }
+          }
+        },
       }
     });
     res.json(updated);
@@ -209,7 +217,15 @@ export const getProjectById = async (req: Request, res: Response) => {
       include: {
         manager: { select: { id: true, name: true, email: true, role: true, avatar: true } },
         members: { select: { id: true, name: true, email: true, role: true, avatar: true } },
-        researchContents: { orderBy: { id: 'asc' } },
+        researchContents: { 
+          orderBy: { id: 'asc' },
+          include: {
+            comments: {
+              include: { user: { select: { id: true, name: true, avatar: true } } },
+              orderBy: { createdAt: 'asc' }
+            }
+          }
+        },
         tasks: { 
           include: {
             assignee: { select: { id: true, name: true, email: true, role: true, avatar: true } }
@@ -261,7 +277,13 @@ export const exportProjectDocx = async (req: Request, res: Response) => {
       include: { 
         manager: true,
         researchContents: {
-          orderBy: { id: 'asc' }
+          orderBy: { id: 'asc' },
+          include: {
+            comments: {
+              include: { user: { select: { id: true, name: true, avatar: true } } },
+              orderBy: { createdAt: 'asc' }
+            }
+          }
         }
       }
     });

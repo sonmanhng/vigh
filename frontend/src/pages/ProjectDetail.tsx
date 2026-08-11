@@ -38,6 +38,9 @@ export const ProjectDetail: React.FC = () => {
   // New Task State
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskAssignee, setNewTaskAssignee] = useState<number | ''>('');
+
+  // Comment State
+  const [rcComments, setRcComments] = useState<Record<number, string>>({});
   const [newTaskExpectedResult, setNewTaskExpectedResult] = useState('');
   const [newTaskAssignDate, setNewTaskAssignDate] = useState(new Date().toISOString().slice(0, 10));
   const [newTaskDeadline, setNewTaskDeadline] = useState('');
@@ -252,6 +255,30 @@ export const ProjectDetail: React.FC = () => {
       fetchProjectDetails();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Lỗi khi xóa nội dung');
+    }
+  };
+
+  const handleAddComment = async (contentId: number) => {
+    const text = rcComments[contentId];
+    if (!text || !text.trim()) return;
+    try {
+      await apiClient.post(`/projects/${project.id}/research-contents/${contentId}/comments`, {
+        content: text.trim()
+      });
+      setRcComments(prev => ({ ...prev, [contentId]: '' }));
+      fetchProjectDetails();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Lỗi khi thêm bình luận');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!window.confirm('Bạn có chắc muốn xóa bình luận này?')) return;
+    try {
+      await apiClient.delete(`/projects/${project.id}/research-contents/comments/${commentId}`);
+      fetchProjectDetails();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Lỗi khi xóa bình luận');
     }
   };
 
@@ -1139,6 +1166,95 @@ export const ProjectDetail: React.FC = () => {
                                     ))}
                                   </div>
                                 )}
+
+                                {/* Chat / Comment Section */}
+                                <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(226, 232, 240, 0.8)', paddingTop: '1rem' }}>
+                                  <h5 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                                    Trao đổi & Bình luận ({rc.comments?.length || 0})
+                                  </h5>
+                                  
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1rem' }}>
+                                    {rc.comments?.map((comment: any) => (
+                                      <div key={comment.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                                        {comment.user?.avatar ? (
+                                          <img src={comment.user.avatar} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                                        ) : (
+                                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.8rem' }}>
+                                            {comment.user?.name?.charAt(0).toUpperCase() || '?'}
+                                          </div>
+                                        )}
+                                        <div style={{ flex: 1, backgroundColor: '#fff', padding: '0.75rem 1rem', borderRadius: '0 12px 12px 12px', border: '1px solid var(--border-color)', position: 'relative' }}>
+                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.25rem' }}>
+                                            <strong style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>{comment.user?.name || 'Ẩn danh'}</strong>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                              {new Date(comment.createdAt).toLocaleString('vi-VN')}
+                                            </span>
+                                          </div>
+                                          <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                                            {comment.content}
+                                          </div>
+                                          {(comment.user?.id === user?.id || canEditGeneralInfo) && (
+                                            <button 
+                                              onClick={() => handleDeleteComment(comment.id)}
+                                              style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', opacity: 0.5 }}
+                                              title="Xóa bình luận"
+                                            >
+                                              ×
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                    {(!rc.comments || rc.comments.length === 0) && (
+                                      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', fontStyle: 'italic', padding: '1rem 0' }}>
+                                        Chưa có trao đổi nào. Hãy là người đầu tiên bình luận!
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    <textarea
+                                      value={rcComments[rc.id] || ''}
+                                      onChange={(e) => setRcComments(prev => ({ ...prev, [rc.id]: e.target.value }))}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                          e.preventDefault();
+                                          handleAddComment(rc.id);
+                                        }
+                                      }}
+                                      placeholder="Nhập nội dung trao đổi... (Enter để gửi)"
+                                      style={{
+                                        flex: 1,
+                                        padding: '0.75rem 1rem',
+                                        borderRadius: 'var(--radius-md)',
+                                        border: '1px solid var(--border-color)',
+                                        outline: 'none',
+                                        fontSize: '0.9rem',
+                                        resize: 'none',
+                                        height: '42px',
+                                        lineHeight: '1.2'
+                                      }}
+                                      rows={1}
+                                    />
+                                    <button 
+                                      onClick={() => handleAddComment(rc.id)}
+                                      disabled={!rcComments[rc.id]?.trim()}
+                                      style={{
+                                        backgroundColor: rcComments[rc.id]?.trim() ? 'var(--primary)' : '#e2e8f0',
+                                        color: rcComments[rc.id]?.trim() ? '#fff' : '#94a3b8',
+                                        border: 'none',
+                                        borderRadius: 'var(--radius-md)',
+                                        padding: '0 1.25rem',
+                                        fontWeight: 600,
+                                        cursor: rcComments[rc.id]?.trim() ? 'pointer' : 'not-allowed',
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      Gửi
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             );
                           })}

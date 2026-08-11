@@ -79,3 +79,50 @@ export const deleteResearchContent = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Lỗi khi xóa nội dung nghiên cứu', error: error.message });
   }
 };
+
+export const addComment = async (req: Request, res: Response) => {
+  try {
+    const contentId = parseInt(req.params.contentId as string);
+    const { content } = req.body;
+    
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: 'Nội dung bình luận không được để trống' });
+    }
+
+    const rc = await prisma.researchContent.findUnique({ where: { id: contentId } });
+    if (!rc) return res.status(404).json({ message: 'Không tìm thấy nội dung nghiên cứu' });
+
+    const newComment = await prisma.researchContentComment.create({
+      data: {
+        content: content.trim(),
+        researchContentId: contentId,
+        userId: req.user!.id,
+      },
+      include: {
+        user: { select: { id: true, name: true, avatar: true } }
+      }
+    });
+
+    res.status(201).json(newComment);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Lỗi khi thêm bình luận', error: error.message });
+  }
+};
+
+export const deleteComment = async (req: Request, res: Response) => {
+  try {
+    const commentId = parseInt(req.params.commentId as string);
+    const comment = await prisma.researchContentComment.findUnique({ where: { id: commentId } });
+    if (!comment) return res.status(404).json({ message: 'Không tìm thấy bình luận' });
+
+    // Allow author or project manager to delete
+    if (comment.userId !== req.user!.id && !isManagerOrAbove(req.user!.role)) {
+      return res.status(403).json({ message: 'Bạn không có quyền xóa bình luận này' });
+    }
+
+    await prisma.researchContentComment.delete({ where: { id: commentId } });
+    res.json({ message: 'Đã xóa bình luận' });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Lỗi khi xóa bình luận', error: error.message });
+  }
+};

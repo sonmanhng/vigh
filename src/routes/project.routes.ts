@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { createProject, getProjects, getProjectById, updateProject, deleteProject, exportProjectDocx, importProjectDocx, approveProject } from '../controllers/project.controller';
 import multer from 'multer';
-import { createResearchContent, updateResearchContent, deleteResearchContent } from '../controllers/researchContent.controller';
+import { createResearchContent, updateResearchContent, deleteResearchContent, addComment, deleteComment } from '../controllers/researchContent.controller';
 import { authenticateToken, authorizeRoles } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -22,5 +22,9 @@ router.post('/:id/import-docx', upload.single('file'), importProjectDocx);
 router.post('/:projectId/research-contents', createResearchContent);
 router.put('/:projectId/research-contents/:contentId', updateResearchContent);
 router.delete('/:projectId/research-contents/:contentId', deleteResearchContent);
+
+// Comments routes
+router.post('/:projectId/research-contents/:contentId/comments', addComment);
+router.delete('/:projectId/research-contents/comments/:commentId', deleteComment);
 
 export default router;
