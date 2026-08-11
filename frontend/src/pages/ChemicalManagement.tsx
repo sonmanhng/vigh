@@ -596,7 +596,7 @@ export const ChemicalManagement: React.FC = () => {
             <button className="btn" onClick={() => fileInputRef.current?.click()} disabled={loading} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               ⬆ {loading ? 'Đang tải...' : 'Nhập Excel'}
             </button>
-            <button className="btn" onClick={handleExportInventoryExcel} disabled={loading} style={{ background: '#52c41a', color: '#fff', border: 'none' }}>
+            <button className="btn" onClick={handleExportInventoryExcel} disabled={loading} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               ⬇ Tải Excel Hiện Tại
             </button>
             {selectedChemicals.length > 0 && (

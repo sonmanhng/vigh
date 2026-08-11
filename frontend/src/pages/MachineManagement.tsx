@@ -495,7 +495,7 @@ export const MachineManagement: React.FC = () => {
               <button className="btn btn-secondary" onClick={() => fileInputRef.current?.click()} disabled={loading}>
                 {loading ? 'Đang tải...' : 'Nhập Excel'}
               </button>
-              <button className="btn btn-secondary" onClick={handleExportExcel} disabled={loading} style={{ background: '#52c41a', color: '#fff', border: 'none' }}>
+              <button className="btn btn-secondary" onClick={handleExportExcel} disabled={loading}>
                 Tải Excel Hiện Tại
               </button>
               <button className="btn btn-secondary" onClick={() => setModal('consume')}>
