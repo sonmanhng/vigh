@@ -25,6 +25,14 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Global Cache-Control for API to prevent aggressive caching (e.g. by Cloudflare Tunnels)
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -45,11 +53,20 @@ if (process.env.NODE_ENV === 'production') {
   const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
   
   // Phục vụ assets cho cả base '/' và base '/vigh/'
-  app.use(express.static(frontendDist));
-  app.use('/vigh', express.static(frontendDist));
+  const staticOptions = {
+    setHeaders: (res: express.Response, pathStr: string) => {
+      if (pathStr.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      }
+    }
+  };
+  
+  app.use(express.static(frontendDist, staticOptions));
+  app.use('/vigh', express.static(frontendDist, staticOptions));
   
   // SPA fallback — serve index.html for all non-API routes (Express 5 compatible)
   app.use((req: express.Request, res: express.Response) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.sendFile(path.join(frontendDist, 'index.html'));
   });
 } else {
