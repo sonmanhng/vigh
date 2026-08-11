@@ -43,7 +43,6 @@ export const Dashboard: React.FC = () => {
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectTopicCode, setNewProjectTopicCode] = useState('');
-  const [newProjectCode, setNewProjectCode] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [newProjectManager, setNewProjectManager] = useState<number | ''>('');
   const [newProjectMembers, setNewProjectMembers] = useState<number[]>([]);
@@ -81,7 +80,6 @@ export const Dashboard: React.FC = () => {
       const res = await apiClient.post('/projects', { 
         name: newProjectName, 
         topicCode: newProjectTopicCode || null,
-        code: newProjectCode || null,
         description: newProjectDesc || 'Đề tài nghiên cứu Viện VIGH',
         managerId: newProjectManager ? Number(newProjectManager) : user?.id,
         memberIds: newProjectMembers,
@@ -90,7 +88,6 @@ export const Dashboard: React.FC = () => {
       setShowCreateProjectModal(false);
       setNewProjectName('');
       setNewProjectTopicCode('');
-      setNewProjectCode('');
       setNewProjectDesc('');
       setNewProjectManager('');
       setNewProjectMembers([]);
@@ -398,28 +395,16 @@ export const Dashboard: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="input-group">
-                    <label className="input-label">Mã đề tài</label>
+                    <label className="input-label">Mã đề tài / Mã số dự án</label>
                     <input 
                       type="text" 
                       className="input-field" 
-                      placeholder="VD: ĐT-2026-01" 
+                      placeholder="VD: ĐT-2026-01 hoặc DA-2026-005" 
                       value={newProjectTopicCode} 
                       onChange={(e) => setNewProjectTopicCode(e.target.value)} 
                     />
                   </div>
-                  <div className="input-group">
-                    <label className="input-label">Mã số dự án</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="VD: DA-2026-005, 108.05-2023.20..." 
-                      value={newProjectCode} 
-                      onChange={(e) => setNewProjectCode(e.target.value)} 
-                    />
-                  </div>
-                </div>
 
                 <div className="input-group">
                   <label className="input-label">Mô tả tóm tắt mục tiêu đề tài</label>
