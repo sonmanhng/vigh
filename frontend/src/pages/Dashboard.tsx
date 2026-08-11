@@ -37,6 +37,7 @@ export const Dashboard: React.FC = () => {
   // Projects State
   const [projects, setProjects] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<any[]>([]);
+  const [memberFilter, setMemberFilter] = useState<number | ''>('');
   
   // New Project State
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
@@ -322,9 +323,23 @@ export const Dashboard: React.FC = () => {
                 </p>
               </div>
 
-              <button className="btn btn-primary" onClick={() => setShowCreateProjectModal(true)}>
-                Khởi Tạo Đề Tài Mới
-              </button>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <select 
+                  className="input-field" 
+                  value={memberFilter} 
+                  onChange={(e) => setMemberFilter(e.target.value ? Number(e.target.value) : '')}
+                  style={{ minWidth: '200px', margin: 0, padding: '0.4rem 0.75rem' }}
+                >
+                  <option value="">-- Tất cả thành viên --</option>
+                  {usersList.map(u => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+
+                <button className="btn btn-primary" onClick={() => setShowCreateProjectModal(true)}>
+                  Khởi Tạo Đề Tài Mới
+                </button>
+              </div>
             </div>
 
             {/* Projects Grid */}
@@ -337,7 +352,10 @@ export const Dashboard: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', alignItems: 'start' }}>
                   {['Phòng Khoa học Công nghệ', 'Phòng Sinh học', 'Phòng Công nghệ Dược'].map(dept => {
-                    const deptProjects = projects.filter(p => p.manager?.department === dept);
+                    const displayProjects = memberFilter === '' 
+                      ? projects 
+                      : projects.filter(p => p.manager?.id === memberFilter || p.members?.some((m: any) => m.id === memberFilter) || p.creator?.id === memberFilter);
+                    const deptProjects = displayProjects.filter(p => p.manager?.department === dept);
                     return (
                       <div key={dept} style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', minHeight: '500px' }}>
                         <h2 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--primary)', color: 'var(--text-main)', textTransform: 'uppercase' }}>
