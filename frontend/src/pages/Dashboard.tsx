@@ -157,9 +157,9 @@ export const Dashboard: React.FC = () => {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '0.5rem' }}>
           <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)', margin: 0, lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
-            {p.topicCode && (
+            {(p.topicCode || p.code) && (
               <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--primary)', color: '#fff', padding: '0.1rem 0.3rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
-                {p.topicCode}
+                {[p.topicCode, p.code].filter(Boolean).join(' - ')}
               </span>
             )}
             <span>{p.name}</span>
