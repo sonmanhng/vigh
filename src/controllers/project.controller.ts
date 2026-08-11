@@ -70,7 +70,7 @@ export const getProjects = async (req: Request, res: Response) => {
     if (isTopAdmin(role)) {
       projects = await prisma.project.findMany({ 
         include: { 
-          manager: { select: { id: true, name: true, email: true, role: true, avatar: true } },
+          manager: { select: { id: true, name: true, email: true, role: true, avatar: true, department: true } },
           members: { select: { id: true, name: true, email: true, role: true, avatar: true } },
           creator: { select: { id: true, name: true } },
           approver: { select: { id: true, name: true } },
@@ -91,7 +91,7 @@ export const getProjects = async (req: Request, res: Response) => {
           ]
         },
         include: { 
-          manager: { select: { id: true, name: true, email: true, role: true, avatar: true } },
+          manager: { select: { id: true, name: true, email: true, role: true, avatar: true, department: true } },
           members: { select: { id: true, name: true, email: true, role: true, avatar: true } },
           creator: { select: { id: true, name: true } },
           approver: { select: { id: true, name: true } },

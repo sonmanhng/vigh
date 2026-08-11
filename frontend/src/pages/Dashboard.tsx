@@ -123,6 +123,115 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+
+  const renderProjectCard = (p: any) => (
+    <div 
+      key={p.id} 
+      onClick={() => navigate(`/project/${p.id}`)}
+      className="card"
+      style={{ 
+        padding: '1rem', 
+        backgroundColor: '#FFFFFF', 
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius-md)',
+        cursor: 'pointer',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        position: 'relative'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+        e.currentTarget.style.borderColor = 'var(--primary)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+        e.currentTarget.style.borderColor = 'var(--border-color)';
+      }}
+    >
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.4rem', marginBottom: '0.5rem' }}>
+          <h3 style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)', margin: 0, lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
+            {p.topicCode && (
+              <span style={{ fontSize: '0.7rem', backgroundColor: 'var(--primary)', color: '#fff', padding: '0.1rem 0.3rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+                {p.topicCode}
+              </span>
+            )}
+            <span>{p.name}</span>
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            {p.approvalStatus === 'PENDING' ? (
+              <span className="badge" style={{ backgroundColor: '#f59e0b', color: '#fff', fontSize: '0.65rem', whiteSpace: 'nowrap', padding: '0.1rem 0.3rem' }}>Chờ Duyệt</span>
+            ) : p.approvalStatus === 'REJECTED' ? (
+              <span className="badge badge-danger" style={{ fontSize: '0.65rem', whiteSpace: 'nowrap', padding: '0.1rem 0.3rem' }}>Từ chối</span>
+            ) : (
+              <span className="badge badge-success" style={{ fontSize: '0.65rem', whiteSpace: 'nowrap', padding: '0.1rem 0.3rem' }}>Hoạt Động</span>
+            )}
+            
+            {p.approvalStatus === 'PENDING' && (user?.id === p.approverId || user?.role === 'SuperAdmin') && (
+              <>
+                <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleApproveProject(e, p.id, 'APPROVE'); }}
+                  style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10b981', borderRadius: '4px', padding: '0.1rem 0.3rem', fontSize: '0.65rem', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Duyệt
+                </button>
+                <button 
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleApproveProject(e, p.id, 'REJECT'); }}
+                  style={{ background: 'rgba(255, 77, 79, 0.1)', border: '1px solid rgba(255, 77, 79, 0.3)', color: 'var(--accent-pink)', borderRadius: '4px', padding: '0.1rem 0.3rem', fontSize: '0.65rem', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Từ chối
+                </button>
+              </>
+            )}
+            {isManagerOrAdmin && (
+              <button 
+                type="button"
+                onClick={(e) => { e.stopPropagation(); handleDeleteProject(e, p.id, p.name); }}
+                style={{ background: 'rgba(255, 77, 79, 0.1)', border: '1px solid rgba(255, 77, 79, 0.3)', color: 'var(--accent-pink)', borderRadius: '4px', padding: '0.1rem 0.3rem', fontSize: '0.65rem', cursor: 'pointer', fontWeight: 600 }}
+              >
+                Xóa
+              </button>
+            )}
+          </div>
+        </div>
+
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.6rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}>
+          {p.description || 'Đề tài khoa học cấp Viện'}
+        </p>
+
+        <div style={{ backgroundColor: 'rgba(0,0,0,0.02)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', marginBottom: '0.6rem', fontSize: '0.75rem', border: '1px solid rgba(0,0,0,0.03)' }}>
+          <div style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Chủ nhiệm: </span>
+            <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{p.manager?.name || 'Chưa chỉ định'}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <span style={{ color: 'var(--text-muted)' }}>Thành viên: </span>
+            <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+              {p.members && p.members.length > 0 ? `${p.members.length} người` : 'Chưa có'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
+          <span>Tiến độ:</span>
+          <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{p.progress || 0}%</span>
+        </div>
+        <div className="progress-container" style={{ margin: '0', height: '5px' }}>
+          <div className="progress-bar" style={{ width: `${p.progress || 0}%`, backgroundColor: 'var(--primary)' }}></div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="app-container">
       {/* Left Sidebar Menu */}
@@ -225,143 +334,22 @@ export const Dashboard: React.FC = () => {
                   Chưa có đề tài nào được khởi tạo hoặc phân công cho bạn.
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
-                  {projects.map(p => (
-                    <div 
-                      key={p.id} 
-                      onClick={() => navigate(`/project/${p.id}`)}
-                      className="card"
-                      style={{ 
-                        padding: '1.5rem', 
-                        backgroundColor: '#FFFFFF', 
-                        border: '1px solid var(--border-color)',
-                        borderRadius: 'var(--radius-lg)',
-                        cursor: 'pointer',
-                        boxShadow: 'var(--shadow-sm)',
-                        transition: 'all 0.25s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        position: 'relative'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-                        e.currentTarget.style.borderColor = 'var(--primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-                        e.currentTarget.style.borderColor = 'var(--border-color)';
-                      }}
-                    >
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                          <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-main)', margin: 0, lineHeight: 1.4, display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                            {p.topicCode && (
-                              <span style={{ fontSize: '0.8rem', backgroundColor: 'var(--primary)', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
-                                Mã đề tài: {p.topicCode}
-                              </span>
-                            )}
-                            {p.code && (
-                              <span style={{ fontSize: '0.8rem', backgroundColor: '#10b981', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
-                                Mã số DA: {p.code}
-                              </span>
-                            )}
-                            <span>{p.name}</span>
-                          </h3>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {p.approvalStatus === 'PENDING' ? (
-                              <span className="badge" style={{ backgroundColor: '#f59e0b', color: '#fff', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Chờ Duyệt</span>
-                            ) : p.approvalStatus === 'REJECTED' ? (
-                              <span className="badge badge-danger" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Từ chối</span>
-                            ) : (
-                              <span className="badge badge-success" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Hoạt Động</span>
-                            )}
-                            
-                            {p.approvalStatus === 'PENDING' && (user?.id === p.approverId || user?.role === 'SuperAdmin') && (
-                              <>
-                                <button 
-                                  type="button"
-                                  onClick={(e) => handleApproveProject(e, p.id, 'APPROVE')}
-                                  style={{
-                                    background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)',
-                                    color: '#10b981', borderRadius: 'var(--radius-sm)', padding: '0.2rem 0.5rem',
-                                    fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600
-                                  }}
-                                >
-                                  Duyệt
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={(e) => handleApproveProject(e, p.id, 'REJECT')}
-                                  style={{
-                                    background: 'rgba(255, 77, 79, 0.1)', border: '1px solid rgba(255, 77, 79, 0.3)',
-                                    color: 'var(--accent-pink)', borderRadius: 'var(--radius-sm)', padding: '0.2rem 0.5rem',
-                                    fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600
-                                  }}
-                                >
-                                  Từ chối
-                                </button>
-                              </>
-                            )}
-                            {isManagerOrAdmin && (
-                              <button 
-                                type="button"
-                                onClick={(e) => handleDeleteProject(e, p.id, p.name)}
-                                style={{
-                                  background: 'rgba(255, 77, 79, 0.1)',
-                                  border: '1px solid rgba(255, 77, 79, 0.3)',
-                                  color: 'var(--accent-pink)',
-                                  borderRadius: 'var(--radius-sm)',
-                                  padding: '0.2rem 0.5rem',
-                                  fontSize: '0.75rem',
-                                  cursor: 'pointer',
-                                  fontWeight: 600
-                                }}
-                                title="Xóa đề tài này"
-                              >
-                                Xóa
-                              </button>
-                            )}
-                          </div>
-                        </div>
 
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '1.25rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5 }}>
-                          {p.description || 'Đề tài khoa học cấp Viện'}
-                        </p>
-
-                        <div style={{ backgroundColor: 'rgba(0,0,0,0.025)', padding: '0.8rem', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem', fontSize: '0.88rem', border: '1px solid rgba(0,0,0,0.04)' }}>
-                          <div style={{ marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <span style={{ color: 'var(--text-muted)' }}>Chủ nhiệm: </span>
-                            <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{p.manager?.name || 'Chưa chỉ định'}</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <span style={{ color: 'var(--text-muted)' }}>Thành viên: </span>
-                            <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
-                              {p.members && p.members.length > 0 ? `${p.members.length} người tham gia` : 'Chưa có thành viên'}
-                            </span>
-                          </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', alignItems: 'start' }}>
+                  {['Phòng Khoa học Công nghệ', 'Phòng Sinh học', 'Phòng Công nghệ Dược'].map(dept => {
+                    const deptProjects = projects.filter(p => p.manager?.department === dept);
+                    return (
+                      <div key={dept} style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', minHeight: '500px' }}>
+                        <h2 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid var(--primary)', color: 'var(--text-main)', textTransform: 'uppercase' }}>
+                          {dept} <span style={{ backgroundColor: 'var(--primary)', color: '#fff', padding: '0.1rem 0.4rem', borderRadius: '12px', fontSize: '0.75rem', marginLeft: '0.3rem' }}>{deptProjects.length}</span>
+                        </h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                           {deptProjects.map(renderProjectCard)}
+                           {deptProjects.length === 0 && <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', marginTop: '2rem' }}>Chưa có đề tài</div>}
                         </div>
                       </div>
-
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                          <span>Tiến độ hoàn thành:</span>
-                          <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{p.progress || 0}%</span>
-                        </div>
-                        <div className="progress-container" style={{ margin: '0 0 1.25rem 0', height: '8px' }}>
-                          <div className="progress-bar" style={{ width: `${p.progress || 0}%`, backgroundColor: 'var(--primary)' }}></div>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem' }}>
-                          <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            Xem Chi Tiết & Giao Việc
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
