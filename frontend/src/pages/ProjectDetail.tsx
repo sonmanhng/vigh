@@ -46,6 +46,7 @@ export const ProjectDetail: React.FC = () => {
   const [newTaskDeadline, setNewTaskDeadline] = useState('');
   const [selectedActivityCode, setSelectedActivityCode] = useState('');
   const [uploadFiles, setUploadFiles] = useState<{ [taskId: number]: { file: File, dataUrl: string, name: string, size: string } }>({});
+  const [reportLinks, setReportLinks] = useState<{ [taskId: number]: string }>({});
   const [submittingReportTaskId, setSubmittingReportTaskId] = useState<number | null>(null);
 
   const isManagerOrAdmin = user && ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'].includes(user.role);
@@ -445,8 +446,9 @@ export const ProjectDetail: React.FC = () => {
 
   const handleSubmitReport = async (t: any) => {
     const fileInfo = uploadFiles[t.id];
-    if (!fileInfo) {
-      alert('Vui lòng chọn file báo cáo trước khi nộp.');
+    const linkStr = reportLinks[t.id]?.trim();
+    if (!fileInfo && !linkStr) {
+      alert('Vui lòng chọn file báo cáo hoặc nhập đường link minh chứng trước khi nộp.');
       return;
     }
     setSubmittingReportTaskId(t.id);
@@ -456,12 +458,22 @@ export const ProjectDetail: React.FC = () => {
         descObj = typeof t.description === 'string' ? JSON.parse(t.description) : (t.description || {});
       } catch (e) { }
 
-      descObj.reportFile = {
-        name: fileInfo.name,
-        size: fileInfo.size,
-        dataUrl: fileInfo.dataUrl,
-        submittedAt: new Date().toLocaleString('vi-VN')
-      };
+      if (fileInfo) {
+        descObj.reportFile = {
+          name: fileInfo.name,
+          size: fileInfo.size,
+          dataUrl: fileInfo.dataUrl,
+          submittedAt: new Date().toLocaleString('vi-VN')
+        };
+        delete descObj.reportLink; // clear link if file is uploaded
+      } else if (linkStr) {
+        descObj.reportLink = {
+          url: linkStr,
+          submittedAt: new Date().toLocaleString('vi-VN')
+        };
+        delete descObj.reportFile; // clear file if link is provided
+      }
+      
       delete descObj.rejectReason;
 
       const res = await apiClient.put(`/tasks/${t.id}`, {
@@ -472,6 +484,11 @@ export const ProjectDetail: React.FC = () => {
       if (res) {
         alert('Đã nộp báo cáo thành công! Vui lòng chờ Lãnh đạo hoặc Chủ nhiệm đề tài nghiệm thu.');
         setUploadFiles(prev => {
+          const next = { ...prev };
+          delete next[t.id];
+          return next;
+        });
+        setReportLinks(prev => {
           const next = { ...prev };
           delete next[t.id];
           return next;
@@ -1962,26 +1979,51 @@ export const ProjectDetail: React.FC = () => {
 
                                 {/* Report File Section */}
                                 <div style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                                  {descObj.reportFile ? (
+                                  {(descObj.reportFile || descObj.reportLink) ? (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', backgroundColor: '#FFFFFF', padding: '0.85rem 1.15rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
                                       <div>
-                                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                                          Tệp báo cáo đã nộp: {descObj.reportFile.name}
-                                        </div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                                          Dung lượng: {descObj.reportFile.size} - Nộp lúc: {descObj.reportFile.submittedAt || 'N/A'}
-                                        </div>
+                                        {descObj.reportFile ? (
+                                          <>
+                                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                                              Tệp báo cáo đã nộp: {descObj.reportFile.name}
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                                              Dung lượng: {descObj.reportFile.size} - Nộp lúc: {descObj.reportFile.submittedAt || 'N/A'}
+                                            </div>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                                              Link minh chứng: <a href={descObj.reportLink.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>{descObj.reportLink.url}</a>
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                                              Nộp lúc: {descObj.reportLink.submittedAt || 'N/A'}
+                                            </div>
+                                          </>
+                                        )}
                                       </div>
 
                                       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        <a
-                                          href={descObj.reportFile.dataUrl || `data:text/plain;charset=utf-8,Noi%20dung%20bao%20cao:%20${encodeURIComponent(descObj.reportFile.name)}`}
-                                          download={descObj.reportFile.name}
-                                          className="btn btn-secondary btn-sm"
-                                          style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
-                                        >
-                                          Tải về báo cáo
-                                        </a>
+                                        {descObj.reportFile ? (
+                                          <a
+                                            href={descObj.reportFile.dataUrl || `data:text/plain;charset=utf-8,Noi%20dung%20bao%20cao:%20${encodeURIComponent(descObj.reportFile.name)}`}
+                                            download={descObj.reportFile.name}
+                                            className="btn btn-secondary btn-sm"
+                                            style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
+                                          >
+                                            Tải về báo cáo
+                                          </a>
+                                        ) : (
+                                          <a
+                                            href={descObj.reportLink.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="btn btn-secondary btn-sm"
+                                            style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
+                                          >
+                                            Mở liên kết
+                                          </a>
+                                        )}
 
                                         {canManageReports && !isDone && (
                                           <>
@@ -2009,18 +2051,41 @@ export const ProjectDetail: React.FC = () => {
                                     /* Upload input for specialist / member */
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
                                       <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                                        Nộp file báo cáo công việc (PDF, Word, Excel, ZIP...):
+                                        Nộp minh chứng (File báo cáo HOẶC Link):
                                       </label>
+                                      
                                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                                         <input
                                           type="file"
-                                          onChange={(e) => handleFileChange(t.id, e)}
-                                          style={{ fontSize: '0.88rem', flex: 1 }}
+                                          onChange={(e) => {
+                                            handleFileChange(t.id, e);
+                                            setReportLinks(prev => ({ ...prev, [t.id]: '' })); // Clear link if file selected
+                                          }}
+                                          style={{ fontSize: '0.88rem', flex: 1, minWidth: '200px' }}
+                                          disabled={!!reportLinks[t.id]?.trim()}
                                         />
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>HOẶC</div>
+                                        <input
+                                          type="text"
+                                          placeholder="Nhập đường link (VD: Google Drive, Docs...)"
+                                          value={reportLinks[t.id] || ''}
+                                          onChange={(e) => {
+                                            setReportLinks(prev => ({ ...prev, [t.id]: e.target.value }));
+                                            if (e.target.value.trim() && uploadFiles[t.id]) {
+                                              setUploadFiles(prev => { const next = { ...prev }; delete next[t.id]; return next; }); // Clear file if link entered
+                                            }
+                                          }}
+                                          className="form-control"
+                                          style={{ flex: 2, minWidth: '250px' }}
+                                          disabled={!!uploadFiles[t.id]}
+                                        />
+                                      </div>
+                                      
+                                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                                         <button
                                           type="button"
                                           className="btn btn-primary btn-sm"
-                                          disabled={!uploadFiles[t.id] || submittingReportTaskId === t.id}
+                                          disabled={(!uploadFiles[t.id] && !reportLinks[t.id]?.trim()) || submittingReportTaskId === t.id}
                                           onClick={() => handleSubmitReport(t)}
                                           style={{ padding: '0.55rem 1.25rem', fontSize: '0.88rem', fontWeight: 700 }}
                                         >
@@ -2030,6 +2095,11 @@ export const ProjectDetail: React.FC = () => {
                                       {uploadFiles[t.id] && (
                                         <div style={{ fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 600 }}>
                                           Đã chọn tệp: {uploadFiles[t.id].name} ({uploadFiles[t.id].size})
+                                        </div>
+                                      )}
+                                      {reportLinks[t.id]?.trim() && (
+                                        <div style={{ fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 600 }}>
+                                          Đã nhập đường link minh chứng.
                                         </div>
                                       )}
                                     </div>
