@@ -931,7 +931,7 @@ export const ProjectDetail: React.FC = () => {
                       {renderRow('Tên đề tài', project.name, true, project.nameEn)}
                       {renderRow('Mã đề tài / Dự án', [project.topicCode, project.code].filter(Boolean).join(' - '))}
                       {renderRow('Loại đề tài', project.projectType)}
-                      {renderRow('Đơn vị quản lý', project.managementUnit)}
+                      {renderRow('Đơn vị đối tác', project.managementUnit)}
                       {renderRow('Tổ chức chủ trì', project.hostOrganization)}
                       {renderRow('Chủ nhiệm', project.manager?.name)}
                       {renderRow('Cố vấn', project.advisor)}
@@ -2355,7 +2355,7 @@ export const ProjectDetail: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div className="input-group">
-                    <label className="input-label">Đơn vị quản lý</label>
+                    <label className="input-label">Đơn vị đối tác</label>
                     <input
                       type="text"
                       className="input-field"
