@@ -167,6 +167,7 @@ export const MachineManagement: React.FC = () => {
   // Statistics filters
   const [statMonth, setStatMonth] = useState(new Date().toISOString().substring(0, 7)); // YYYY-MM
   const [statType, setStatType] = useState<'machine' | 'labor'>('machine');
+  const isAdmin = ['SUPERADMIN', 'VIENTRUONG', 'VIENPHO'].includes(user?.role || '');
 
   const fetchMachines = useCallback(async () => {
     try {
@@ -795,7 +796,7 @@ export const MachineManagement: React.FC = () => {
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Loại theo dõi</label>
               <select className="input-field" value={statType} onChange={e => setStatType(e.target.value as any)}>
                 <option value="machine">Theo dõi máy móc</option>
-                <option value="labor">Theo dõi nhân công</option>
+                {isAdmin && <option value="labor">Theo dõi nhân công</option>}
               </select>
             </div>
             {statType === 'labor' && (

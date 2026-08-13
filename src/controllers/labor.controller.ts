@@ -197,6 +197,11 @@ export const getMyLaborStats = async (req: Request, res: Response) => {
 
 export const getAdminLaborStats = async (req: Request, res: Response) => {
   try {
+    const role = (req as any).user?.role;
+    if (!['SUPERADMIN', 'VIENTRUONG', 'VIENPHO'].includes(role)) {
+      return res.status(403).json({ error: 'Không có quyền truy cập báo cáo nhân công toàn hệ thống' });
+    }
+
     const { month } = req.query; // YYYY-MM
     if (!month || typeof month !== 'string') {
       return res.status(400).json({ error: 'Vui lòng truyền tham số month (YYYY-MM)' });
