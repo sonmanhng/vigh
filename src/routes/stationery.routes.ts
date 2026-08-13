@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getStationeries, getLowStockStationeries, createStationery, updateStationery, deleteStationery, getTransactions, createTransaction, exportStationeries, importStationeries, getApprovers } from '../controllers/stationery.controller';
+import { getStationeries, getLowStockStationeries, createStationery, updateStationery, deleteStationery, getTransactions, createTransaction, exportStationeries, importStationeries, getApprovers, exportStationeryItem } from '../controllers/stationery.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import multer from 'multer';
 
@@ -21,6 +21,7 @@ router.get('/approvers', getApprovers);
 router.get('/low-stock', getLowStockStationeries);
 router.get('/', getStationeries);
 router.post('/', createStationery);
+router.post('/:id/export', exportStationeryItem);
 router.put('/:id', updateStationery);
 router.delete('/:id', deleteStationery);
 

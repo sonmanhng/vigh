@@ -254,3 +254,80 @@ export const getApprovers = async (req: any, res: any) => {
     res.status(500).json({ error: 'Lỗi lấy danh sách người duyệt' });
   }
 };
+
+const exportStationerySchema = z.object({
+  quantity: z.number().positive(),
+  note: z.string().optional(),
+});
+
+export const exportStationeryItem = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const data = exportStationerySchema.parse(req.body);
+
+    const stationery = await prisma.stationery.findUnique({ where: { id } });
+    if (!stationery) {
+      return res.status(404).json({ error: 'Không tìm thấy văn phòng phẩm' });
+    }
+    if (data.quantity > stationery.quantity) {
+      return res.status(400).json({
+        error: `Số lượng xuất (${data.quantity}) vượt quá tồn kho hiện có (${stationery.quantity} ${stationery.unit})`,
+      });
+    }
+
+    const newQuantity = stationery.quantity - data.quantity;
+
+    // Transaction: cập nhật số lượng + ghi log xuất kho
+    const [updated] = await prisma.$transaction([
+      prisma.stationery.update({
+        where: { id },
+        data: { quantity: newQuantity },
+      }),
+      prisma.stationeryTransaction.create({
+        data: {
+          type: 'EXPORT',
+          stationeryId: id,
+          quantity: data.quantity,
+          note: data.note,
+          createdById: (req as any).user?.id,
+        },
+      }),
+    ]);
+
+    // Kiểm tra cảnh báo (nếu < alertThreshold)
+    const isLow = newQuantity < stationery.alertThreshold;
+
+    if (isLow) {
+      // Tìm các user có quyền quản lý để báo (SuperAdmin, VienTruong, VienPho, TruongPhong)
+      const managers = await prisma.user.findMany({
+        where: {
+          role: { in: ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'] }
+        }
+      });
+      
+      const notifications = managers.map(m => ({
+        userId: m.id,
+        title: 'Cảnh báo mức văn phòng phẩm',
+        message: `Văn phòng phẩm ${stationery.name} đã giảm xuống dưới ngưỡng cảnh báo (còn ${newQuantity} ${stationery.unit}). Vui lòng kiểm tra và lên kế hoạch mua bổ sung.`,
+        type: 'STATIONERY_WARNING'
+      }));
+
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({ data: notifications });
+      }
+    }
+
+    res.json({
+      stationery: updated,
+      warning: isLow
+        ? `⚠️ ${stationery.name} còn ${newQuantity} ${stationery.unit} — dưới ngưỡng cảnh báo ${stationery.alertThreshold}!`
+        : null,
+    });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: (err as any).errors });
+    }
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi server khi xuất văn phòng phẩm' });
+  }
+};
