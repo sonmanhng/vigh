@@ -51,6 +51,14 @@ export const WeeklyReports: React.FC = () => {
   const [filterProject, setFilterProject] = useState<number | 'all'>('all');
   const [filterPerson, setFilterPerson] = useState<number | 'all'>('all');
 
+  // Synthesis State
+  const [showSynthesisModal, setShowSynthesisModal] = useState(false);
+  const [synthStartDate, setSynthStartDate] = useState('');
+  const [synthEndDate, setSynthEndDate] = useState('');
+  const [synthProject, setSynthProject] = useState<number | 'all'>('all');
+  const [synthUser, setSynthUser] = useState<number | 'all'>('all');
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
+
   const filteredAndSortedReports = useMemo(() => {
     let result = [...reports];
 
@@ -78,6 +86,58 @@ export const WeeklyReports: React.FC = () => {
 
     return result;
   }, [reports, filterProject, filterPerson, sortMode]);
+
+  const handleDownloadDocx = async (reportId: number) => {
+    try {
+      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/weekly-reports/${reportId}/docx`;
+      const token = localStorage.getItem('token');
+      const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error('Failed to download DOCX');
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Bao_cao_tuan_${reportId}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi xảy ra khi xuất báo cáo ra Word');
+    }
+  };
+
+  const handleSynthesisDownload = async () => {
+    try {
+      setIsSynthesizing(true);
+      let url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/weekly-reports/synthesis/docx?`;
+      if (synthStartDate) url += `startDate=${synthStartDate}&`;
+      if (synthEndDate) url += `endDate=${synthEndDate}&`;
+      if (synthProject !== 'all') url += `projectId=${synthProject}&`;
+      if (synthUser !== 'all') url += `userId=${synthUser}&`;
+      
+      const token = localStorage.getItem('token');
+      const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!response.ok) throw new Error('Failed to download synthesis');
+      
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Tong_hop_bao_cao_${Date.now()}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      setShowSynthesisModal(false);
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi xảy ra khi xuất báo cáo tổng hợp');
+    } finally {
+      setIsSynthesizing(false);
+    }
+  };
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -734,9 +794,10 @@ export const WeeklyReports: React.FC = () => {
           </div>
 
           {/* Filters & Sorting */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div className="input-group" style={{ marginBottom: 0 }}>
-              <label className="input-label" style={{ fontSize: '0.85rem' }}>Sắp xếp theo</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', flex: 1 }}>
+              <div className="input-group" style={{ marginBottom: 0 }}>
+                <label className="input-label" style={{ fontSize: '0.85rem' }}>Sắp xếp theo</label>
               <select className="input-field" value={sortMode} onChange={e => setSortMode(e.target.value as any)}>
                 <option value="date_desc">Thời gian nộp (Mới nhất trước)</option>
                 <option value="date_asc">Thời gian nộp (Cũ nhất trước)</option>
@@ -763,6 +824,16 @@ export const WeeklyReports: React.FC = () => {
                 ))}
               </select>
             </div>
+            </div>
+            
+            <button 
+              className="btn btn-primary"
+              onClick={() => setShowSynthesisModal(true)}
+              style={{ background: '#096dd9', borderColor: '#096dd9', padding: '0.65rem 1.25rem', height: 'fit-content' }}
+            >
+              <i className="fas fa-file-word" style={{ marginRight: '8px' }}></i>
+              Tổng hợp báo cáo
+            </button>
           </div>
 
           {isLoadingReports ? (
@@ -863,7 +934,7 @@ export const WeeklyReports: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <button
                           type="button"
-                          onClick={() => weeklyReportService.downloadDocx(report.id, report.reporter?.name)}
+                          onClick={() => handleDownloadDocx(report.id)}
                           style={{
                             padding: '0.55rem 1.25rem',
                             backgroundColor: 'var(--primary)',
@@ -1032,6 +1103,50 @@ export const WeeklyReports: React.FC = () => {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {showSynthesisModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--text-main)' }}>Tổng hợp báo cáo (Xuất File Word)</h3>
+            
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <div>
+                <label className="input-label">Từ ngày</label>
+                <input type="date" className="input-field" value={synthStartDate} onChange={e => setSynthStartDate(e.target.value)} />
+              </div>
+              <div>
+                <label className="input-label">Đến ngày</label>
+                <input type="date" className="input-field" value={synthEndDate} onChange={e => setSynthEndDate(e.target.value)} />
+              </div>
+              <div>
+                <label className="input-label">Lọc theo Đề tài</label>
+                <select className="input-field" value={synthProject} onChange={e => setSynthProject(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+                  <option value="all">Tất cả đề tài</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="input-label">Lọc theo Cán bộ / Thành viên</label>
+                <select className="input-field" value={synthUser} onChange={e => setSynthUser(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+                  <option value="all">Tất cả cán bộ</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowSynthesisModal(false)} disabled={isSynthesizing}>Hủy</button>
+              <button className="btn btn-primary" style={{ flex: 1, background: '#096dd9', borderColor: '#096dd9' }} onClick={handleSynthesisDownload} disabled={isSynthesizing}>
+                {isSynthesizing ? 'Đang xử lý...' : 'Xuất File DOCX'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

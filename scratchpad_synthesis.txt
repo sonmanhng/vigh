@@ -1,0 +1,149 @@
+export const downloadSynthesisDocx = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { startDate, endDate, projectId, userId } = req.query;
+
+    const whereClause: any = {};
+    if (userId && userId !== 'all') {
+      whereClause.reporterId = Number(userId);
+    }
+    if (startDate && endDate) {
+      whereClause.createdAt = {
+        gte: new Date(startDate as string),
+        lte: new Date(new Date(endDate as string).setHours(23, 59, 59, 999))
+      };
+    }
+
+    const reports = await prisma.weeklyReport.findMany({
+      where: whereClause,
+      include: {
+        reporter: true,
+        recipient: true,
+        results: { include: { project: true } },
+        plans: { include: { project: true } }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    let allResults: any[] = [];
+    let allPlans: any[] = [];
+
+    reports.forEach(report => {
+      const filteredResults = (projectId && projectId !== 'all') 
+        ? report.results.filter((r: any) => r.projectId === Number(projectId))
+        : report.results;
+      
+      const filteredPlans = (projectId && projectId !== 'all')
+        ? report.plans.filter((p: any) => p.projectId === Number(projectId))
+        : report.plans;
+      
+      allResults.push(...filteredResults.map((r: any) => ({ ...r, reporter: report.reporter })));
+      allPlans.push(...filteredPlans.map((p: any) => ({ ...p, reporter: report.reporter })));
+    });
+
+    const borders = {
+      top: { style: BorderStyle.SINGLE, size: 1 },
+      bottom: { style: BorderStyle.SINGLE, size: 1 },
+      left: { style: BorderStyle.SINGLE, size: 1 },
+      right: { style: BorderStyle.SINGLE, size: 1 }
+    };
+
+    // Table 1: Results
+    const resultHeaderRow = new TableRow({
+      children: [
+        new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'STT', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+        new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Người báo cáo', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+        new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Đề tài / Công việc', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+        new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Kết quả thực hiện', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+      ]
+    });
+
+    const resultDataRows = allResults.length === 0 ? [
+      new TableRow({
+        children: [
+          new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: '-', alignment: AlignmentType.CENTER })], borders }),
+          new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: '-' })], borders }),
+          new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: 'Chưa có kết quả' })], borders }),
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: '-' })], borders }),
+        ]
+      })
+    ] : allResults.map((r, idx) => {
+      const projName = r.project ? `${r.project.topicCode ? '[' + r.project.topicCode + '] ' : ''}${r.project.name}` : 'Công việc chung / Khác';
+      return new TableRow({
+        children: [
+          new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: `${idx + 1}`, alignment: AlignmentType.CENTER })], borders }),
+          new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: r.reporter?.name || '' })], borders }),
+          new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: projName })], borders }),
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: r.description || '' })], borders }),
+        ]
+      });
+    });
+
+    // Table 2: Plans
+    const planHeaderRow = new TableRow({
+      children: [
+        new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'STT', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+        new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Người báo cáo', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+        new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Đề tài / Công việc', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+        new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: 'Kế hoạch', bold: true })], alignment: AlignmentType.CENTER })], borders }),
+      ]
+    });
+
+    const planDataRows = allPlans.length === 0 ? [
+      new TableRow({
+        children: [
+          new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: '-', alignment: AlignmentType.CENTER })], borders }),
+          new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: '-' })], borders }),
+          new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: 'Chưa có kế hoạch' })], borders }),
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: '-' })], borders }),
+        ]
+      })
+    ] : allPlans.map((p, idx) => {
+      const projName = p.project ? `${p.project.topicCode ? '[' + p.project.topicCode + '] ' : ''}${p.project.name}` : (p.customTitle || 'Khác');
+      return new TableRow({
+        children: [
+          new TableCell({ width: { size: 5, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: `${idx + 1}`, alignment: AlignmentType.CENTER })], borders }),
+          new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: p.reporter?.name || '' })], borders }),
+          new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: projName })], borders }),
+          new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: p.description || '' })], borders }),
+        ]
+      });
+    });
+
+    const docChildren = [
+      new Paragraph({
+        children: [new TextRun({ text: 'TỔNG HỢP BÁO CÁO CÔNG VIỆC', bold: true, size: 32, color: '2B579A' })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 200 }
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: `Từ ngày: `, bold: true }),
+          new TextRun({ text: startDate ? new Date(startDate as string).toLocaleDateString('vi-VN') : 'Tất cả' }),
+          new TextRun({ text: `  -  Đến ngày: `, bold: true }),
+          new TextRun({ text: endDate ? new Date(endDate as string).toLocaleDateString('vi-VN') : 'Tất cả' })
+        ],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 300 }
+      }),
+      new Paragraph({
+        children: [new TextRun({ text: 'I. TỔNG HỢP KẾT QUẢ THỰC HIỆN', bold: true, size: 26, color: '1E3A8A' })],
+        spacing: { before: 200, after: 150 }
+      }),
+      new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [resultHeaderRow, ...resultDataRows] }),
+      new Paragraph({
+        children: [new TextRun({ text: 'II. TỔNG HỢP KẾ HOẠCH CÔNG VIỆC', bold: true, size: 26, color: '1E3A8A' })],
+        spacing: { before: 400, after: 150 }
+      }),
+      new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [planHeaderRow, ...planDataRows] })
+    ];
+
+    const doc = new Document({ sections: [{ properties: {}, children: docChildren }] });
+    const buffer = await Packer.toBuffer(doc);
+    res.setHeader('Content-Disposition', `attachment; filename="Tong_hop_bao_cao_${Date.now()}.docx"`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    return res.send(buffer);
+  } catch (error: any) {
+    console.error('Error exporting synthesis docx:', error);
+    return res.status(500).json({ message: 'Lỗi máy chủ khi xuất báo cáo DOCX', error: error.message });
+  }
+};
