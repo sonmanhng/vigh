@@ -299,7 +299,9 @@ export const Dashboard: React.FC = () => {
       <div className="main-area">
         <Navbar />
 
-        {activeTab === 'personnel' ? (
+        {activeTab === 'home' ? (
+          <HomeOverview />
+        ) : activeTab === 'personnel' ? (
           <PersonnelManagement />
         ) : activeTab === 'chemicals' ? (
           <ChemicalManagement />
