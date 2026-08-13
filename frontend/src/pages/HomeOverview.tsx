@@ -43,13 +43,14 @@ export const HomeOverview: React.FC = () => {
         
         {/* Zone 1: Sắp hết hạn / Sắp hết hàng */}
         {(lowStock?.chemicals?.length > 0 || lowStock?.cells?.length > 0) && (
-          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #ef4444' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #ef4444', display: 'flex', flexDirection: 'column', maxHeight: '400px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexShrink: 0 }}>
               <AlertCircle color="#ef4444" />
               <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>Vật tư sắp hết</h2>
             </div>
-            {lowStock?.chemicals?.length > 0 && (
-              <div style={{ marginBottom: '1rem' }}>
+            <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
+              {lowStock?.chemicals?.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
                 <strong style={{ color: '#475569', fontSize: '0.875rem' }}>Hoá chất:</strong>
                 <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem', color: '#0f172a' }}>
                   {lowStock.chemicals.map((c: any) => (
@@ -68,17 +69,19 @@ export const HomeOverview: React.FC = () => {
                 </ul>
               </div>
             )}
+            </div>
           </div>
         )}
 
         {/* Zone 2: Deadline sắp đến */}
-        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #f59e0b' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #f59e0b', display: 'flex', flexDirection: 'column', maxHeight: '400px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexShrink: 0 }}>
             <Clock color="#f59e0b" />
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>Deadline sắp đến (14 ngày tới)</h2>
           </div>
-          {upcomingDeadlines?.projects?.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
+          <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
+            {upcomingDeadlines?.projects?.length > 0 ? (
+              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
               {upcomingDeadlines.projects.map((p: any) => (
                 <li key={p.id} style={{ marginBottom: '0.5rem' }}>
                   <a href={`/project/${p.id}`} style={{ color: '#0284c7', textDecoration: 'none' }}>{p.name}</a>
@@ -90,16 +93,18 @@ export const HomeOverview: React.FC = () => {
           ) : (
             <p style={{ color: '#64748b', margin: 0 }}>Không có deadline nào sắp tới.</p>
           )}
+          </div>
         </div>
 
         {/* Zone 3: Báo cáo mới nhận */}
-        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #3b82f6' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #3b82f6', display: 'flex', flexDirection: 'column', maxHeight: '400px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexShrink: 0 }}>
             <FileText color="#3b82f6" />
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>Báo cáo tuần mới nhận</h2>
           </div>
-          {incomingReports?.length > 0 ? (
-            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
+          <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
+            {incomingReports?.length > 0 ? (
+              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
               {incomingReports.map((r: any) => (
                 <li key={r.id} style={{ marginBottom: '0.5rem' }}>
                   <strong>{r.reporter?.name}</strong> đã gửi báo cáo tuần
@@ -111,18 +116,20 @@ export const HomeOverview: React.FC = () => {
           ) : (
             <p style={{ color: '#64748b', margin: 0 }}>Chưa có báo cáo mới.</p>
           )}
+          </div>
         </div>
 
         {/* Zone 4: Cần phê duyệt */}
-        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #10b981' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #10b981', display: 'flex', flexDirection: 'column', maxHeight: '400px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexShrink: 0 }}>
             <CheckCircle color="#10b981" />
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>Cần phê duyệt</h2>
           </div>
-          {(!pendingApprovals?.chemicalProposals?.length && !pendingApprovals?.cellProposals?.length && !pendingApprovals?.overtimes?.length && !pendingApprovals?.projects?.length) ? (
-            <p style={{ color: '#64748b', margin: 0 }}>Không có mục nào cần bạn phê duyệt.</p>
-          ) : (
-            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
+          <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
+            {(!pendingApprovals?.chemicalProposals?.length && !pendingApprovals?.cellProposals?.length && !pendingApprovals?.overtimes?.length && !pendingApprovals?.projects?.length) ? (
+              <p style={{ color: '#64748b', margin: 0 }}>Không có mục nào cần bạn phê duyệt.</p>
+            ) : (
+              <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
               {pendingApprovals.projects?.map((p: any) => (
                 <li key={`p-${p.id}`} style={{ marginBottom: '0.5rem' }}>
                   Duyệt dự án: <strong>{p.name}</strong>
@@ -145,6 +152,7 @@ export const HomeOverview: React.FC = () => {
               ))}
             </ul>
           )}
+          </div>
         </div>
 
       </div>
