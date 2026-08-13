@@ -106,7 +106,7 @@ export const MeetingManagement: React.FC = () => {
           <p style={{ color: 'var(--text-muted)' }}>Lịch họp và các cuộc họp sắp tới của bạn</p>
         </div>
         {isTopAdmin && (
-          <button className="btn-primary" onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button className="btn btn-primary" onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Plus size={20} />
             Tạo lịch họp mới
           </button>
@@ -248,8 +248,8 @@ export const MeetingManagement: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Hủy</button>
-                <button type="submit" className="btn-primary" disabled={!newTitle || !newDate || !newTime}>Tạo buổi họp</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Hủy</button>
+                <button type="submit" className="btn btn-primary" disabled={!newTitle || !newDate || !newTime}>Tạo buổi họp</button>
               </div>
             </form>
           </div>
