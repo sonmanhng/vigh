@@ -169,17 +169,16 @@ export const MeetingManagement: React.FC = () => {
 
       {/* Modal Tạo Lịch Họp */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: 0, color: 'var(--primary)', fontSize: '1.5rem' }}>Tạo Thông Báo Họp</h2>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                <X size={24} />
-              </button>
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Tạo Thông Báo Họp</div>
+              <button type="button" className="modal-close-btn" onClick={() => setShowModal(false)}>Đóng</button>
             </div>
             
             <form onSubmit={handleCreateMeeting}>
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="modal-body">
+                <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Tiêu đề buổi họp (*)</label>
                 <input 
                   type="text" 
@@ -246,8 +245,8 @@ export const MeetingManagement: React.FC = () => {
                   ))}
                 </div>
               </div>
-
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              </div>
+              <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Hủy</button>
                 <button type="submit" className="btn btn-primary" disabled={!newTitle || !newDate || !newTime}>Tạo buổi họp</button>
               </div>
