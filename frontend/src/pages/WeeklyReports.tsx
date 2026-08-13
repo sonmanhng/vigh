@@ -757,7 +757,7 @@ export const WeeklyReports: React.FC = () => {
             <div className="input-group" style={{ marginBottom: 0 }}>
               <label className="input-label" style={{ fontSize: '0.85rem' }}>Lọc theo Người gửi</label>
               <select className="input-field" value={filterPerson} onChange={e => setFilterPerson(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
-                <option value="all">Tất cả cán bộ</option>
+                <option value="all">Tất cả thành viên</option>
                 {users.map(u => (
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
