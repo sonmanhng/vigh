@@ -123,6 +123,7 @@ export const StationeryManagement: React.FC = () => {
 
   // Export form
   const [alertForm, setAlertForm] = useState({ stationeryId: '', stationerySearch: '', threshold: 0 });
+  const [exportForm, setExportForm] = useState({ stationeryId: '', stationerySearch: '', quantity: '', note: '' });
 
   // Proposal form
   const [proposals, setProposals] = useState<Proposal[]>([]);
