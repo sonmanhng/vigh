@@ -450,7 +450,9 @@ export const downloadSynthesisDocx = async (req: Request, res: Response): Promis
   try {
     const { startDate, endDate, projectId, userId } = req.query;
 
-    const whereClause: any = {};
+    const whereClause: any = {
+      recipientId: (req as any).user?.id
+    };
     if (userId && userId !== 'all') {
       whereClause.reporterId = Number(userId);
     }

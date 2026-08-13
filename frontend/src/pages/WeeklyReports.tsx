@@ -1107,11 +1107,14 @@ export const WeeklyReports: React.FC = () => {
       )}
 
       {showSynthesisModal && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '500px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--text-main)' }}>Tổng hợp báo cáo (Xuất File Word)</h3>
+        <div className="modal-overlay" onClick={() => setShowSynthesisModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Tổng hợp báo cáo (Xuất File Word)</div>
+              <button className="modal-close-btn" onClick={() => setShowSynthesisModal(false)}>Đóng</button>
+            </div>
             
-            <div style={{ display: 'grid', gap: '1rem' }}>
+            <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
               <div>
                 <label className="input-label">Từ ngày</label>
                 <input type="date" className="input-field" value={synthStartDate} onChange={e => setSynthStartDate(e.target.value)} />
@@ -1140,9 +1143,9 @@ export const WeeklyReports: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowSynthesisModal(false)} disabled={isSynthesizing}>Hủy</button>
-              <button className="btn btn-primary" style={{ flex: 1, background: '#096dd9', borderColor: '#096dd9' }} onClick={handleSynthesisDownload} disabled={isSynthesizing}>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowSynthesisModal(false)} disabled={isSynthesizing}>Hủy</button>
+              <button className="btn btn-primary" onClick={handleSynthesisDownload} disabled={isSynthesizing}>
                 {isSynthesizing ? 'Đang xử lý...' : 'Xuất File DOCX'}
               </button>
             </div>
