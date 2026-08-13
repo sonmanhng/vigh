@@ -14,7 +14,8 @@ import {
   getProjectStatistics,
   importChemicals,
   bulkDeleteChemicals,
-  undoChemicalTransaction
+  undoChemicalTransaction,
+  getExportData
 } from '../controllers/chemical.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
@@ -31,6 +32,7 @@ router.get('/proposals/:id/export', exportProposalToExcel);
 
 // Regular Chemical endpoints
 router.get('/statistics/projects', getProjectStatistics);
+router.get('/export-data', getExportData);
 router.get('/transactions', getTransactions);
 router.delete('/transactions/:id', undoChemicalTransaction);
 router.get('/', getChemicals);

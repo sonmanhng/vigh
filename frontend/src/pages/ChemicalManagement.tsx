@@ -3,7 +3,8 @@ import { apiClient } from '../api/client';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
-
+import * as ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Chemical {
   id: number;
@@ -83,6 +84,13 @@ interface Proposal {
 
 type Tab = 'warehouse' | 'proposals' | 'statistics' | 'history';
 
+interface UserData {
+  id: number;
+  name: string;
+  role: string;
+  department?: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtVND = (n: number) => n.toLocaleString('vi-VN') + ' đ';
 const fmtDate = (d: string) => new Date(d).toLocaleDateString('vi-VN');
@@ -127,6 +135,11 @@ export const ChemicalManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [alertBanner, setAlertBanner] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  
+  // Custom Export State
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [exportDate, setExportDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [exportUser, setExportUser] = useState<string>('');
 
   const { socket } = useSocket();
 
@@ -245,6 +258,17 @@ export const ChemicalManagement: React.FC = () => {
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
   useEffect(() => { if (activeTab === 'proposals') fetchProposals(); }, [activeTab, fetchProposals]);
   useEffect(() => { if (activeTab === 'statistics') fetchProjectStatistics(); }, [activeTab, fetchProjectStatistics]);
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const res = await apiClient.get<UserData[]>('/users/assignable');
+      setUsers(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleImportSubmit = async (e: React.FormEvent) => {
@@ -373,12 +397,138 @@ export const ChemicalManagement: React.FC = () => {
 
   const handleUndoTransaction = async (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn hoàn tác giao dịch này?')) return;
-    try {
+try {
       await apiClient.delete(`/chemicals/transactions/${id}`);
       fetchChemicals();
       fetchTransactions();
     } catch (e: any) {
-      setError(e.response?.data?.error || 'Lỗi hoàn tác giao dịch');
+      alert(e.response?.data?.error || 'Lỗi huỷ giao dịch');
+    }
+  };
+
+  const handleExportReportExcel = async () => {
+    try {
+      let url = '/chemicals/export-data?';
+      if (exportDate) url += `date=${exportDate}&`;
+      if (exportUser && exportUser !== 'all') url += `userId=${exportUser}&`;
+      
+      const res = await apiClient.get(url);
+      const data = res.data;
+      if (data.length === 0) {
+        alert('Không có dữ liệu xuất kho cho tiêu chí đã chọn.');
+        return;
+      }
+
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Bao_Cao');
+
+      // Adjust column widths
+      ws.columns = [
+        { width: 5 },  // A: STT
+        { width: 45 }, // B: Tên vật tư
+        { width: 8 },  // C: ĐVT
+        { width: 10 }, // D: Số lượng
+        { width: 12 }, // E: Giai đoạn
+        { width: 25 }, // F: Dự án
+      ];
+
+      // Row 1: Header 1
+      ws.addRow(['VIỆN NGHIÊN CỨU SÂM VÀ DƯỢC LIỆU VIỆT NAM']);
+      ws.mergeCells('A1:F1');
+      ws.getCell('A1').font = { bold: true, name: 'Times New Roman', size: 12 };
+      
+      // Row 2: Header 2
+      ws.addRow(['Lô RD7-7, Khu nghiên cứu và triển khai - Khu công nghệ cao Hòa Lạc,']);
+      ws.mergeCells('A2:F2');
+      ws.getCell('A2').font = { name: 'Times New Roman', size: 12 };
+      
+      // Row 3: Header 3
+      ws.addRow(['Xã Hòa Lạc, Thành phố Hà Nội.']);
+      ws.mergeCells('A3:F3');
+      ws.getCell('A3').font = { name: 'Times New Roman', size: 12 };
+
+      ws.addRow([]); // Blank row
+
+      // Title
+      ws.addRow(['ĐỀ NGHỊ XUẤT HOÁ CHẤT']);
+      ws.mergeCells('A5:F5');
+      const titleCell = ws.getCell('A5');
+      titleCell.font = { bold: true, size: 14, name: 'Times New Roman' };
+      titleCell.alignment = { horizontal: 'center' };
+
+      // Date right aligned
+      const dateRow = ws.addRow([null, null, null, null, null, `Ngày ${new Date(exportDate).toLocaleDateString('vi-VN')}`]);
+      dateRow.getCell(6).font = { name: 'Times New Roman', size: 12 };
+      dateRow.getCell(6).alignment = { horizontal: 'right' };
+
+      ws.addRow([]); // Blank row
+
+      // Kính gửi
+      const toRow = ws.addRow(['Kính gửi: Viện trưởng Viện nghiên cứu Sâm và Dược Liệu Việt Nam']);
+      ws.mergeCells(`A${toRow.number}:F${toRow.number}`);
+      toRow.getCell(1).font = { bold: true, italic: true, name: 'Times New Roman', size: 12 };
+
+      // Nội dung
+      const contentRow = ws.addRow(['Nội dung: Đề nghị xuất kho NVL cho việc thực hiện dự án']);
+      ws.mergeCells(`A${contentRow.number}:F${contentRow.number}`);
+      contentRow.getCell(1).font = { bold: true, italic: true, name: 'Times New Roman', size: 12 };
+
+      // Table Header
+      const headerRow = ws.addRow(['STT', 'Tên vật tư', 'ĐVT', 'Số lượng', 'Giai đoạn', 'Dự án']);
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, name: 'Times New Roman', size: 12 };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+
+      // Data Rows
+      data.forEach((tx: any, idx: number) => {
+        const row = ws.addRow([
+          idx + 1,
+          tx.chemical.name + (tx.chemical.code ? ` (Mã: ${tx.chemical.code})` : ''),
+          tx.chemical.unit,
+          tx.quantity,
+          '', // Giai đoạn (rỗng)
+          tx.projectCode || 'Khác'
+        ]);
+        
+        row.eachCell((cell, colNumber) => {
+          cell.font = { name: 'Times New Roman', size: 12 };
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+          if (colNumber === 1 || colNumber === 3 || colNumber === 4) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.alignment = { vertical: 'middle', wrapText: true };
+          }
+        });
+      });
+
+      ws.addRow([]); // Blank row
+      ws.addRow([]); // Blank row
+
+      // Signatures
+      const signRow = ws.addRow(['Người đề nghị', null, 'Trưởng Phòng', null, null, 'Viện trưởng']);
+      ws.mergeCells(`A${signRow.number}:B${signRow.number}`);
+      ws.mergeCells(`C${signRow.number}:D${signRow.number}`);
+      ws.mergeCells(`E${signRow.number}:F${signRow.number}`);
+      
+      signRow.getCell(1).font = { bold: true, name: 'Times New Roman', size: 12 };
+      signRow.getCell(1).alignment = { horizontal: 'center' };
+      signRow.getCell(3).font = { bold: true, name: 'Times New Roman', size: 12 };
+      signRow.getCell(3).alignment = { horizontal: 'center' };
+      signRow.getCell(5).font = { bold: true, name: 'Times New Roman', size: 12 };
+      signRow.getCell(5).alignment = { horizontal: 'center' };
+
+      const buffer = await wb.xlsx.writeBuffer();
+      saveAs(new Blob([buffer]), `De_Nghi_Xuat_Hoa_Chat_${exportDate}.xlsx`);
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Lỗi xuất file Excel');
     }
   };
 
@@ -828,7 +978,32 @@ export const ChemicalManagement: React.FC = () => {
 
       {/* ── TAB: THỐNG KÊ ── */}
       {activeTab === 'statistics' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+        <>
+          <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Ngày xuất báo cáo</label>
+              <input type="date" className="input-field" value={exportDate} onChange={e => setExportDate(e.target.value)} />
+            </div>
+            <div style={{ minWidth: '250px' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Nhân viên sử dụng</label>
+              <select className="input-field" value={exportUser} onChange={e => setExportUser(e.target.value)}>
+                <option value="all">-- Chọn tất cả --</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <button className="btn btn-primary" onClick={handleExportReportExcel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M5.884 6.68a.5.5 0 1 0-.768.64L7.349 10l-2.233 2.68a.5.5 0 0 0 .768.64L8 10.781l2.116 2.54a.5.5 0 0 0 .768-.641L8.651 10l2.233-2.68a.5.5 0 0 0-.768-.64L8 9.219l-2.116-2.54z"/>
+                  <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                </svg>
+                Xuất file đề nghị (Excel)
+              </button>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
           {projectStatistics.length === 0 ? (
             <div style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', background: '#fff', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
               Chưa có dữ liệu thống kê xuất kho cho dự án nào.
@@ -862,6 +1037,7 @@ export const ChemicalManagement: React.FC = () => {
             </div>
           ))}
         </div>
+        </>
       )}
 
       {/* ── TAB: LỊCH SỬ ── */}

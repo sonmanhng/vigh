@@ -829,3 +829,39 @@ export const undoChemicalTransaction = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi khi hoàn tác giao dịch hoá chất' });
   }
 };
+
+export const getExportData = async (req: Request, res: Response) => {
+  try {
+    const { date, userId } = req.query;
+    
+    let whereClause: any = { type: 'EXPORT' };
+    
+    if (date && typeof date === 'string') {
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      whereClause.createdAt = {
+        gte: startDate,
+        lte: endDate
+      };
+    }
+    
+    if (userId && typeof userId === 'string') {
+      whereClause.createdById = parseInt(userId);
+    }
+    
+    const transactions = await prisma.chemicalTransaction.findMany({
+      where: whereClause,
+      include: {
+        chemical: { select: { name: true, code: true, unit: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    res.json(transactions);
+  } catch (err) {
+    console.error('Error fetching export data:', err);
+    res.status(500).json({ error: 'Lỗi server khi lấy dữ liệu xuất file' });
+  }
+};
