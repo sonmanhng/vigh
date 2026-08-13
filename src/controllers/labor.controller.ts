@@ -160,7 +160,7 @@ export const getMyLaborStats = async (req: Request, res: Response) => {
     const weeklyStats = calculateStats(weeklyLogs);
     const monthlyStats = calculateStats(monthlyLogs);
 
-    // Tính % theo Dự án trong Tháng (Chỉ dựa trên giờ Chuyên môn)
+    // Tính % theo Dự án trong Tháng (Khác thì tính tất cả giờ, Dự án thì tính giờ Chuyên môn)
     const projectMap: Record<string, { projectId: number, projectName: string, projectCode: string, totalHours: number }> = {};
     let totalMonthlyProHours = 0;
     monthlyLogs.forEach((l: any) => {
@@ -173,8 +173,9 @@ export const getMyLaborStats = async (req: Request, res: Response) => {
           totalHours: 0
         };
       }
-      projectMap[pId].totalHours += l.proHours;
-      totalMonthlyProHours += l.proHours;
+      const hoursToAdd = pId === 'none' ? (l.proHours + l.adminHours + l.cleanHours) : l.proHours;
+      projectMap[pId].totalHours += hoursToAdd;
+      totalMonthlyProHours += hoursToAdd;
     });
 
     const projectStats = Object.values(projectMap).map(p => ({
@@ -251,7 +252,7 @@ export const getAdminLaborStats = async (req: Request, res: Response) => {
         cleanTotal += l.cleanHours;
       });
 
-      // Tính % theo Dự án trong Tháng (Chỉ dựa trên giờ Chuyên môn)
+      // Tính % theo Dự án trong Tháng (Khác thì tính tất cả giờ, Dự án thì tính giờ Chuyên môn)
       const projectMap: Record<string, { projectId: number, projectName: string, projectCode: string, totalHours: number }> = {};
       let totalProHours = 0;
       u.logs.forEach((l: any) => {
@@ -264,8 +265,9 @@ export const getAdminLaborStats = async (req: Request, res: Response) => {
             totalHours: 0
           };
         }
-        projectMap[pId].totalHours += l.proHours;
-        totalProHours += l.proHours;
+        const hoursToAdd = pId === 'none' ? (l.proHours + l.adminHours + l.cleanHours) : l.proHours;
+        projectMap[pId].totalHours += hoursToAdd;
+        totalProHours += hoursToAdd;
       });
 
       const projects = Object.values(projectMap).map(p => ({
