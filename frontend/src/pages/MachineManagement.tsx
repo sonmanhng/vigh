@@ -159,7 +159,7 @@ export const MachineManagement: React.FC = () => {
   });
   
   const [consumeForm, setConsumeForm] = useState({
-    machineId: '', machineSearch: '', date: new Date().toISOString().split('T')[0], minutes: '', projectId: ''
+    machineId: '', machineSearch: '', date: new Date().toISOString().split('T')[0], minutes: '', projectId: '', projectSearch: ''
   });
 
   // Statistics filters
@@ -1074,12 +1074,23 @@ export const MachineManagement: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Dự án sử dụng (*)</label>
-                  <select className="input-field" required value={consumeForm.projectId} onChange={e => setConsumeForm({...consumeForm, projectId: e.target.value})}>
-                    <option value="">-- Chọn dự án --</option>
+                  <input
+                    list="project-consume-list"
+                    className="input-field"
+                    required
+                    placeholder="Nhập mã hoặc tên dự án..."
+                    value={consumeForm.projectSearch || ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const match = projects.find(p => (p.code ? `${p.code} - ${p.name}` : p.name) === val);
+                      setConsumeForm({...consumeForm, projectSearch: val, projectId: match ? match.id.toString() : ''});
+                    }}
+                  />
+                  <datalist id="project-consume-list">
                     {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
+                      <option key={p.id} value={p.code ? `${p.code} - ${p.name}` : p.name} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
