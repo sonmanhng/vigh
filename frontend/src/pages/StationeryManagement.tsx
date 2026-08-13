@@ -87,7 +87,7 @@ async function fireAlert(name: string, quantity: number, threshold: number, unit
 
 // ─── Empty form defaults ───────────────────────────────────────────────────────
 const emptyImport = () => ({
-  code: '', name: '', unit: 'Lít', quantity: '' as number | '',
+  code: '', name: '', unit: 'Lít', quantity: '' as number | '', alertThreshold: 5, note: ''
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -331,6 +331,86 @@ export const StationeryManagement: React.FC = () => {
     }
   };
 
+
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Xoá văn phòng phẩm "${name}"? Hành động này không thể hoàn tác.`)) return;
+    try {
+      await apiClient.delete(`/stationeries/${id}`);
+      fetchStationerys();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi xoá văn phòng phẩm');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedStationerys.length === 0) return;
+    if (!confirm(`Xoá ${selectedStationerys.length} văn phòng phẩm đã chọn? Hành động này không thể hoàn tác.`)) return;
+    try {
+      await apiClient.post('/stationeries/bulk-delete', { ids: selectedStationerys });
+      setSelectedStationerys([]);
+      fetchStationerys();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi xoá văn phòng phẩm hàng loạt');
+    }
+  };
+
+  const openEdit = (c: Stationery) => {
+    setEditingId(c.id);
+    setImportForm({
+      code: c.code, name: c.name, unit: c.unit,
+      alertThreshold: c.alertThreshold,
+      quantity: 0,
+      note: c.note || ''
+    });
+    setModal('edit');
+  };
+
+  const handleAddProjection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await apiClient.post('/stationeries/projections', {
+        month: projectionMonth,
+        year: projectionYear,
+        stationeryId: projectionForm.stationeryId ? Number(projectionForm.stationeryId) : null,
+        name: projectionForm.name,
+        unit: projectionForm.unit,
+        quantity: Number(projectionForm.quantity),
+        note: projectionForm.note
+      });
+      setModal('none');
+      setProjectionForm({ stationeryId: '', name: '', unit: '', quantity: '', note: '' });
+      fetchProjection();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi thêm dự trù');
+    }
+  };
+
+  const handleExportProjectionExcel = async () => {
+    if (!projection) return;
+    try {
+      const res = await apiClient.get(`/stationeries/projections/${projection.id}/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `DuTruVPP_Thang${projection.month}_${projection.year}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (e: any) {
+      setError('Lỗi xuất Excel dự trù');
+    }
+  };
+
+  const handleDeleteProjectionItem = async (itemId: number) => {
+    if (!confirm('Bạn có chắc chắn muốn xoá mục này khỏi dự trù?')) return;
+    try {
+      await apiClient.delete(`/stationeries/projections/items/${itemId}`);
+      fetchProjection();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi xoá mục dự trù');
+    }
+  };
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const filtered = stationerys.filter(c =>
@@ -820,6 +900,58 @@ export const StationeryManagement: React.FC = () => {
                 } catch (e: any) { setError(e.response?.data?.error || 'Lỗi cập nhật ngưỡng cảnh báo'); }
               }}>💾 Lưu Cảnh Báo</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {modal === 'projection' && (
+        <div className="modal-overlay" onClick={() => setModal('none')}>
+          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Thêm Dự Trù Văn Phòng Phẩm</div>
+              <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
+            </div>
+            <form onSubmit={handleAddProjection}>
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
+                <div className="input-group">
+                  <label className="input-label">Chọn VPP có sẵn (Không bắt buộc)</label>
+                  <select className="input-field" value={projectionForm.stationeryId} onChange={e => {
+                    const id = e.target.value;
+                    if (id) {
+                      const c = stationerys.find(x => x.id === Number(id));
+                      if (c) setProjectionForm(p => ({ ...p, stationeryId: id, name: c.name, unit: c.unit }));
+                    } else {
+                      setProjectionForm(p => ({ ...p, stationeryId: '' }));
+                    }
+                  }}>
+                    <option value="">-- Nhập mới bên dưới hoặc chọn có sẵn --</option>
+                    {stationerys.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Tên VPP (Nếu nhập mới) (*)</label>
+                  <input type="text" required className="input-field" value={projectionForm.name} onChange={e => setProjectionForm(p => ({ ...p, name: e.target.value }))} disabled={!!projectionForm.stationeryId} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Đơn vị (*)</label>
+                    <input type="text" required className="input-field" value={projectionForm.unit} onChange={e => setProjectionForm(p => ({ ...p, unit: e.target.value }))} disabled={!!projectionForm.stationeryId} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Số lượng dự trù (*)</label>
+                    <input type="number" required min="1" className="input-field" value={projectionForm.quantity} onChange={e => setProjectionForm(p => ({ ...p, quantity: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Ghi chú</label>
+                  <input type="text" className="input-field" value={projectionForm.note} onChange={e => setProjectionForm(p => ({ ...p, note: e.target.value }))} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setModal('none')}>Huỷ</button>
+                <button type="submit" className="btn btn-primary">Thêm Vào Dự Trù</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
