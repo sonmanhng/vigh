@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import prisma from '../utils/prisma';
 
 export const getHomeStats = async (req: Request, res: Response) => {
   try {
@@ -25,10 +25,10 @@ export const getHomeStats = async (req: Request, res: Response) => {
     
     if (isAdminOrManager || user.role === 'ChuyenVien') {
       const allChemicals = await prisma.chemical.findMany();
-      lowChemicals = allChemicals.filter(c => c.maxQuantity > 0 && c.quantity <= (c.maxQuantity * c.alertThreshold / 100));
+      lowChemicals = allChemicals.filter((c: any) => c.maxQuantity > 0 && c.quantity <= (c.maxQuantity * c.alertThreshold / 100));
       
       const allCells = await prisma.cell.findMany();
-      lowCells = allCells.filter(c => c.maxQuantity > 0 && c.quantity <= (c.maxQuantity * c.alertThreshold / 100));
+      lowCells = allCells.filter((c: any) => c.maxQuantity > 0 && c.quantity <= (c.maxQuantity * c.alertThreshold / 100));
     }
 
     // 2. Upcoming deadlines (Projects ending within 14 days)
@@ -47,7 +47,7 @@ export const getHomeStats = async (req: Request, res: Response) => {
     });
     
     // Convert string endDate to Date and filter
-    const upcomingProjects = projects.filter(p => {
+    const upcomingProjects = projects.filter((p: any) => {
       if (!p.endDate) return false;
       const end = new Date(p.endDate);
       return end >= now && end <= fourteenDaysLater;

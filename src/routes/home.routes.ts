@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { getHomeStats } from '../controllers/home.controller';
-import { authMiddleware } from '../middleware/auth.middleware';
+import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
 
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 router.get('/stats', getHomeStats);
 
