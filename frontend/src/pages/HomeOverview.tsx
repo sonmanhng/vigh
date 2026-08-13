@@ -45,7 +45,7 @@ export const HomeOverview: React.FC = () => {
         {(lowStock?.chemicals?.length > 0 || lowStock?.cells?.length > 0 || lowStock?.stationeries?.length > 0) && (
           <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #ef4444', maxHeight: '400px', overflowY: 'auto' }}>
             <h3 style={{ marginTop: 0, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>
-              <AlertTriangle size={20} /> Vật tư / Hoá chất / VPP sắp hết
+              <AlertCircle size={20} /> Vật tư / Hoá chất / VPP sắp hết
             </h3>
             <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
               {lowStock?.chemicals?.map((c: any) => (
