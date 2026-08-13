@@ -43,9 +43,7 @@ model User {
   researchComments        ResearchContentComment[] @relation("UserResearchComments")
   meetingsCreated         Meeting[]                @relation("MeetingCreator")
   meetingsParticipating   MeetingParticipant[]     @relation("MeetingParticipants")
-  stationeryProposals     StationeryProposal[]     @relation("CreatorStationeryProposals")
-  approved1Stationery     StationeryProposal[]     @relation("Approver1StationeryProposals")
-  approved2Stationery     StationeryProposal[]     @relation("Approver2StationeryProposals")
+  stationeryProjections   StationeryProjectionItem[] @relation("StationeryProjectionAdder")
   createdAt        DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -397,6 +395,7 @@ model Stationery {
   alertThreshold Float                   @default(10) // Ngưỡng cảnh báo sắp hết
   note           String?
   transactions   StationeryTransaction[]
+  projectionItems StationeryProjectionItem[]
   createdAt      DateTime                @default(now())
   updatedAt      DateTime                @updatedAt
 }
@@ -412,29 +411,28 @@ model StationeryTransaction {
   createdAt    DateTime   @default(now())
 }
 
-model StationeryProposal {
-  id           Int                      @id @default(autoincrement())
-  status       String                   @default("PENDING") // PENDING, PENDING_LEVEL_2, APPROVED, REJECTED
-  createdById  Int?
-  creator      User?                    @relation("CreatorStationeryProposals", fields: [createdById], references: [id], onDelete: SetNull)
-  approver1Id  Int?
-  approver1    User?                    @relation("Approver1StationeryProposals", fields: [approver1Id], references: [id], onDelete: SetNull)
-  approver2Id  Int?
-  approver2    User?                    @relation("Approver2StationeryProposals", fields: [approver2Id], references: [id], onDelete: SetNull)
-  level1Status String                   @default("PENDING")
-  level2Status String                   @default("PENDING")
-  note         String?
-  items        StationeryProposalItem[]
-  createdAt    DateTime                 @default(now())
-  updatedAt    DateTime                 @updatedAt
+model StationeryProjection {
+  id        Int      @id @default(autoincrement())
+  month     Int      // 1-12
+  year      Int      // e.g. 2026
+  items     StationeryProjectionItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([month, year])
 }
 
-model StationeryProposalItem {
-  id             Int                @id @default(autoincrement())
-  proposalId     Int
-  proposal       StationeryProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  stationeryName String
-  unit           String
-  quantity       Float
-  note           String?
+model StationeryProjectionItem {
+  id           Int      @id @default(autoincrement())
+  projectionId Int
+  projection   StationeryProjection @relation(fields: [projectionId], references: [id], onDelete: Cascade)
+  stationeryId Int?
+  stationery   Stationery? @relation(fields: [stationeryId], references: [id], onDelete: SetNull)
+  name         String
+  unit         String
+  quantity     Float
+  note         String?
+  addedById    Int?
+  addedBy      User?    @relation("StationeryProjectionAdder", fields: [addedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
 }

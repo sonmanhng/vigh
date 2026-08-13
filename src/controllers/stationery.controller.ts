@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import ExcelJS from 'exceljs';
 import { z } from 'zod';
+import { autoAddStationeryToCurrentProjection } from './stationeryProjection.controller';
 
 export const getStationeries = async (req: Request, res: Response) => {
   try {
@@ -315,6 +316,9 @@ export const exportStationeryItem = async (req: Request, res: Response) => {
       if (notifications.length > 0) {
         await prisma.notification.createMany({ data: notifications });
       }
+      
+      // Tự động thêm vào dự trù tháng hiện tại
+      await autoAddStationeryToCurrentProjection(stationery.id, stationery.name, stationery.unit);
     }
 
     res.json({

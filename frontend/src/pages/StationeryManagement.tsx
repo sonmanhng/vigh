@@ -42,33 +42,26 @@ interface ProjectStatistic {
   }[];
 }
 
-interface ProposalItem {
-  stationeryName: string;
-  unit: string;
-  quantity: string | number;
-  note?: string;
-}
-
-interface Proposal {
+interface ProjectionItem {
   id: number;
-  status: string;
-  level1Status: string;
-  level2Status: string;
-  note: string;
-  createdById: number;
-  creator: { name: string; email: string };
-  approver1?: { name: string; email: string };
-  approver2?: { name: string; email: string };
+  stationeryId?: number;
+  stationery?: { code: string };
+  name: string;
+  unit: string;
+  quantity: number;
+  note?: string;
+  addedBy?: { id: number; name: string };
   createdAt: string;
-  items: {
-    id: number;
-    stationeryName: string;
-    unit: string;
-    quantity: number;
-  }[];
 }
 
-type Tab = 'warehouse' | 'proposals' | 'statistics' | 'history';
+interface Projection {
+  id: number;
+  month: number;
+  year: number;
+  items: ProjectionItem[];
+}
+
+type Tab = 'warehouse' | 'projections' | 'statistics' | 'history';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmtVND = (n: number) => n.toLocaleString('vi-VN') + ' đ';
@@ -101,8 +94,7 @@ const emptyImport = () => ({
 export const StationeryManagement: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('warehouse');
-  const [proposalTab, setProposalTab] = useState<'my_proposals' | 'pending'>('my_proposals');
-  const [stationerys, setStationerys] = useState<Stationery[]>([]);
+    const [stationerys, setStationerys] = useState<Stationery[]>([]);
   const [selectedStationerys, setSelectedStationerys] = useState<number[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
@@ -113,7 +105,7 @@ export const StationeryManagement: React.FC = () => {
   const { socket } = useSocket();
 
   // Modal state
-  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'proposal'>('none');
+  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'projection'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -125,14 +117,11 @@ export const StationeryManagement: React.FC = () => {
   const [alertForm, setAlertForm] = useState({ stationeryId: '', stationerySearch: '', threshold: 0 });
   const [exportForm, setExportForm] = useState({ stationeryId: '', stationerySearch: '', quantity: '', note: '' });
 
-  // Proposal form
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const [approvers, setApprovers] = useState<{ level1: any[], level2: any[] }>({ level1: [], level2: [] });
-  const [proposalForm, setProposalForm] = useState({ approver1Id: '', approver2Id: '' });
-  const [proposalItems, setProposalItems] = useState<ProposalItem[]>([
-    { stationeryName: '', unit: '', quantity: '', note: '' }
-  ]);
-  const [proposalNote, setProposalNote] = useState('');
+  // Projection state
+  const [projectionMonth, setProjectionMonth] = useState(new Date().getMonth() + 1);
+  const [projectionYear, setProjectionYear] = useState(new Date().getFullYear());
+  const [projection, setProjection] = useState<Projection | null>(null);
+  const [projectionForm, setProjectionForm] = useState({ stationeryId: '', name: '', unit: '', quantity: '', note: '' });
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   const fetchStationerys = useCallback(async () => {
@@ -168,14 +157,14 @@ export const StationeryManagement: React.FC = () => {
     }
   }, []);
 
-  const fetchProposals = useCallback(async () => {
+  const fetchProjection = useCallback(async () => {
     try {
-      const res = await apiClient.get<Proposal[]>('/stationeries/proposals');
-      setProposals(res.data);
+      const res = await apiClient.get<Projection>(`/stationeries/projections?month=${projectionMonth}&year=${projectionYear}`);
+      setProjection(res.data);
     } catch (e) {
       console.error(e);
     }
-  }, []);
+  }, [projectionMonth, projectionYear]);
 
   const fetchProjectStatistics = useCallback(async () => {
     try {
@@ -222,7 +211,7 @@ export const StationeryManagement: React.FC = () => {
   }, [fetchStationerys, fetchTransactions, fetchProjects, fetchProposals, fetchApprovers]);
   
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
-  useEffect(() => { if (activeTab === 'proposals') fetchProposals(); }, [activeTab, fetchProposals]);
+  useEffect(() => { if (activeTab === 'projections') fetchProjection(); }, [activeTab, fetchProjection]);
   useEffect(() => { if (activeTab === 'statistics') fetchProjectStatistics(); }, [activeTab, fetchProjectStatistics]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -468,7 +457,7 @@ export const StationeryManagement: React.FC = () => {
   // ── Styles ────────────────────────────────────────────────────────────────
   const tabs = [
     { key: 'warehouse', label: 'Kho Văn Phòng Phẩm' },
-    { key: 'proposals', label: 'Tiến Trình Đề Xuất' },
+    { key: 'projections', label: 'Dự Trù Văn Phòng Phẩm' },
     { key: 'statistics', label: 'Thống Kê' },
     { key: 'history', label: 'Lịch Sử' },
   ];
@@ -586,9 +575,7 @@ export const StationeryManagement: React.FC = () => {
             <button className="btn" onClick={() => setModal('export')} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               Xuất Văn Phòng Phẩm
             </button>
-            <button className="btn" onClick={handleOpenProposal} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
-              Đề Xuất Văn Phòng Phẩm
-            </button>
+
             <button className="btn" onClick={() => setModal('alert')} style={{ background: 'var(--primary)', color: '#fff', border: 'none' }}>
               Tuỳ Chỉnh Cảnh Báo
             </button>
@@ -679,85 +666,54 @@ export const StationeryManagement: React.FC = () => {
         </>
       )}
 
-      {/* ── TAB: ĐỀ XUẤT ── */}
-      {activeTab === 'proposals' && (
+      {/* ── TAB: DỰ TRÙ ── */}
+      {activeTab === 'projections' && (
         <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
-          {['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong'].includes(user?.role || '') && (
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', background: '#F8FAFC' }}>
-              <button
-                onClick={() => setProposalTab('my_proposals')}
-                style={{
-                  padding: '0.75rem 1.5rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700,
-                  color: proposalTab === 'my_proposals' ? 'var(--primary)' : 'var(--text-muted)',
-                  borderBottom: proposalTab === 'my_proposals' ? '2px solid var(--primary)' : '2px solid transparent'
-                }}
-              >Đề xuất của tôi</button>
-              <button
-                onClick={() => setProposalTab('pending')}
-                style={{
-                  padding: '0.75rem 1.5rem', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700,
-                  color: proposalTab === 'pending' ? 'var(--primary)' : 'var(--text-muted)',
-                  borderBottom: proposalTab === 'pending' ? '2px solid var(--primary)' : '2px solid transparent'
-                }}
-              >Đề xuất cần duyệt</button>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border-color)', background: '#F8FAFC' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div style={{ fontWeight: 600 }}>Tháng:</div>
+              <input type="number" min="1" max="12" value={projectionMonth} onChange={e => setProjectionMonth(Number(e.target.value))} className="input-field" style={{ width: '80px' }} />
+              <div style={{ fontWeight: 600 }}>Năm:</div>
+              <input type="number" value={projectionYear} onChange={e => setProjectionYear(Number(e.target.value))} className="input-field" style={{ width: '100px' }} />
             </div>
-          )}
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button className="btn btn-primary" onClick={() => { setProjectionForm({ stationeryId: '', name: '', unit: '', quantity: '', note: '' }); setModal('projection'); }}>+ Thêm Vào Dự Trù</button>
+              <button className="btn btn-primary" onClick={handleExportProjectionExcel}>⬇ Xuất Excel Dự Trù</button>
+            </div>
+          </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.82rem', textTransform: 'uppercase' }}>
-                  <th style={{ padding: '0.9rem 1rem' }}>ID</th>
-                  <th style={{ padding: '0.9rem 1rem' }}>Người Đề Xuất</th>
-                  <th style={{ padding: '0.9rem 1rem' }}>Nội Dung</th>
-                  <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Trạng Thái</th>
-                  <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Ngày Đề Xuất</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>STT</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>Mã VPP</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>Tên Văn Phòng Phẩm</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Đơn Vị</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Số Lượng</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Tồn Kho</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>Người Thêm</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>Ghi Chú</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Thao Tác</th>
                 </tr>
               </thead>
               <tbody>
-                {proposals.filter(p => {
-                  if (proposalTab === 'my_proposals') return p.createdById === user?.id;
-                  if (proposalTab === 'pending') {
-                    if (p.level1Status === 'PENDING' && p.approver1?.email === user?.email) return true;
-                    if (p.level1Status === 'APPROVED' && p.level2Status === 'PENDING' && (p.approver2?.email === user?.email || user?.role === 'VienTruong' || user?.role === 'SuperAdmin')) return true;
-                    return false;
-                  }
-                  return true;
-                }).length === 0 ? (
-                  <tr><td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có đề xuất nào.</td></tr>
-                ) : proposals.filter(p => {
-                  if (proposalTab === 'my_proposals') return p.createdById === user?.id;
-                  if (proposalTab === 'pending') {
-                    if (p.level1Status === 'PENDING' && p.approver1?.email === user?.email) return true;
-                    if (p.level1Status === 'APPROVED' && p.level2Status === 'PENDING' && (p.approver2?.email === user?.email || user?.role === 'VienTruong' || user?.role === 'SuperAdmin')) return true;
-                    return false;
-                  }
-                  return true;
-                }).map(p => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>#{p.id}</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>
-                      <div style={{ fontWeight: 600 }}>{p.creator?.name || 'Ẩn danh'}</div>
-                    </td>
-                    <td style={{ padding: '0.85rem 1rem' }}>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{p.note || 'Không có ghi chú'}</div>
-                    </td>
+                {!projection?.items?.length ? (
+                  <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có dự trù nào cho tháng này.</td></tr>
+                ) : projection.items.map((item, idx) => (
+                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>{idx + 1}</td>
+                    <td style={{ padding: '0.85rem 1rem' }}>{item.stationery?.code || '-'}</td>
+                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>{item.name}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>{item.unit}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--primary)' }}>{item.quantity}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
-                      {p.status === 'PENDING' && <span style={{ background: '#FFF7E6', color: '#D46B08', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Chờ duyệt Cấp 1</span>}
-                      {p.status === 'PENDING_LEVEL_2' && <span style={{ background: '#FFF7E6', color: '#D46B08', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Chờ duyệt Cấp 2</span>}
-                      {p.status === 'APPROVED' && <span style={{ background: '#F6FFED', color: '#389E0D', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Đã duyệt toàn bộ</span>}
-                      {p.status === 'REJECTED' && <span style={{ background: '#FFF1F0', color: '#CF1322', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600 }}>Từ chối</span>}
-                      
-                      <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
-                        {proposalTab === 'pending' && p.status !== 'APPROVED' && p.status !== 'REJECTED' && (
-                          <>
-                            <button onClick={() => handleUpdateProposalStatus(p.id, 'APPROVE')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#52C41A', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Duyệt</button>
-                            <button onClick={() => handleUpdateProposalStatus(p.id, 'REJECT')} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#FF4D4F', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Từ chối</button>
-                          </>
-                        )}
-                        <button onClick={() => handleExportExcel(p.id)} style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem', background: '#1890FF', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>In/Xuất File</button>
-                      </div>
+                      {item.stationeryId ? stationerys.find(s => s.id === item.stationeryId)?.quantity || '-' : '-'}
                     </td>
-                    <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{new Date(p.createdAt).toLocaleString('vi-VN')}</td>
+                    <td style={{ padding: '0.85rem 1rem' }}>{item.addedBy?.name || 'Hệ thống tự động'}</td>
+                    <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.note || '-'}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
+                      <button onClick={() => handleDeleteProjectionItem(item.id)} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid #FFCCC7', background: '#fff', color: '#FF4D4F', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Xoá</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

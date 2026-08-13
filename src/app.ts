@@ -16,7 +16,7 @@ import weeklyReportRoutes from './routes/weeklyReport.routes';
 import homeRoutes from './routes/home.routes';
 import meetingRoutes from './routes/meeting.routes';
 import stationeryRoutes from './routes/stationery.routes';
-import stationeryProposalRoutes from './routes/stationeryProposal.routes';
+import stationeryProjectionRoutes from './routes/stationeryProjection.routes';
 
 const app = express();
 
@@ -51,7 +51,7 @@ app.use('/api/weekly-reports', weeklyReportRoutes);
 app.use('/api/home', homeRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/stationeries', stationeryRoutes);
-app.use('/api/stationeries/proposals', stationeryProposalRoutes);
+app.use('/api/stationeries/projections', stationeryProjectionRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));

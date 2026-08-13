@@ -113,15 +113,7 @@ export const getHomeStats = async (req: Request, res: Response) => {
       include: { creator: { select: { name: true } } }
     });
     
-    const pendingStationeryProposals = await prisma.stationeryProposal.findMany({
-      where: {
-        OR: [
-          { approver1Id: userId, level1Status: 'PENDING' },
-          { approver2Id: userId, level2Status: 'PENDING' }
-        ]
-      },
-      include: { creator: { select: { name: true } } }
-    });
+    // Removed stationery proposals
     
     const pendingOvertimes = await prisma.overtimeRequest.findMany({
       where: {
@@ -151,7 +143,7 @@ export const getHomeStats = async (req: Request, res: Response) => {
       pendingApprovals: {
         chemicalProposals: pendingChemicalProposals,
         cellProposals: pendingCellProposals,
-        stationeryProposals: pendingStationeryProposals,
+        // Removed stationeryProposals
         overtimes: pendingOvertimes,
         projects: pendingProjects
       }
