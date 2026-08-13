@@ -9,15 +9,16 @@ import { CellManagement } from './CellManagement';
 import { MachineManagement } from './MachineManagement';
 import { WeeklyReports } from './WeeklyReports';
 import { HomeOverview } from './HomeOverview';
+import { MeetingManagement } from './MeetingManagement';
 
-type Tab = 'home' | 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports';
+type Tab = 'home' | 'meetings' | 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
-  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'cells' ? 'cells' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : (urlTab === 'projects' ? 'projects' : 'home')))));
+  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'cells' ? 'cells' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : (urlTab === 'projects' ? 'projects' : (urlTab === 'meetings' ? 'meetings' : 'home'))))));
   
   const setActiveTab = (tab: Tab) => {
     if (tab === 'home') {
@@ -245,6 +246,13 @@ export const Dashboard: React.FC = () => {
           </button>
 
           <button 
+            className={`menu-item ${activeTab === 'meetings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('meetings')}
+          >
+            <span>Thông báo họp</span>
+          </button>
+
+          <button 
             className={`menu-item ${activeTab === 'projects' ? 'active' : ''}`}
             onClick={() => setActiveTab('projects')}
           >
@@ -301,6 +309,8 @@ export const Dashboard: React.FC = () => {
 
         {activeTab === 'home' ? (
           <HomeOverview />
+        ) : activeTab === 'meetings' ? (
+          <MeetingManagement />
         ) : activeTab === 'personnel' ? (
           <PersonnelManagement />
         ) : activeTab === 'chemicals' ? (

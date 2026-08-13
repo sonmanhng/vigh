@@ -14,6 +14,7 @@ import laborRoutes from './routes/labor.routes';
 import notificationRoutes from './routes/notification.routes';
 import weeklyReportRoutes from './routes/weeklyReport.routes';
 import homeRoutes from './routes/home.routes';
+import meetingRoutes from './routes/meeting.routes';
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/api/labor', laborRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/weekly-reports', weeklyReportRoutes);
 app.use('/api/home', homeRoutes);
+app.use('/api/meetings', meetingRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));

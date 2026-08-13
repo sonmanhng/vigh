@@ -69,7 +69,26 @@ export const getHomeStats = async (req: Request, res: Response) => {
       take: 10
     });
 
-    // 4. Pending Approvals (ChemicalProposals, CellProposals, OvertimeRequests, Projects)
+    // 4. Upcoming Meetings (where user is participant and date >= today)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const upcomingMeetings = await prisma.meeting.findMany({
+      where: {
+        date: { gte: startOfToday },
+        OR: [
+          { createdById: userId },
+          { participants: { some: { userId } } }
+        ]
+      },
+      include: {
+        creator: { select: { name: true } }
+      },
+      orderBy: { date: 'asc' },
+      take: 10
+    });
+
+    // 5. Pending Approvals (ChemicalProposals, CellProposals, OvertimeRequests, Projects)
     const pendingChemicalProposals = await prisma.chemicalProposal.findMany({
       where: {
         OR: [
@@ -113,6 +132,7 @@ export const getHomeStats = async (req: Request, res: Response) => {
         projects: upcomingProjects
       },
       incomingReports,
+      upcomingMeetings,
       pendingApprovals: {
         chemicalProposals: pendingChemicalProposals,
         cellProposals: pendingCellProposals,
