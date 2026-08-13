@@ -417,11 +417,22 @@ export const MachineManagement: React.FC = () => {
     try {
       await apiClient.post('/labor', laborForm);
       setModal('none');
-      setLaborForm({ date: new Date().toISOString().split('T')[0], projectId: '', note: '', adminHours: '', proHours: '', cleanHours: '' });
+      setLaborForm({ date: new Date().toISOString().split('T')[0], projectId: '', projectSearch: '', note: '', adminHours: '', proHours: '', cleanHours: '' });
       fetchLaborLogs();
       fetchLaborStats();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi thêm giờ công');
+    }
+  };
+
+  const handleDeleteLaborLog = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn hoàn tác (xoá) bản ghi giờ công này không?')) return;
+    try {
+      await apiClient.delete(`/labor/${id}`);
+      fetchLaborLogs();
+      fetchLaborStats();
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Lỗi hoàn tác giờ công');
     }
   };
 
@@ -683,11 +694,12 @@ export const MachineManagement: React.FC = () => {
                     <th style={{ padding: '1rem', textAlign: 'right' }}>Hành chính (H)</th>
                     <th style={{ padding: '1rem', textAlign: 'right' }}>Chuyên môn (H)</th>
                     <th style={{ padding: '1rem', textAlign: 'right' }}>Dọn dẹp (H)</th>
+                    <th style={{ padding: '1rem', textAlign: 'center' }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
                   {laborLogs.length === 0 ? (
-                    <tr><td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có ghi nhận nào</td></tr>
+                    <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có ghi nhận nào</td></tr>
                   ) : laborLogs.map(l => (
                     <tr key={l.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                       <td style={{ padding: '1rem', fontWeight: 600 }}>{new Date(l.date).toLocaleDateString('vi-VN')}</td>
@@ -695,6 +707,15 @@ export const MachineManagement: React.FC = () => {
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.adminHours}</td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.proHours}</td>
                       <td style={{ padding: '1rem', textAlign: 'right' }}>{l.cleanHours}</td>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>
+                        <button 
+                          className="btn btn-outline" 
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', color: 'var(--accent-red)', borderColor: 'var(--accent-red)' }}
+                          onClick={() => handleDeleteLaborLog(l.id)}
+                        >
+                          Hoàn tác
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
