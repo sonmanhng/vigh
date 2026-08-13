@@ -170,12 +170,12 @@ export const HomeOverview: React.FC = () => {
               <p style={{ color: '#64748b', margin: 0 }}>Không có mục nào cần bạn phê duyệt.</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
-                {pendingApprovals.projects?.map((p: any) => (
+                {pendingApprovals?.projects?.map((p: any) => (
                   <li key={`p-${p.id}`} style={{ marginBottom: '0.5rem' }}>
                     Duyệt dự án: <strong>{p.name}</strong>
                   </li>
                 ))}
-                {pendingApprovals.chemicalProposals?.map((p: any) => (
+                {pendingApprovals?.chemicalProposals?.map((p: any) => (
                   <li key={`hc-${p.id}`} style={{ marginBottom: '0.5rem' }}>
                     Đề xuất hoá chất từ <strong>{p.creator?.name}</strong>
                   </li>
@@ -208,7 +208,7 @@ export const HomeOverview: React.FC = () => {
                     <button className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }} onClick={() => navigate('/?tab=stationeries')}>Xem</button>
                   </div>
                 ))}
-                {pendingApprovals.overtimes?.map((o: any) => (
+                {pendingApprovals?.overtimes?.map((o: any) => (
                   <li key={`o-${o.id}`} style={{ marginBottom: '0.5rem' }}>
                     Duyệt làm thêm giờ: <strong>{o.user?.name}</strong>
                   </li>
