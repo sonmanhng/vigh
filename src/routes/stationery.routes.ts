@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getStationeries, getLowStockStationeries, createStationery, updateStationery, deleteStationery, getTransactions, createTransaction, exportStationeries, importStationeries } from '../controllers/stationery.controller';
+import { getStationeries, getLowStockStationeries, createStationery, updateStationery, deleteStationery, getTransactions, createTransaction, exportStationeries, importStationeries, getApprovers } from '../controllers/stationery.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 import multer from 'multer';
 
@@ -17,6 +17,7 @@ router.get('/export', exportStationeries);
 router.post('/import', upload.single('file'), importStationeries);
 
 // CRUD
+router.get('/approvers', getApprovers);
 router.get('/low-stock', getLowStockStationeries);
 router.get('/', getStationeries);
 router.post('/', createStationery);

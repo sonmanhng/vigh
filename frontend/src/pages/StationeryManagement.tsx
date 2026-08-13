@@ -137,7 +137,7 @@ export const StationeryManagement: React.FC = () => {
   const fetchStationerys = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get<Stationery[]>('/stationerys');
+      const res = await apiClient.get<Stationery[]>('/stationeries');
       setStationerys(res.data);
       // Fire alert for any low items
       res.data.filter(isLow).forEach(c => {
@@ -152,7 +152,7 @@ export const StationeryManagement: React.FC = () => {
 
   const fetchTransactions = useCallback(async () => {
     try {
-      const res = await apiClient.get<Transaction[]>('/stationerys/transactions');
+      const res = await apiClient.get<Transaction[]>('/stationeries/transactions');
       setTransactions(res.data);
     } catch (e) {
       console.error(e);
@@ -169,7 +169,7 @@ export const StationeryManagement: React.FC = () => {
 
   const fetchProposals = useCallback(async () => {
     try {
-      const res = await apiClient.get<Proposal[]>('/stationerys/proposals');
+      const res = await apiClient.get<Proposal[]>('/stationeries/proposals');
       setProposals(res.data);
     } catch (e) {
       console.error(e);
@@ -186,7 +186,7 @@ export const StationeryManagement: React.FC = () => {
 
   const fetchApprovers = useCallback(async () => {
     try {
-      const res = await apiClient.get('/stationerys/approvers');
+      const res = await apiClient.get('/stationeries/approvers');
       setApprovers(res.data);
       if (res.data.level2 && res.data.level2.length > 0) {
         setProposalForm(p => ({ ...p, approver2Id: res.data.level2[0].id.toString() }));
@@ -228,7 +228,7 @@ export const StationeryManagement: React.FC = () => {
   const handleImportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.post('/stationerys', {
+      await apiClient.post('/stationeries', {
         ...importForm,
         quantity: Number(importForm.quantity),
       });
@@ -292,7 +292,7 @@ export const StationeryManagement: React.FC = () => {
         }
 
         setLoading(true);
-        const res = await apiClient.post('/stationerys/import', { stationerys: stationerysPayload });
+        const res = await apiClient.post('/stationeries/import', { stationerys: stationerysPayload });
         fetchStationerys();
         fetchTransactions();
         setError(null);
@@ -310,7 +310,7 @@ export const StationeryManagement: React.FC = () => {
   const handleExportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await apiClient.post(`/stationerys/${exportForm.stationeryId}/export`, {
+      const res = await apiClient.post(`/stationeries/${exportForm.stationeryId}/export`, {
         quantity: Number(exportForm.quantity),
         note: exportForm.note,
       });
@@ -335,7 +335,7 @@ export const StationeryManagement: React.FC = () => {
   const handleUndoTransaction = async (id: number) => {
     if (!confirm('Bạn có chắc chắn muốn hoàn tác giao dịch này?')) return;
     try {
-      await apiClient.delete(`/stationerys/transactions/${id}`);
+      await apiClient.delete(`/stationeries/transactions/${id}`);
       fetchStationerys();
       fetchTransactions();
     } catch (e: any) {
@@ -347,7 +347,7 @@ export const StationeryManagement: React.FC = () => {
     e.preventDefault();
     if (!editingId) return;
     try {
-      await apiClient.put(`/stationerys/${editingId}`, {
+      await apiClient.put(`/stationeries/${editingId}`, {
         ...importForm,
         quantity: Number(importForm.quantity),
       });
@@ -387,7 +387,7 @@ export const StationeryManagement: React.FC = () => {
     e.preventDefault();
     if (proposalItems.length === 0) return;
     try {
-      await apiClient.post('/stationerys/proposals', {
+      await apiClient.post('/stationeries/proposals', {
         note: proposalNote,
         approver1Id: proposalForm.approver1Id,
         approver2Id: proposalForm.approver2Id,
@@ -404,7 +404,7 @@ export const StationeryManagement: React.FC = () => {
 
   const handleUpdateProposalStatus = async (id: number, action: string) => {
     try {
-      await apiClient.put(`/stationerys/proposals/${id}/status`, { action });
+      await apiClient.put(`/stationeries/proposals/${id}/status`, { action });
       fetchProposals();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi cập nhật trạng thái');
@@ -414,7 +414,7 @@ export const StationeryManagement: React.FC = () => {
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`Xoá văn phòng phẩm "${name}"? Hành động này không thể hoàn tác.`)) return;
     try {
-      await apiClient.delete(`/stationerys/${id}`);
+      await apiClient.delete(`/stationeries/${id}`);
       fetchStationerys();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi xoá văn phòng phẩm');
@@ -425,7 +425,7 @@ export const StationeryManagement: React.FC = () => {
     if (selectedStationerys.length === 0) return;
     if (!confirm(`Xoá ${selectedStationerys.length} văn phòng phẩm đã chọn? Hành động này không thể hoàn tác.`)) return;
     try {
-      await apiClient.post('/stationerys/bulk-delete', { ids: selectedStationerys });
+      await apiClient.post('/stationeries/bulk-delete', { ids: selectedStationerys });
       setSelectedStationerys([]);
       fetchStationerys();
     } catch (e: any) {
@@ -444,7 +444,7 @@ export const StationeryManagement: React.FC = () => {
 
   const handleExportExcel = async (id: number) => {
     try {
-      const res = await apiClient.get(`/stationerys/proposals/${id}/export`, { responseType: 'blob' });
+      const res = await apiClient.get(`/stationeries/proposals/${id}/export`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;

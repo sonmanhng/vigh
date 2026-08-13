@@ -51,7 +51,7 @@ app.use('/api/weekly-reports', weeklyReportRoutes);
 app.use('/api/home', homeRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/stationeries', stationeryRoutes);
-app.use('/api/stationery-proposals', stationeryProposalRoutes);
+app.use('/api/stationeries/proposals', stationeryProposalRoutes);
 
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));

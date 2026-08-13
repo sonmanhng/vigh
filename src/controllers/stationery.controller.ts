@@ -237,3 +237,20 @@ export const importStationeries = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Lỗi xử lý file Excel', error: error.message });
   }
 };
+
+export const getApprovers = async (req: any, res: any) => {
+  try {
+    const approver1List = await prisma.user.findMany({
+      where: { role: { in: ['TruongPhong', 'VienPho'] } },
+      select: { id: true, name: true, role: true, email: true }
+    });
+    const approver2List = await prisma.user.findMany({
+      where: { role: { in: ['VienTruong', 'SuperAdmin'] } },
+      select: { id: true, name: true, role: true, email: true }
+    });
+    res.json({ level1: approver1List, level2: approver2List });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi lấy danh sách người duyệt' });
+  }
+};
