@@ -128,6 +128,7 @@ export const MachineManagement: React.FC = () => {
     hours: '',
     reason: '',
     projectId: '',
+    projectSearch: '',
     approver1Id: '',
     approver2Id: '' // Automatically populated with VienTruong if possible, or selected
   });
@@ -135,6 +136,7 @@ export const MachineManagement: React.FC = () => {
   const [laborForm, setLaborForm] = useState({
     date: new Date().toISOString().split('T')[0],
     projectId: '',
+    projectSearch: '',
     note: '',
     adminHours: '',
     proHours: '',
@@ -1131,12 +1133,22 @@ export const MachineManagement: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Dự án thực hiện</label>
-                  <select className="input-field" value={laborForm.projectId} onChange={e => setLaborForm({...laborForm, projectId: e.target.value})}>
-                    <option value="">-- Không chọn dự án --</option>
+                  <input
+                    list="labor-project-list"
+                    className="input-field"
+                    placeholder="Nhập mã hoặc tên dự án..."
+                    value={laborForm.projectSearch || ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const match = projects.find(p => (p.code ? `${p.code} - ${p.name}` : p.name) === val);
+                      setLaborForm({...laborForm, projectSearch: val, projectId: match ? match.id.toString() : ''});
+                    }}
+                  />
+                  <datalist id="labor-project-list">
                     {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
+                      <option key={p.id} value={p.code ? `${p.code} - ${p.name}` : p.name} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 {!laborForm.projectId && (
@@ -1199,12 +1211,22 @@ export const MachineManagement: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Dự án liên quan</label>
-                  <select className="input-field" value={overtimeForm.projectId} onChange={e => setOvertimeForm({...overtimeForm, projectId: e.target.value})}>
-                    <option value="">-- Chọn dự án --</option>
+                  <input
+                    list="overtime-project-list"
+                    className="input-field"
+                    placeholder="Nhập mã hoặc tên dự án..."
+                    value={overtimeForm.projectSearch || ''}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const match = projects.find(p => (p.code ? `${p.code} - ${p.name}` : p.name) === val);
+                      setOvertimeForm({...overtimeForm, projectSearch: val, projectId: match ? match.id.toString() : ''});
+                    }}
+                  />
+                  <datalist id="overtime-project-list">
                     {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
+                      <option key={p.id} value={p.code ? `${p.code} - ${p.name}` : p.name} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 <div className="input-group">
