@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '../api/client';
 import { 
   weeklyReportService, 
@@ -45,6 +45,39 @@ export const WeeklyReports: React.FC = () => {
   const [reports, setReports] = useState<WeeklyReport[]>([]);
   const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [expandedReports, setExpandedReports] = useState<Record<number, boolean>>({});
+
+  // Filter & Sort State
+  const [sortMode, setSortMode] = useState<'date_desc' | 'date_asc' | 'person'>('date_desc');
+  const [filterProject, setFilterProject] = useState<number | 'all'>('all');
+  const [filterPerson, setFilterPerson] = useState<number | 'all'>('all');
+
+  const filteredAndSortedReports = useMemo(() => {
+    let result = [...reports];
+
+    // Filter by project
+    if (filterProject !== 'all') {
+      result = result.filter(r => 
+        r.results.some(res => res.projectId === filterProject) || 
+        r.plans.some(plan => plan.projectId === filterProject)
+      );
+    }
+
+    // Filter by person
+    if (filterPerson !== 'all') {
+      result = result.filter(r => r.reporterId === filterPerson);
+    }
+
+    // Sort
+    if (sortMode === 'date_desc') {
+      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (sortMode === 'date_asc') {
+      result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else if (sortMode === 'person') {
+      result.sort((a, b) => a.reporter.name.localeCompare(b.reporter.name));
+    }
+
+    return result;
+  }, [reports, filterProject, filterPerson, sortMode]);
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -700,6 +733,38 @@ export const WeeklyReports: React.FC = () => {
             <strong style={{ color: 'var(--primary)', fontWeight: 700 }}>Quản lý Báo cáo tuần:</strong> Theo dõi chi tiết các kết quả thực hiện công việc và kế hoạch tuần tới của cán bộ/thành viên. Hỗ trợ tải trực tiếp từng file đính kèm hoặc xuất toàn bộ văn bản tổng hợp theo định dạng chuẩn (.docx).
           </div>
 
+          {/* Filters & Sorting */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label className="input-label" style={{ fontSize: '0.85rem' }}>Sắp xếp theo</label>
+              <select className="input-field" value={sortMode} onChange={e => setSortMode(e.target.value as any)}>
+                <option value="date_desc">Thời gian nộp (Mới nhất trước)</option>
+                <option value="date_asc">Thời gian nộp (Cũ nhất trước)</option>
+                <option value="person">Tên người báo cáo (A-Z)</option>
+              </select>
+            </div>
+            
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label className="input-label" style={{ fontSize: '0.85rem' }}>Lọc theo Dự án</label>
+              <select className="input-field" value={filterProject} onChange={e => setFilterProject(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+                <option value="all">Tất cả dự án</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="input-group" style={{ marginBottom: 0 }}>
+              <label className="input-label" style={{ fontSize: '0.85rem' }}>Lọc theo Người gửi</label>
+              <select className="input-field" value={filterPerson} onChange={e => setFilterPerson(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+                <option value="all">Tất cả cán bộ</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {isLoadingReports ? (
             <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>
               Đang tải danh sách báo cáo...
@@ -723,9 +788,26 @@ export const WeeklyReports: React.FC = () => {
                   : 'Bạn chưa nộp báo cáo tuần nào. Hãy chuyển sang tab "Nộp báo cáo tuần" để tạo mới!'}
               </div>
             </div>
+          ) : filteredAndSortedReports.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '4rem 2rem',
+              backgroundColor: '#FFFFFF',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-muted)',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <div style={{ fontWeight: 700, fontSize: '1.15rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                Không tìm thấy báo cáo nào
+              </div>
+              <div style={{ fontSize: '0.95rem' }}>
+                Không có báo cáo tuần nào phù hợp với bộ lọc hiện tại. Hãy thử thay đổi bộ lọc.
+              </div>
+            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {reports.map((report) => {
+              {filteredAndSortedReports.map((report) => {
                 const isExpanded = !!expandedReports[report.id];
                 const dateFormatted = new Date(report.createdAt).toLocaleDateString('vi-VN', {
                   day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
