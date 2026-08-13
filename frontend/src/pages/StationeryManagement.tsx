@@ -757,7 +757,7 @@ export const StationeryManagement: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
                   <div className="input-group">
                     <label className="input-label">Mã Văn Phòng Phẩm (*)</label>
-                    <input type="text" className="input-field" required placeholder="VPP-001" value={importForm.code} onChange={e => {
+                    <input type="text" list="stationery-codes" className="input-field" required placeholder="VPP-001" value={importForm.code} onChange={e => {
                       const code = e.target.value;
                       const existing = stationerys.find(c => c.code === code);
                       if (existing && modal === 'import') {
@@ -773,10 +773,31 @@ export const StationeryManagement: React.FC = () => {
                         setImportForm(p => ({ ...p, code }));
                       }
                     }} />
+                    <datalist id="stationery-codes">
+                      {stationerys.map(c => <option key={c.id} value={c.code} />)}
+                    </datalist>
                   </div>
                   <div className="input-group">
                     <label className="input-label">Tên Văn Phòng Phẩm (*)</label>
-                    <input type="text" className="input-field" required placeholder="VD: Ethanol 96%..." value={importForm.name} onChange={e => setImportForm(p => ({ ...p, name: e.target.value }))} />
+                    <input type="text" list="stationery-names" className="input-field" required placeholder="VD: Bút bi..." value={importForm.name} onChange={e => {
+                      const name = e.target.value;
+                      const existing = stationerys.find(c => c.name === name);
+                      if (existing && modal === 'import') {
+                        setImportForm(p => ({
+                          ...p,
+                          code: existing.code,
+                          name,
+                          unit: existing.unit,
+                          alertThreshold: existing.alertThreshold,
+                          note: existing.note || '',
+                        }));
+                      } else {
+                        setImportForm(p => ({ ...p, name }));
+                      }
+                    }} />
+                    <datalist id="stationery-names">
+                      {stationerys.map(c => <option key={c.id} value={c.name} />)}
+                    </datalist>
                   </div>
                 </div>
 

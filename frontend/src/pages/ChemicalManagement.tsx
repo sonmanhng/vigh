@@ -926,7 +926,7 @@ export const ChemicalManagement: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
                   <div className="input-group">
                     <label className="input-label">Mã Hoá Chất (*)</label>
-                    <input type="text" className="input-field" required placeholder="HC-001" value={importForm.code} onChange={e => {
+                    <input type="text" list="chemical-codes" className="input-field" required placeholder="HC-001" value={importForm.code} onChange={e => {
                       const code = e.target.value;
                       const existing = chemicals.find(c => c.code === code);
                       if (existing && modal === 'import') {
@@ -946,10 +946,35 @@ export const ChemicalManagement: React.FC = () => {
                         setImportForm(p => ({ ...p, code }));
                       }
                     }} />
+                    <datalist id="chemical-codes">
+                      {chemicals.map(c => <option key={c.id} value={c.code} />)}
+                    </datalist>
                   </div>
                   <div className="input-group">
                     <label className="input-label">Tên Hoá Chất (*)</label>
-                    <input type="text" className="input-field" required placeholder="VD: Ethanol 96%..." value={importForm.name} onChange={e => setImportForm(p => ({ ...p, name: e.target.value }))} />
+                    <input type="text" list="chemical-names" className="input-field" required placeholder="VD: Ethanol 96%..." value={importForm.name} onChange={e => {
+                      const name = e.target.value;
+                      const existing = chemicals.find(c => c.name === name);
+                      if (existing && modal === 'import') {
+                        setImportForm(p => ({
+                          ...p,
+                          code: existing.code,
+                          name,
+                          unit: existing.unit,
+                          maxQuantity: existing.maxQuantity,
+                          specification: existing.specification,
+                          invoicePrice: existing.invoicePrice,
+                          alertThreshold: existing.alertThreshold,
+                          location: existing.location || '',
+                          note: existing.note || '',
+                        }));
+                      } else {
+                        setImportForm(p => ({ ...p, name }));
+                      }
+                    }} />
+                    <datalist id="chemical-names">
+                      {chemicals.map(c => <option key={c.id} value={c.name} />)}
+                    </datalist>
                   </div>
                 </div>
 
