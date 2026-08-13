@@ -8,29 +8,22 @@ import { ChemicalManagement } from './ChemicalManagement';
 import { CellManagement } from './CellManagement';
 import { MachineManagement } from './MachineManagement';
 import { WeeklyReports } from './WeeklyReports';
+import { HomeOverview } from './HomeOverview';
 
-type Tab = 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports';
+type Tab = 'home' | 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
-  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'cells' ? 'cells' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : 'projects'))));
+  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'cells' ? 'cells' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : (urlTab === 'projects' ? 'projects' : 'home')))));
   
   const setActiveTab = (tab: Tab) => {
-    if (tab === 'personnel') {
-      setSearchParams({ tab: 'personnel' });
-    } else if (tab === 'chemicals') {
-      setSearchParams({ tab: 'chemicals' });
-    } else if (tab === 'cells') {
-      setSearchParams({ tab: 'cells' });
-    } else if (tab === 'machines') {
-      setSearchParams({ tab: 'machines' });
-    } else if (tab === 'weekly-reports') {
-      setSearchParams({ tab: 'weekly-reports' });
-    } else {
+    if (tab === 'home') {
       setSearchParams({});
+    } else {
+      setSearchParams({ tab });
     }
   };
   
@@ -239,11 +232,18 @@ export const Dashboard: React.FC = () => {
             src="/logo.png" 
             alt="Viện VIGH Logo" 
             style={{ maxHeight: '54px', maxWidth: '100%', objectFit: 'contain', cursor: 'pointer' }} 
-            onClick={() => setActiveTab('projects')}
+            onClick={() => setActiveTab('home')}
           />
         </div>
 
         <nav className="sidebar-menu">
+          <button 
+            className={`menu-item ${activeTab === 'home' ? 'active' : ''}`}
+            onClick={() => setActiveTab('home')}
+          >
+            <span>Trang chủ</span>
+          </button>
+
           <button 
             className={`menu-item ${activeTab === 'projects' ? 'active' : ''}`}
             onClick={() => setActiveTab('projects')}
