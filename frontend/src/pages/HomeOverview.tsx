@@ -39,36 +39,51 @@ export const HomeOverview: React.FC = () => {
         <p style={{ color: '#64748b' }}>Đây là tổng quan các hoạt động cần chú ý của bạn hôm nay.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+      <div className="home-dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
 
-        {/* Zone 1: Sắp hết hạn / Sắp hết hàng */}
-        {(lowStock?.chemicals?.length > 0 || lowStock?.cells?.length > 0) && (
-          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #ef4444', display: 'flex', flexDirection: 'column', maxHeight: '400px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexShrink: 0 }}>
-              <AlertCircle color="#ef4444" />
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>Vật tư sắp hết</h2>
-            </div>
+        {/* Khu vực 1: Sắp hết */}
+        {(lowStock?.chemicals?.length > 0 || lowStock?.cells?.length > 0 || lowStock?.stationeries?.length > 0) && (
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderTop: '4px solid #ef4444', maxHeight: '400px', overflowY: 'auto' }}>
+            <h3 style={{ marginTop: 0, color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>
+              <AlertTriangle size={20} /> Vật tư / Hoá chất / VPP sắp hết
+            </h3>
             <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
-              {lowStock?.chemicals?.length > 0 && (
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong style={{ color: '#475569', fontSize: '0.875rem' }}>Hoá chất:</strong>
-                  <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem', color: '#0f172a' }}>
-                    {lowStock.chemicals.map((c: any) => (
-                      <li key={c.id}>{c.name} (Còn {c.quantity} {c.unit})</li>
-                    ))}
-                  </ul>
+              {lowStock?.chemicals?.map((c: any) => (
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '6px', marginBottom: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#991b1b' }}>{c.name}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#b91c1c' }}>Mã: {c.code}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, color: '#ef4444' }}>{c.quantity} {c.unit}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#dc2626' }}>Ngưỡng: {c.alertThreshold}</div>
+                  </div>
                 </div>
-              )}
-              {lowStock?.cells?.length > 0 && (
-                <div>
-                  <strong style={{ color: '#475569', fontSize: '0.875rem' }}>Tế bào:</strong>
-                  <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.5rem', color: '#0f172a' }}>
-                    {lowStock.cells.map((c: any) => (
-                      <li key={c.id}>{c.name} (Còn {c.quantity} {c.unit})</li>
-                    ))}
-                  </ul>
+              ))}
+              {lowStock?.cells?.map((c: any) => (
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '6px', marginBottom: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#991b1b' }}>{c.name}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#b91c1c' }}>Mã: {c.code}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, color: '#ef4444' }}>{c.quantity} tubes</div>
+                    <div style={{ fontSize: '0.85rem', color: '#dc2626' }}>Ngưỡng: {c.maxQuantity * c.alertThreshold / 100}</div>
+                  </div>
                 </div>
-              )}
+              ))}
+              {lowStock?.stationeries?.map((c: any) => (
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: '#fef2f2', borderRadius: '6px', marginBottom: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#991b1b' }}>{c.name}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#b91c1c' }}>Mã: {c.code}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, color: '#ef4444' }}>{c.quantity} {c.unit}</div>
+                    <div style={{ fontSize: '0.85rem', color: '#dc2626' }}>Ngưỡng: {c.alertThreshold}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -151,7 +166,7 @@ export const HomeOverview: React.FC = () => {
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>Cần phê duyệt</h2>
           </div>
           <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
-            {(!pendingApprovals?.chemicalProposals?.length && !pendingApprovals?.cellProposals?.length && !pendingApprovals?.overtimes?.length && !pendingApprovals?.projects?.length) ? (
+            {(!pendingApprovals?.chemicalProposals?.length && !pendingApprovals?.cellProposals?.length && !pendingApprovals?.stationeryProposals?.length && !pendingApprovals?.overtimes?.length && !pendingApprovals?.projects?.length) ? (
               <p style={{ color: '#64748b', margin: 0 }}>Không có mục nào cần bạn phê duyệt.</p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
@@ -165,10 +180,33 @@ export const HomeOverview: React.FC = () => {
                     Đề xuất hoá chất từ <strong>{p.creator?.name}</strong>
                   </li>
                 ))}
-                {pendingApprovals.cellProposals?.map((p: any) => (
-                  <li key={`c-${p.id}`} style={{ marginBottom: '0.5rem' }}>
-                    Đề xuất tế bào từ <strong>{p.creator?.name}</strong>
-                  </li>
+                {pendingApprovals?.cellProposals?.map((p: any) => (
+                  <div key={`cell_${p.id}`} className="home-list-item">
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div style={{ padding: '0.5rem', backgroundColor: '#fef3c7', borderRadius: '50%', color: '#d97706' }}>
+                        <CheckCircle size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#334155' }}>Duyệt Đề xuất Tế bào #{p.id}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Từ: {p.creator?.name}</div>
+                      </div>
+                    </div>
+                    <button className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }} onClick={() => navigate('/?tab=cells')}>Xem</button>
+                  </div>
+                ))}
+                {pendingApprovals?.stationeryProposals?.map((p: any) => (
+                  <div key={`vpp_${p.id}`} className="home-list-item">
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div style={{ padding: '0.5rem', backgroundColor: '#fef3c7', borderRadius: '50%', color: '#d97706' }}>
+                        <CheckCircle size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#334155' }}>Duyệt Đề xuất VPP #{p.id}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Từ: {p.creator?.name}</div>
+                      </div>
+                    </div>
+                    <button className="btn btn-primary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }} onClick={() => navigate('/?tab=stationeries')}>Xem</button>
+                  </div>
                 ))}
                 {pendingApprovals.overtimes?.map((o: any) => (
                   <li key={`o-${o.id}`} style={{ marginBottom: '0.5rem' }}>

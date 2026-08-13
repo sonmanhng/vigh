@@ -10,15 +10,16 @@ import { MachineManagement } from './MachineManagement';
 import { WeeklyReports } from './WeeklyReports';
 import { HomeOverview } from './HomeOverview';
 import { MeetingManagement } from './MeetingManagement';
+import { StationeryManagement } from './StationeryManagement';
 
-type Tab = 'home' | 'meetings' | 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports';
+type Tab = 'home' | 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports' | 'meetings' | 'stationeries';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
-  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'cells' ? 'cells' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : (urlTab === 'projects' ? 'projects' : (urlTab === 'meetings' ? 'meetings' : 'home'))))));
+  const activeTab = urlTab === 'personnel' ? 'personnel' : (urlTab === 'chemicals' ? 'chemicals' : (urlTab === 'cells' ? 'cells' : (urlTab === 'machines' ? 'machines' : (urlTab === 'weekly-reports' ? 'weekly-reports' : (urlTab === 'projects' ? 'projects' : (urlTab === 'meetings' ? 'meetings' : (urlTab === 'stationeries' ? 'stationeries' : 'home')))))));
   
   const setActiveTab = (tab: Tab) => {
     if (tab === 'home') {
@@ -281,6 +282,13 @@ export const Dashboard: React.FC = () => {
           </button>
 
           <button 
+            className={`menu-item ${activeTab === 'stationeries' ? 'active' : ''}`}
+            onClick={() => setActiveTab('stationeries')}
+          >
+            <span>Quản lý văn phòng phẩm</span>
+          </button>
+
+          <button 
             className={`menu-item ${activeTab === 'cells' ? 'active' : ''}`}
             onClick={() => setActiveTab('cells')}
           >
@@ -315,6 +323,8 @@ export const Dashboard: React.FC = () => {
           <PersonnelManagement />
         ) : activeTab === 'chemicals' ? (
           <ChemicalManagement />
+        ) : activeTab === 'stationeries' ? (
+          <StationeryManagement />
         ) : activeTab === 'cells' ? (
           <CellManagement />
         ) : activeTab === 'machines' ? (

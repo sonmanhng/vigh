@@ -19,9 +19,10 @@ export const getHomeStats = async (req: Request, res: Response) => {
 
     const isAdminOrManager = ['SuperAdmin', 'VienTruong', 'VienPho', 'TruongPhong', 'ADMIN', 'MANAGER'].includes(user.role);
 
-    // 1. Chemicals & Cells running low
+    // 1. Chemicals & Cells & Stationeries running low
     let lowChemicals: any[] = [];
     let lowCells: any[] = [];
+    let lowStationeries: any[] = [];
     
     if (isAdminOrManager || user.role === 'ChuyenVien') {
       const allChemicals = await prisma.chemical.findMany();
@@ -29,6 +30,9 @@ export const getHomeStats = async (req: Request, res: Response) => {
       
       const allCells = await prisma.cell.findMany();
       lowCells = allCells.filter((c: any) => c.maxQuantity > 0 && c.quantity <= (c.maxQuantity * c.alertThreshold / 100));
+
+      const allStationeries = await prisma.stationery.findMany();
+      lowStationeries = allStationeries.filter((c: any) => c.quantity <= c.alertThreshold);
     }
 
     // 2. Upcoming deadlines (Projects ending within 14 days)
@@ -109,6 +113,16 @@ export const getHomeStats = async (req: Request, res: Response) => {
       include: { creator: { select: { name: true } } }
     });
     
+    const pendingStationeryProposals = await prisma.stationeryProposal.findMany({
+      where: {
+        OR: [
+          { approver1Id: userId, level1Status: 'PENDING' },
+          { approver2Id: userId, level2Status: 'PENDING' }
+        ]
+      },
+      include: { creator: { select: { name: true } } }
+    });
+    
     const pendingOvertimes = await prisma.overtimeRequest.findMany({
       where: {
         OR: [
@@ -126,7 +140,8 @@ export const getHomeStats = async (req: Request, res: Response) => {
     res.json({
       lowStock: {
         chemicals: lowChemicals,
-        cells: lowCells
+        cells: lowCells,
+        stationeries: lowStationeries
       },
       upcomingDeadlines: {
         projects: upcomingProjects
@@ -136,6 +151,7 @@ export const getHomeStats = async (req: Request, res: Response) => {
       pendingApprovals: {
         chemicalProposals: pendingChemicalProposals,
         cellProposals: pendingCellProposals,
+        stationeryProposals: pendingStationeryProposals,
         overtimes: pendingOvertimes,
         projects: pendingProjects
       }

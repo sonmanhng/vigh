@@ -43,6 +43,9 @@ model User {
   researchComments        ResearchContentComment[] @relation("UserResearchComments")
   meetingsCreated         Meeting[]                @relation("MeetingCreator")
   meetingsParticipating   MeetingParticipant[]     @relation("MeetingParticipants")
+  stationeryProposals     StationeryProposal[]     @relation("CreatorStationeryProposals")
+  approved1Stationery     StationeryProposal[]     @relation("Approver1StationeryProposals")
+  approved2Stationery     StationeryProposal[]     @relation("Approver2StationeryProposals")
   createdAt        DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -383,4 +386,55 @@ model MeetingParticipant {
   meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
   userId    Int
   user      User    @relation("MeetingParticipants", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Stationery {
+  id             Int                     @id @default(autoincrement())
+  code           String                  @unique
+  name           String
+  unit           String
+  quantity       Float
+  alertThreshold Float                   @default(10) // Ngưỡng cảnh báo sắp hết
+  note           String?
+  transactions   StationeryTransaction[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+}
+
+model StationeryTransaction {
+  id           Int        @id @default(autoincrement())
+  type         String     // IMPORT | EXPORT
+  stationeryId Int
+  stationery   Stationery @relation(fields: [stationeryId], references: [id], onDelete: Cascade)
+  quantity     Float
+  note         String?
+  createdById  Int?
+  createdAt    DateTime   @default(now())
+}
+
+model StationeryProposal {
+  id           Int                      @id @default(autoincrement())
+  status       String                   @default("PENDING") // PENDING, PENDING_LEVEL_2, APPROVED, REJECTED
+  createdById  Int?
+  creator      User?                    @relation("CreatorStationeryProposals", fields: [createdById], references: [id], onDelete: SetNull)
+  approver1Id  Int?
+  approver1    User?                    @relation("Approver1StationeryProposals", fields: [approver1Id], references: [id], onDelete: SetNull)
+  approver2Id  Int?
+  approver2    User?                    @relation("Approver2StationeryProposals", fields: [approver2Id], references: [id], onDelete: SetNull)
+  level1Status String                   @default("PENDING")
+  level2Status String                   @default("PENDING")
+  note         String?
+  items        StationeryProposalItem[]
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+}
+
+model StationeryProposalItem {
+  id             Int                @id @default(autoincrement())
+  proposalId     Int
+  proposal       StationeryProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  stationeryName String
+  unit           String
+  quantity       Float
+  note           String?
 }
