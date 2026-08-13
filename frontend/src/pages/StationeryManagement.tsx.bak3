@@ -168,6 +168,13 @@ export const StationeryManagement: React.FC = () => {
     }
   }, [projectionMonth, projectionYear]);
 
+  const fetchProjectStatistics = useCallback(async () => {
+    try {
+      setProjectStatistics(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
 
   useEffect(() => {
@@ -194,6 +201,7 @@ export const StationeryManagement: React.FC = () => {
   
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
   useEffect(() => { if (activeTab === 'projections') fetchProjection(); }, [activeTab, fetchProjection]);
+  useEffect(() => { if (activeTab === 'statistics') fetchProjectStatistics(); }, [activeTab, fetchProjectStatistics]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleImportSubmit = async (e: React.FormEvent) => {

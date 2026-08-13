@@ -101,7 +101,6 @@ export const StationeryManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [alertBanner, setAlertBanner] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [projects, setProjects] = useState<Project[]>([]);
 
   const { socket } = useSocket();
 
@@ -152,7 +151,6 @@ export const StationeryManagement: React.FC = () => {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const res = await apiClient.get<Project[]>('/projects');
       setProjects(res.data);
     } catch (e) {
       console.error(e);
@@ -168,7 +166,25 @@ export const StationeryManagement: React.FC = () => {
     }
   }, [projectionMonth, projectionYear]);
 
+  const fetchProjectStatistics = useCallback(async () => {
+    try {
+      setProjectStatistics(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
+  const fetchApprovers = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/stationeries/approvers');
+      setApprovers(res.data);
+      if (res.data.level2 && res.data.level2.length > 0) {
+        setProposalForm(p => ({ ...p, approver2Id: res.data.level2[0].id.toString() }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -194,6 +210,7 @@ export const StationeryManagement: React.FC = () => {
   
   useEffect(() => { if (activeTab === 'history') fetchTransactions(); }, [activeTab, fetchTransactions]);
   useEffect(() => { if (activeTab === 'projections') fetchProjection(); }, [activeTab, fetchProjection]);
+  useEffect(() => { if (activeTab === 'statistics') fetchProjectStatistics(); }, [activeTab, fetchProjectStatistics]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleImportSubmit = async (e: React.FormEvent) => {
@@ -331,6 +348,102 @@ export const StationeryManagement: React.FC = () => {
     }
   };
 
+  const handleOpenProposal = async () => {
+    try {
+      const res = await apiClient.get('/stationeries/low-stock');
+      const lowStockItems = res.data;
+      if (lowStockItems.length > 0) {
+        const initialItems = lowStockItems.map((s: any) => ({
+          stationeryName: s.name,
+          unit: s.unit,
+          quantity: '',
+          note: 'Sắp hết'
+        }));
+        setProposalItems(initialItems);
+      } else {
+        setProposalItems([{ stationeryName: '', unit: '', quantity: '', note: '' }]);
+      }
+      setModal('proposal');
+    } catch (e: any) {
+      console.error(e);
+      setProposalItems([{ stationeryName: '', unit: '', quantity: '', note: '' }]);
+      setModal('proposal');
+    }
+  };
+
+  const handleProposalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (proposalItems.length === 0) return;
+    try {
+      await apiClient.post('/stationeries/proposals', {
+        note: proposalNote,
+        approver1Id: proposalForm.approver1Id,
+        approver2Id: proposalForm.approver2Id,
+        items: proposalItems,
+      });
+      setModal('none');
+      setProposalItems([{ stationeryName: '', unit: '', quantity: '', note: '' }]);
+      setProposalNote('');
+      fetchProposals();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi gửi đề xuất');
+    }
+  };
+
+  const handleUpdateProposalStatus = async (id: number, action: string) => {
+    try {
+      await apiClient.put(`/stationeries/proposals/${id}/status`, { action });
+      fetchProposals();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi cập nhật trạng thái');
+    }
+  };
+
+  const handleDelete = async (id: number, name: string) => {
+    if (!confirm(`Xoá văn phòng phẩm "${name}"? Hành động này không thể hoàn tác.`)) return;
+    try {
+      await apiClient.delete(`/stationeries/${id}`);
+      fetchStationerys();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi xoá văn phòng phẩm');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedStationerys.length === 0) return;
+    if (!confirm(`Xoá ${selectedStationerys.length} văn phòng phẩm đã chọn? Hành động này không thể hoàn tác.`)) return;
+    try {
+      await apiClient.post('/stationeries/bulk-delete', { ids: selectedStationerys });
+      setSelectedStationerys([]);
+      fetchStationerys();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi xoá văn phòng phẩm hàng loạt');
+    }
+  };
+
+  const openEdit = (c: Stationery) => {
+    setEditingId(c.id);
+    setImportForm({
+      code: c.code, name: c.name, unit: c.unit,
+      alertThreshold: c.alertThreshold,
+    });
+    setModal('edit');
+  };
+
+  const handleExportExcel = async (id: number) => {
+    try {
+      const res = await apiClient.get(`/stationeries/proposals/${id}/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `DeXuat_${id}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (e: any) {
+      setError('Lỗi khi xuất file Excel');
+    }
+  };
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const filtered = stationerys.filter(c =>
@@ -820,6 +933,109 @@ export const StationeryManagement: React.FC = () => {
                 } catch (e: any) { setError(e.response?.data?.error || 'Lỗi cập nhật ngưỡng cảnh báo'); }
               }}>💾 Lưu Cảnh Báo</button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Proposal Modal */}
+      {modal === 'proposal' && (
+        <div className="modal-overlay" onClick={() => setModal('none')}>
+          <div className="modal-content" style={{ maxWidth: '900px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Đề Xuất Văn Phòng Phẩm</div>
+              <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
+            </div>
+            <form onSubmit={handleProposalSubmit}>
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem', maxHeight: '60vh', overflowY: 'auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Người duyệt 1 (Trưởng phòng / Viện phó)</label>
+                    <select className="input-field" value={proposalForm.approver1Id} onChange={e => setProposalForm(p => ({ ...p, approver1Id: e.target.value }))}>
+                      <option value="">— Không có / Tự duyệt —</option>
+                      {approvers.level1.map(u => (
+                        <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Người duyệt 2 (Viện trưởng)</label>
+                    <select className="input-field" required value={proposalForm.approver2Id} onChange={e => setProposalForm(p => ({ ...p, approver2Id: e.target.value }))}>
+                      <option value="">— Chọn người duyệt 2 —</option>
+                      {approvers.level2.map(u => (
+                        <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Ghi Chú Đề Xuất</label>
+                  <input type="text" className="input-field" placeholder="Mục đích chung của đề xuất này..." value={proposalNote} onChange={e => setProposalNote(e.target.value)} />
+                </div>
+
+                <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead style={{ background: '#F8FAFC' }}>
+                      <tr style={{ fontSize: '0.85rem' }}>
+                        <th style={{ padding: '0.5rem' }}>Tên vật tư</th>
+                        <th style={{ padding: '0.5rem', width: '80px' }}>ĐVT</th>
+                        <th style={{ padding: '0.5rem', width: '100px' }}>Số lượng</th>
+                        <th style={{ padding: '0.5rem', width: '120px' }}>Giai đoạn</th>
+                        <th style={{ padding: '0.5rem' }}>Dự án</th>
+                        <th style={{ padding: '0.5rem', width: '50px' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {proposalItems.map((item, idx) => (
+                        <tr key={idx} style={{ borderTop: '1px solid var(--border-color)' }}>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="text" className="input-field" required placeholder="Tên văn phòng phẩm..." value={item.stationeryName} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].stationeryName = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="text" className="input-field" required placeholder="Lít, kg..." value={item.unit} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].unit = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="number" step="any" min="0" className="input-field" required value={item.quantity} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].quantity = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem' }}>
+                            <input type="text" className="input-field" placeholder="Ghi chú (tuỳ chọn)" value={item.note || ''} onChange={e => {
+                              const newItems = [...proposalItems];
+                              newItems[idx].note = e.target.value;
+                              setProposalItems(newItems);
+                            }} />
+                          </td>
+                          <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                            <button type="button" onClick={() => {
+                              if (proposalItems.length > 1) {
+                                setProposalItems(proposalItems.filter((_, i) => i !== idx));
+                              }
+                            }} style={{ border: 'none', background: 'none', color: '#CF1322', cursor: 'pointer', fontWeight: 800 }}>✕</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div style={{ padding: '0.5rem', background: '#F8FAFC', borderTop: '1px solid var(--border-color)' }}>
+                    <button type="button" onClick={() => setProposalItems([...proposalItems, { stationeryName: '', unit: '', quantity: '', note: '' }])} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>+ Thêm dòng</button>
+                  </div>
+                </div>
+
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setModal('none')}>Huỷ</button>
+                <button type="submit" className="btn btn-primary">Gửi Đề Xuất</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
