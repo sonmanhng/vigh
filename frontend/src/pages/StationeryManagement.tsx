@@ -564,7 +564,7 @@ export const StationeryManagement: React.FC = () => {
         <>
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-            <a href="/hoa_chat_mau.xlsx" download className="btn" style={{ background: 'var(--primary)', color: '#fff', textDecoration: 'none', border: 'none' }}>
+            <a href="/van_phong_pham_mau.xlsx" download className="btn" style={{ background: 'var(--primary)', color: '#fff', textDecoration: 'none', border: 'none' }}>
               ⬇ File Excel Mẫu
             </a>
             <input type="file" accept=".xlsx, .xls, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
@@ -630,14 +630,6 @@ export const StationeryManagement: React.FC = () => {
                           style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
                         />
                       </th>
-                      <th style={{ padding: '0.9rem 1rem' }}>Mã VPP</th>
-                      <th style={{ padding: '0.9rem 1rem' }}>Tên Văn Phòng Phẩm</th>
-                      <th style={{ padding: '0.9rem 1rem' }}>Phòng Quản Lý</th>
-                      <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Đơn Giá (VNĐ)</th>
-                      <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Ngày Nhập</th>
-                      <th style={{ padding: '0.9rem 1rem', textAlign: 'center', width: '150px' }}>Số Lượng</th>
-                      <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Trạng Thái</th>
-                      <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Thao Tác</th>
                       <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--text-muted)', fontWeight: 600 }}>Mã</th>
                       <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--text-muted)', fontWeight: 600 }}>Tên Văn Phòng Phẩm</th>
                       <th style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontWeight: 600 }}>Tồn kho</th>
