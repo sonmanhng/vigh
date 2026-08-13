@@ -152,6 +152,16 @@ export const updateProject = async (req: Request, res: Response) => {
             }
           }
         },
+        tasks: { 
+          include: {
+            assignee: { select: { id: true, name: true, email: true, role: true, avatar: true } }
+          },
+          orderBy: { createdAt: 'desc' }
+        },
+        machineLogs: {
+          include: { machine: true },
+          orderBy: { date: 'desc' }
+        }
       }
     });
     res.json(updated);
@@ -231,6 +241,10 @@ export const getProjectById = async (req: Request, res: Response) => {
             assignee: { select: { id: true, name: true, email: true, role: true, avatar: true } }
           },
           orderBy: { createdAt: 'desc' }
+        },
+        machineLogs: {
+          include: { machine: true },
+          orderBy: { date: 'desc' }
         }
       }
     });

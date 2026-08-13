@@ -2140,6 +2140,19 @@ export const ProjectDetail: React.FC = () => {
                     // Tính tổng tất cả phần trăm để cảnh báo nếu vượt quá 100%
                     const globalTotalPercent = memberStats.reduce((sum, ms) => sum + ms.totalPaymentPercent, 0);
 
+                    // Tính tiêu hao máy móc
+                    const machineStats = (project.machineLogs || []).reduce((acc: any, log: any) => {
+                      if (!log.machine) return acc;
+                      const mId = log.machine.id;
+                      if (!acc[mId]) {
+                        acc[mId] = { machine: log.machine, totalMinutes: 0, logs: [] };
+                      }
+                      acc[mId].totalMinutes += log.minutes;
+                      acc[mId].logs.push(log);
+                      return acc;
+                    }, {});
+                    const machineStatsArray = Object.values(machineStats) as any[];
+
                     return (
                       <>
                         {/* Summary Card */}
@@ -2210,6 +2223,47 @@ export const ProjectDetail: React.FC = () => {
                             </table>
                           </div>
                         </div>
+
+                        {/* Machine Stats Summary Card */}
+                        {machineStatsArray.length > 0 && (
+                          <div className="card" style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)' }}>
+                            <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.85rem' }}>
+                              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--primary)' }}>
+                                Thống Kê Tiêu Hao Máy Móc
+                              </h3>
+                              <p style={{ margin: '0.25rem 0 0', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                                Tổng hợp thời gian sử dụng thiết bị, máy móc trong quá trình thực hiện đề tài
+                              </p>
+                            </div>
+
+                            <div style={{ overflowX: 'auto' }}>
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                                <thead>
+                                  <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid var(--border-color)' }}>
+                                    <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)' }}>Mã Tài Sản</th>
+                                    <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: 600, color: 'var(--text-muted)' }}>Tên Thiết Bị / Máy Móc</th>
+                                    <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)' }}>Tổng Thời Gian (Phút)</th>
+                                    <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-muted)' }}>Tổng Thời Gian (Giờ)</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {machineStatsArray.map((stat, idx) => (
+                                    <tr key={stat.machine.id} style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
+                                      <td style={{ padding: '0.75rem', fontWeight: 500 }}>{stat.machine.code}</td>
+                                      <td style={{ padding: '0.75rem' }}>{stat.machine.name}</td>
+                                      <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>
+                                        {stat.totalMinutes.toLocaleString('vi-VN')}
+                                      </td>
+                                      <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                                        {(stat.totalMinutes / 60).toFixed(2)} giờ
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Detailed Member Accounting List */}
                         {memberStats.map(stat => (
