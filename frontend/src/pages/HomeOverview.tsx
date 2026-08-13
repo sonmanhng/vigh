@@ -97,7 +97,7 @@ export const HomeOverview: React.FC = () => {
           <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
             {upcomingMeetings?.length > 0 ? (
               <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
-                {upcomingMeetings.map((m: any) => (
+                {upcomingMeetings?.map((m: any) => (
                   <li key={m.id} style={{ marginBottom: '0.5rem' }}>
                     <strong>{m.title}</strong>
                     <br />
@@ -122,7 +122,7 @@ export const HomeOverview: React.FC = () => {
           <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
             {upcomingDeadlines?.projects?.length > 0 ? (
               <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
-                {upcomingDeadlines.projects.map((p: any) => (
+                {upcomingDeadlines?.projects?.map((p: any) => (
                   <li key={p.id} style={{ marginBottom: '0.5rem' }}>
                     <a href={`/project/${p.id}`} style={{ color: '#0284c7', textDecoration: 'none' }}>{p.name}</a>
                     <br />
@@ -145,7 +145,7 @@ export const HomeOverview: React.FC = () => {
           <div style={{ overflowY: 'auto', flexGrow: 1, paddingRight: '0.5rem' }}>
             {incomingReports?.length > 0 ? (
               <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#0f172a' }}>
-                {incomingReports.map((r: any) => (
+                {incomingReports?.map((r: any) => (
                   <li key={r.id} style={{ marginBottom: '0.5rem' }}>
                     <strong>{r.reporter?.name}</strong> đã gửi báo cáo tuần
                     <br />
