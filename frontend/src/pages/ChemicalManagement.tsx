@@ -92,14 +92,15 @@ interface UserData {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtVND = (n: number) => n.toLocaleString('vi-VN') + ' đ';
+const fmtPrice = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n) + ' đ';
+const fmtQuantity = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 }).format(n);
 const fmtDate = (d: string) => new Date(d).toLocaleDateString('vi-VN');
 const getPercent = (c: Chemical) => Math.round((c.quantity / c.maxQuantity) * 100);
 const isLow = (c: Chemical) => c.quantity < c.alertThreshold;
 
 // ─── Notification helper ───────────────────────────────────────────────────────
 async function fireAlert(name: string, quantity: number, threshold: number, unit: string) {
-  const body = `⚠️ ${name} còn lại ${quantity} ${unit} — dưới ngưỡng cảnh báo (${threshold} ${unit})! Cần bổ sung ngay.`;
+  const body = `⚠️ ${name} còn lại ${fmtQuantity(quantity)} ${unit} — dưới ngưỡng cảnh báo (${fmtQuantity(threshold)} ${unit})! Cần bổ sung ngay.`;
   try {
     const { isTauri } = await import('@tauri-apps/api/core');
     if (isTauri()) {
@@ -851,13 +852,13 @@ try {
                             )}
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>
-                            <div style={{ fontWeight: 700, color: 'var(--primary)' }}>{fmtVND(c.unitPrice)}/{c.unit}</div>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>HĐ: {fmtVND(c.invoicePrice)} / {c.specification} {c.unit}</div>
+                            <div style={{ fontWeight: 700, color: 'var(--primary)' }}>{fmtPrice(c.unitPrice)}/{c.unit}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>HĐ: {fmtPrice(c.invoicePrice)} / {c.specification} {c.unit}</div>
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center', fontSize: '0.88rem', color: 'var(--text-muted)' }}>{fmtDate(c.importDate)}</td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>
                             <div style={{ fontSize: '0.95rem', fontWeight: 700, color: low ? '#CF1322' : 'var(--text-main)' }}>
-                              {c.quantity} {c.unit}
+                              {fmtQuantity(c.quantity)} {c.unit}
                             </div>
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>
@@ -947,7 +948,7 @@ try {
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{p.note || 'Không có ghi chú'}</div>
                       <div style={{ fontSize: '0.8rem' }}>
                         {p.items.map((i, idx) => (
-                          <div key={idx}>- {i.chemicalName}: {i.quantity} {i.unit} (DA: {i.project?.code || 'Không có'})</div>
+                          <div key={idx}>- {i.chemicalName}: {fmtQuantity(i.quantity)} {i.unit} (DA: {i.project?.code || 'Không có'})</div>
                         ))}
                       </div>
                     </td>
@@ -1023,8 +1024,8 @@ try {
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Mã: {c.chemicalCode}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 700, color: '#D46B08' }}>{c.totalQuantity} {c.unit}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{fmtVND(c.totalValue)}</div>
+                      <div style={{ fontWeight: 700, color: '#D46B08' }}>{fmtQuantity(c.totalQuantity)} {c.unit}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{fmtPrice(c.totalValue)}</div>
                     </div>
                   </div>
                 ))}
@@ -1032,7 +1033,7 @@ try {
               
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '1rem', fontWeight: 700, fontSize: '0.95rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem' }}>
                 <span>Tổng chi phí:</span>
-                <span style={{ color: '#CF1322' }}>{fmtVND(stat.chemicals.reduce((sum, c) => sum + c.totalValue, 0))}</span>
+                <span style={{ color: '#CF1322' }}>{fmtPrice(stat.chemicals.reduce((sum, c) => sum + c.totalValue, 0))}</span>
               </div>
             </div>
           ))}
@@ -1071,7 +1072,7 @@ try {
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t.chemical.code}</div>
                     </td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700, color: t.type === 'IMPORT' ? '#389E0D' : '#CF1322' }}>
-                      {t.type === 'EXPORT' ? '-' : '+'}{t.quantity} {t.chemical.unit}
+                      {t.type === 'EXPORT' ? '-' : '+'}{fmtQuantity(t.quantity)} {t.chemical.unit}
                     </td>
                     <td style={{ padding: '0.85rem 1rem', fontSize: '0.88rem' }}>{t.projectCode || '—'}</td>
                     <td style={{ padding: '0.85rem 1rem', fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '200px' }}>{t.note || '—'}</td>
@@ -1182,7 +1183,7 @@ try {
                     <label className="input-label">Đơn Giá (tự tính)</label>
                     <div style={{ padding: '0.55rem 0.75rem', background: '#EEF2FF', borderRadius: '6px', fontWeight: 700, color: 'var(--primary)', fontSize: '0.9rem' }}>
                       {importForm.invoicePrice && importForm.specification
-                        ? fmtVND(Number(importForm.invoicePrice) / Number(importForm.specification)) + '/' + (importForm.unit || 'đv')
+                        ? fmtPrice(Number(importForm.invoicePrice) / Number(importForm.specification)) + '/' + (importForm.unit || 'đv')
                         : '—'}
                     </div>
                   </div>
@@ -1260,7 +1261,7 @@ try {
                   </datalist>
                   {exportForm.chemicalId && (
                     <div style={{ fontSize: '0.8rem', color: 'var(--primary)', marginTop: '4px', fontWeight: 600 }}>
-                      ✓ Đã chọn: Tồn kho còn {chemicals.find(c => c.id.toString() === exportForm.chemicalId)?.quantity} {chemicals.find(c => c.id.toString() === exportForm.chemicalId)?.unit}
+                      ✓ Đã chọn: Tồn kho còn {fmtQuantity(chemicals.find(c => c.id.toString() === exportForm.chemicalId)?.quantity || 0)} {chemicals.find(c => c.id.toString() === exportForm.chemicalId)?.unit}
                     </div>
                   )}
                 </div>

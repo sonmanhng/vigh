@@ -64,13 +64,14 @@ interface Projection {
 type Tab = 'warehouse' | 'projections' | 'statistics' | 'history';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtVND = (n: number) => n.toLocaleString('vi-VN') + ' đ';
+const fmtPrice = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n) + ' đ';
+const fmtQuantity = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 5 }).format(n);
 const fmtDate = (d: string) => new Date(d).toLocaleDateString('vi-VN');
 const isLow = (c: Stationery) => c.quantity < c.alertThreshold;
 
 // ─── Notification helper ───────────────────────────────────────────────────────
 async function fireAlert(name: string, quantity: number, threshold: number, unit: string) {
-  const body = `⚠️ ${name} còn lại ${quantity} ${unit} — dưới ngưỡng cảnh báo (${threshold} ${unit})! Cần bổ sung ngay.`;
+  const body = `⚠️ ${name} còn lại ${fmtQuantity(quantity)} ${unit} — dưới ngưỡng cảnh báo (${fmtQuantity(threshold)} ${unit})! Cần bổ sung ngay.`;
   try {
     const { isTauri } = await import('@tauri-apps/api/core');
     if (isTauri()) {
@@ -609,7 +610,7 @@ export const StationeryManagement: React.FC = () => {
                           <td style={{ padding: '0.9rem 1rem', fontWeight: 700, color: 'var(--primary)' }}>{c.code}</td>
                           <td style={{ padding: '0.9rem 1rem', fontWeight: 600 }}>{c.name}</td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center', color: low ? '#CF1322' : 'var(--text-main)', fontWeight: 700 }}>
-                            {c.quantity} {c.unit}
+                            {fmtQuantity(c.quantity)} {c.unit}
                             {low && <div style={{ fontSize: '0.75rem', color: '#CF1322', marginTop: '0.2rem', fontWeight: 600 }}>(Sắp hết)</div>}
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'center', color: 'var(--text-main)', fontWeight: 600 }}>{c.alertThreshold}</td>
@@ -670,7 +671,7 @@ export const StationeryManagement: React.FC = () => {
                     <td style={{ padding: '0.85rem 1rem' }}>{item.stationery?.code || '-'}</td>
                     <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>{item.name}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>{item.unit}</td>
-                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--primary)' }}>{item.quantity}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700, color: 'var(--primary)' }}>{fmtQuantity(Number(item.quantity))}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
                       {item.stationeryId ? stationerys.find(s => s.id === item.stationeryId)?.quantity || '-' : '-'}
                     </td>
@@ -727,7 +728,7 @@ export const StationeryManagement: React.FC = () => {
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{t.stationery.code}</div>
                     </td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 700, color: t.type === 'IMPORT' ? '#389E0D' : '#CF1322' }}>
-                      {t.type === 'EXPORT' ? '-' : '+'}{t.quantity} {t.stationery.unit}
+                      {t.type === 'EXPORT' ? '-' : '+'}{fmtQuantity(t.quantity)} {t.stationery.unit}
                     </td>
                     <td style={{ padding: '0.85rem 1rem', fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '200px' }}>{t.note || '—'}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{new Date(t.createdAt).toLocaleString('vi-VN')}</td>
