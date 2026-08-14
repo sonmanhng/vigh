@@ -31,9 +31,29 @@ export const createStationery = async (req: Request, res: Response) => {
   try {
     const data = req.body;
     const existing = await prisma.stationery.findUnique({ where: { code: data.code } });
+    
     if (existing) {
-      return res.status(400).json({ message: 'Mã VPP đã tồn tại' });
+      const updated = await prisma.stationery.update({
+        where: { code: data.code },
+        data: {
+          quantity: { increment: Number(data.quantity) || 0 },
+          name: data.name,
+          unit: data.unit,
+          alertThreshold: Number(data.alertThreshold) || 10,
+          note: data.note,
+          transactions: {
+            create: {
+              type: 'IMPORT',
+              quantity: Number(data.quantity) || 0,
+              note: data.note || 'Nhập bổ sung',
+              createdById: (req as any).user?.id,
+            }
+          }
+        }
+      });
+      return res.status(200).json(updated);
     }
+    
     const newStationery = await prisma.stationery.create({
       data: {
         code: data.code,
@@ -41,7 +61,15 @@ export const createStationery = async (req: Request, res: Response) => {
         unit: data.unit,
         quantity: Number(data.quantity) || 0,
         alertThreshold: Number(data.alertThreshold) || 10,
-        note: data.note
+        note: data.note,
+        transactions: {
+          create: {
+            type: 'IMPORT',
+            quantity: Number(data.quantity) || 0,
+            note: data.note || 'Nhập mới',
+            createdById: (req as any).user?.id,
+          }
+        }
       }
     });
     res.status(201).json(newStationery);
