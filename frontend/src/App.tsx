@@ -1,4 +1,5 @@
 import React from 'react';
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
@@ -21,6 +22,7 @@ function App() {
     <SocketProvider>
       <AuthProvider>
         <BackgroundMonitor />
+        <Toaster position="top-right" toastOptions={{ duration: 4000, style: { padding: '12px 16px', fontSize: '15px' } }} />
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />

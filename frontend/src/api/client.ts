@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 // VITE_API_URL is injected by GitHub Actions for GitHub Pages
 // In PROD on Render, it falls back to '/api' which uses the same origin
@@ -35,6 +36,14 @@ apiClient.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+    
+    // Global error toast
+    const errorMsg = error.response?.data?.error || 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
+    // Ignore 401 unauth errors from toast to avoid spamming on session expire
+    if (error.response?.status !== 401) {
+      toast.error(errorMsg);
+    }
+
     return Promise.reject(error);
   }
 );

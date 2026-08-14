@@ -3,6 +3,7 @@ import { apiClient } from '../api/client';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
+import { toast } from 'react-hot-toast';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -358,7 +359,7 @@ export const ChemicalManagement: React.FC = () => {
         fetchChemicals();
         fetchTransactions();
         setError(null);
-        alert(res.data.message);
+        toast.success(res.data.message);
       } catch (err: any) {
         setError(err.response?.data?.error || 'Lỗi khi upload file');
       } finally {
@@ -403,8 +404,9 @@ try {
       await apiClient.delete(`/chemicals/transactions/${id}`);
       fetchChemicals();
       fetchTransactions();
+      toast.success('Đã huỷ giao dịch thành công');
     } catch (e: any) {
-      alert(e.response?.data?.error || 'Lỗi huỷ giao dịch');
+      console.error(e);
     }
   };
 
@@ -416,8 +418,8 @@ try {
       
       const res = await apiClient.get(url);
       const data = res.data;
-      if (data.length === 0) {
-        alert('Không có dữ liệu xuất kho cho tiêu chí đã chọn.');
+      if (res.data.length === 0) {
+        toast.error('Không có dữ liệu xuất kho cho tiêu chí đã chọn.');
         return;
       }
 
@@ -530,7 +532,7 @@ try {
       const buffer = await wb.xlsx.writeBuffer();
       saveAs(new Blob([buffer]), `De_Nghi_Xuat_Hoa_Chat_${exportDate}.xlsx`);
     } catch (e: any) {
-      alert(e.response?.data?.error || 'Lỗi xuất file Excel');
+      toast.error(e.response?.data?.error || 'Lỗi xuất file Excel');
     }
   };
 
