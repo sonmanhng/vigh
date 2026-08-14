@@ -134,6 +134,62 @@ export const addProjectionItem = async (req: Request, res: Response) => {
   }
 };
 
+export const addProjectionItemByMonthYear = async (req: Request, res: Response) => {
+  try {
+    const { month, year, stationeryId, name, unit, quantity, note } = req.body;
+    const userId = (req as any).user?.id;
+
+    if (!month || !year || !name || quantity <= 0) {
+      return res.status(400).json({ error: 'Tháng, năm, tên và số lượng hợp lệ là bắt buộc' });
+    }
+
+    let projection = await prisma.stationeryProjection.findUnique({
+      where: { month_year: { month: Number(month), year: Number(year) } }
+    });
+
+    if (!projection) {
+      projection = await prisma.stationeryProjection.create({
+        data: { month: Number(month), year: Number(year) }
+      });
+    }
+
+    // Reuse the same logic as addProjectionItem but with projection.id
+    if (stationeryId) {
+      const existing = await prisma.stationeryProjectionItem.findFirst({
+        where: { projectionId: projection.id, stationeryId: Number(stationeryId) }
+      });
+      if (existing) {
+        const updated = await prisma.stationeryProjectionItem.update({
+          where: { id: existing.id },
+          data: { quantity: existing.quantity + Number(quantity) }
+        });
+        return res.json(updated);
+      }
+    }
+
+    const item = await prisma.stationeryProjectionItem.create({
+      data: {
+        projectionId: projection.id,
+        stationeryId: stationeryId ? Number(stationeryId) : null,
+        name,
+        unit: unit || 'Cái',
+        quantity: Number(quantity),
+        note,
+        addedById: userId
+      },
+      include: {
+        addedBy: { select: { id: true, name: true } },
+        stationery: { select: { code: true } }
+      }
+    });
+
+    res.status(201).json(item);
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: 'Lỗi khi thêm mục dự trù', details: error.message });
+  }
+};
+
 export const removeProjectionItem = async (req: Request, res: Response) => {
   try {
     const { itemId } = req.params;
