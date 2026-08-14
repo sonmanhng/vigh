@@ -437,7 +437,8 @@ export const exportChemical = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Dữ liệu không hợp lệ', details: (err as any).errors });
+      const details = (err as any).errors.map((e: any) => `${e.path?.join('.')}: ${e.message}`).join(', ');
+      return res.status(400).json({ error: `Dữ liệu không hợp lệ: ${details}` });
     }
     console.error(err);
     res.status(500).json({ error: 'Lỗi server khi xuất hoá chất' });

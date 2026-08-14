@@ -1256,7 +1256,7 @@ try {
                     onChange={e => {
                       const val = e.target.value;
                       const match = chemicals.find(c => `${c.code} — ${c.name}` === val);
-                      setExportForm({...exportForm, chemicalSearch: val, chemicalId: match ? match.id.toString() : ''});
+                      setExportForm(prev => ({ ...prev, chemicalSearch: val, chemicalId: match ? match.id.toString() : '' }));
                     }}
                   />
                   <datalist id="chemical-export-list">
