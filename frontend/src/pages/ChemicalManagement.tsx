@@ -1269,12 +1269,20 @@ try {
                 </div>
                 <div className="input-group">
                   <label className="input-label">Mã Dự Án (*)</label>
-                  <select className="input-field" required value={exportForm.projectCode} onChange={e => setExportForm(p => ({ ...p, projectCode: e.target.value }))}>
-                    <option value="">— Chọn dự án —</option>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    list="export-projects" 
+                    required 
+                    placeholder="Nhập hoặc chọn mã dự án..." 
+                    value={exportForm.projectCode} 
+                    onChange={e => setExportForm(p => ({ ...p, projectCode: e.target.value }))} 
+                  />
+                  <datalist id="export-projects">
                     {projects.map(p => (
-                      <option key={p.id} value={p.code}>{p.code} - {p.name}</option>
+                      <option key={p.id} value={p.code}>{p.name}</option>
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <div className="input-group">
                   <label className="input-label">Số Lượng Xuất (*)</label>
