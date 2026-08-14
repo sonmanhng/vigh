@@ -1052,6 +1052,7 @@ try {
                   <th style={{ padding: '0.9rem 1rem' }}>Hoá Chất</th>
                   <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Số Lượng</th>
                   <th style={{ padding: '0.9rem 1rem' }}>Mã Dự Án</th>
+                  <th style={{ padding: '0.9rem 1rem' }}>Người X/N</th>
                   <th style={{ padding: '0.9rem 1rem' }}>Ghi Chú</th>
                   <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Thời Gian</th>
                   <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Thao tác</th>
@@ -1075,6 +1076,7 @@ try {
                       {t.type === 'EXPORT' ? '-' : '+'}{fmtQuantity(t.quantity)} {t.chemical.unit}
                     </td>
                     <td style={{ padding: '0.85rem 1rem', fontSize: '0.88rem' }}>{t.projectCode || '—'}</td>
+                    <td style={{ padding: '0.85rem 1rem', fontSize: '0.88rem' }}>{(t as any).creatorName || '—'}</td>
                     <td style={{ padding: '0.85rem 1rem', fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '200px' }}>{t.note || '—'}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{new Date(t.createdAt).toLocaleString('vi-VN')}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>

@@ -105,7 +105,20 @@ export const getTransactions = async (req: Request, res: Response) => {
       },
       take: 200,
     });
-    res.json(transactions);
+
+    const userIds = [...new Set(transactions.map(t => t.createdById).filter(Boolean))] as number[];
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, name: true }
+    });
+    const userMap = new Map(users.map(u => [u.id, u.name]));
+
+    const result = transactions.map(t => ({
+      ...t,
+      creatorName: t.createdById ? userMap.get(t.createdById) : null
+    }));
+
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Lỗi server khi lấy lịch sử' });
