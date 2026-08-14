@@ -4,7 +4,6 @@ import {
   getTransactions,
   createChemical,
   updateChemical,
-  deleteChemical,
   exportChemical,
   createProposal,
   getProposals,
@@ -13,7 +12,6 @@ import {
   getApprovers,
   getProjectStatistics,
   importChemicals,
-  bulkDeleteChemicals,
   undoChemicalTransaction,
   getExportData,
   requestDeleteChemical,
@@ -42,13 +40,11 @@ router.delete('/transactions/:id', undoChemicalTransaction);
 router.get('/', getChemicals);
 router.post('/', createChemical);
 router.post('/import', importChemicals);
-router.post('/bulk-delete', bulkDeleteChemicals);
 router.post('/bulk-request-delete', requestBulkDeleteChemicals);
 router.post('/:id/export', exportChemical);
 router.post('/:id/request-delete', requestDeleteChemical);
 router.post('/:id/approve-delete', approveDeleteChemical);
 router.post('/:id/reject-delete', rejectDeleteChemical);
 router.put('/:id', updateChemical);
-router.delete('/:id', deleteChemical);
 
 export default router;

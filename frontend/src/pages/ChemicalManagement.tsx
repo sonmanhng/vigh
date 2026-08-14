@@ -1189,8 +1189,8 @@ try {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" onClick={() => setModal('none')} className="btn-secondary">Huỷ</button>
-                <button type="submit" className="btn-primary" style={{ background: '#FF4D4F' }}>Gửi Yêu Cầu Xoá</button>
+                <button type="button" onClick={() => setModal('none')} className="btn btn-secondary">Huỷ</button>
+                <button type="submit" className="btn btn-primary" style={{ background: '#FF4D4F' }}>Gửi Yêu Cầu Xoá</button>
               </div>
             </form>
           </div>
