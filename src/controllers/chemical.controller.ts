@@ -60,6 +60,7 @@ const exportSchema = z.object({
   projectCode: z.string().min(1),
   quantity: z.number().min(0.001),
   note: z.string().optional(),
+  exportDate: z.string().optional(),
 });
 
 // GET /api/chemicals — Lấy kho theo phòng ban của user
@@ -399,6 +400,7 @@ export const exportChemical = async (req: Request, res: Response) => {
           projectCode: data.projectCode,
           note: data.note,
           createdById: (req as any).user?.id,
+          createdAt: data.exportDate ? new Date(data.exportDate) : undefined,
         },
       }),
     ]);

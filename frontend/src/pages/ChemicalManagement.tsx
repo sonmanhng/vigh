@@ -154,7 +154,7 @@ export const ChemicalManagement: React.FC = () => {
   const [importForm, setImportForm] = useState(emptyImport());
 
   // Export form
-  const [exportForm, setExportForm] = useState({ chemicalId: '', chemicalSearch: '', projectCode: '', quantity: '' as number | string, note: '' });
+  const [exportForm, setExportForm] = useState({ chemicalId: '', chemicalSearch: '', projectCode: '', quantity: '' as number | string, note: '', exportDate: '' });
   const [alertForm, setAlertForm] = useState({ chemicalId: '', chemicalSearch: '', threshold: 0 });
 
   // Proposal form
@@ -376,9 +376,10 @@ export const ChemicalManagement: React.FC = () => {
         projectCode: exportForm.projectCode,
         quantity: Number(exportForm.quantity),
         note: exportForm.note,
+        exportDate: exportForm.exportDate ? exportForm.exportDate : undefined,
       });
       setModal('none');
-      setExportForm({ chemicalId: '', projectCode: '', quantity: '', note: '' });
+      setExportForm({ chemicalId: '', chemicalSearch: '', projectCode: '', quantity: '', note: '', exportDate: '' });
       fetchChemicals();
       fetchTransactions();
       if (res.data.warning) {
@@ -1292,6 +1293,10 @@ try {
                       Tồn sau xuất: {(chemicals.find(c => c.id === Number(exportForm.chemicalId))?.quantity || 0) - Number(exportForm.quantity)} {chemicals.find(c => c.id === Number(exportForm.chemicalId))?.unit}
                     </span>
                   )}
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Thời gian xuất kho (Tuỳ chọn)</label>
+                  <input type="datetime-local" className="input-field" value={exportForm.exportDate} onChange={e => setExportForm(p => ({ ...p, exportDate: e.target.value }))} />
                 </div>
                 <div className="input-group" style={{ marginBottom: 0 }}>
                   <label className="input-label">Ghi Chú</label>
