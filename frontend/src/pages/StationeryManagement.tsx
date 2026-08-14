@@ -757,7 +757,7 @@ export const StationeryManagement: React.FC = () => {
               <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
                   <div className="input-group">
-                    <label className="input-label">Mã Văn Phòng Phẩm (*)</label>
+                    <label className="input-label">Mã Văn Phòng Phẩm</label>
                     <input type="text" list="stationery-codes" className="input-field" required placeholder="VPP-001" value={importForm.code} onChange={e => {
                       const code = e.target.value;
                       const existing = stationerys.find(c => c.code === code);
