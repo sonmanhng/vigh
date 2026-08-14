@@ -381,12 +381,14 @@ export const requestDeleteChemical = async (req: Request, res: Response) => {
 
     if (!approverId) return res.status(400).json({ error: 'Vui lòng chọn người duyệt' });
 
+    const approverIdInt = parseInt(approverId, 10);
+
     const chemical = await prisma.chemical.update({
       where: { id },
       data: {
         isDeleteRequested: true,
         deleteRequesterId: userId,
-        deleteApproverId: approverId,
+        deleteApproverId: approverIdInt,
         deleteReason: reason || null,
       }
     });
@@ -395,7 +397,7 @@ export const requestDeleteChemical = async (req: Request, res: Response) => {
 
     await prisma.notification.create({
       data: {
-        userId: approverId,
+        userId: approverIdInt,
         title: 'Yêu cầu xoá hoá chất',
         message: `${requester?.name || 'Một người dùng'} yêu cầu xoá hoá chất ${chemical.name}. Lý do: ${reason || 'Không có'}`,
         type: 'CHEMICAL_WARNING'
@@ -419,12 +421,14 @@ export const requestBulkDeleteChemicals = async (req: Request, res: Response) =>
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Danh sách hoá chất rỗng' });
     if (!approverId) return res.status(400).json({ error: 'Vui lòng chọn người duyệt' });
 
+    const approverIdInt = parseInt(approverId, 10);
+
     await prisma.chemical.updateMany({
       where: { id: { in: ids } },
       data: {
         isDeleteRequested: true,
         deleteRequesterId: userId,
-        deleteApproverId: approverId,
+        deleteApproverId: approverIdInt,
         deleteReason: reason || null,
       }
     });
@@ -433,7 +437,7 @@ export const requestBulkDeleteChemicals = async (req: Request, res: Response) =>
 
     await prisma.notification.create({
       data: {
-        userId: approverId,
+        userId: approverIdInt,
         title: 'Yêu cầu xoá hoá chất hàng loạt',
         message: `${requester?.name || 'Một người dùng'} yêu cầu xoá ${ids.length} hoá chất. Lý do: ${reason || 'Không có'}`,
         type: 'CHEMICAL_WARNING'

@@ -1153,38 +1153,42 @@ try {
               <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
             </div>
             <form onSubmit={handleRequestDeleteSubmit}>
-              <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
-                {deleteTarget.type === 'single'
-                  ? <>Bạn đang yêu cầu xoá hoá chất <strong>{deleteTarget.name}</strong>. Hành động này cần được phê duyệt.</>
-                  : <>Bạn đang yêu cầu xoá <strong>{selectedChemicals.length}</strong> hoá chất. Hành động này cần được phê duyệt.</>
-                }
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
+                <div style={{ color: 'var(--text-secondary)' }}>
+                  {deleteTarget.type === 'single'
+                    ? <>Bạn đang yêu cầu xoá hoá chất <strong>{deleteTarget.name}</strong>. Hành động này cần được phê duyệt.</>
+                    : <>Bạn đang yêu cầu xoá <strong>{selectedChemicals.length}</strong> hoá chất. Hành động này cần được phê duyệt.</>
+                  }
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Người duyệt <span style={{ color: 'red' }}>*</span></label>
+                  <select 
+                    className="input-field"
+                    required
+                    value={deleteForm.approverId}
+                    onChange={e => setDeleteForm(p => ({ ...p, approverId: e.target.value }))}
+                  >
+                    <option value="">-- Chọn người duyệt --</option>
+                    {approvers.level1?.map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    ))}
+                    {approvers.level2?.map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Lý do xoá</label>
+                  <textarea 
+                    className="input-field"
+                    rows={3} 
+                    placeholder="Nhập lý do xoá hoá chất..."
+                    value={deleteForm.reason}
+                    onChange={e => setDeleteForm(p => ({ ...p, reason: e.target.value }))}
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Người duyệt <span style={{ color: 'red' }}>*</span></label>
-                <select 
-                  required
-                  value={deleteForm.approverId}
-                  onChange={e => setDeleteForm(p => ({ ...p, approverId: e.target.value }))}
-                >
-                  <option value="">-- Chọn người duyệt --</option>
-                  {approvers.level1?.map(u => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                  ))}
-                  {approvers.level2?.map(u => (
-                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Lý do xoá</label>
-                <textarea 
-                  rows={3} 
-                  placeholder="Nhập lý do xoá hoá chất..."
-                  value={deleteForm.reason}
-                  onChange={e => setDeleteForm(p => ({ ...p, reason: e.target.value }))}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+              <div className="modal-footer">
                 <button type="button" onClick={() => setModal('none')} className="btn-secondary">Huỷ</button>
                 <button type="submit" className="btn-primary" style={{ background: '#FF4D4F' }}>Gửi Yêu Cầu Xoá</button>
               </div>
