@@ -15,7 +15,11 @@ import {
   importChemicals,
   bulkDeleteChemicals,
   undoChemicalTransaction,
-  getExportData
+  getExportData,
+  requestDeleteChemical,
+  requestBulkDeleteChemicals,
+  approveDeleteChemical,
+  rejectDeleteChemical
 } from '../controllers/chemical.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
@@ -39,8 +43,12 @@ router.get('/', getChemicals);
 router.post('/', createChemical);
 router.post('/import', importChemicals);
 router.post('/bulk-delete', bulkDeleteChemicals);
+router.post('/bulk-request-delete', requestBulkDeleteChemicals);
+router.post('/:id/export', exportChemical);
+router.post('/:id/request-delete', requestDeleteChemical);
+router.post('/:id/approve-delete', approveDeleteChemical);
+router.post('/:id/reject-delete', rejectDeleteChemical);
 router.put('/:id', updateChemical);
 router.delete('/:id', deleteChemical);
-router.post('/:id/export', exportChemical);
 
 export default router;

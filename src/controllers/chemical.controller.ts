@@ -77,6 +77,10 @@ export const getChemicals = async (req: Request, res: Response) => {
     
     const chemicals = await prisma.chemical.findMany({
       where,
+      include: {
+        deleteRequester: { select: { name: true } },
+        deleteApprover: { select: { name: true } }
+      },
       orderBy: { createdAt: 'desc' },
     });
     res.json(chemicals);
@@ -365,6 +369,161 @@ export const bulkDeleteChemicals = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ error: 'Lỗi server khi xoá hoá chất hàng loạt' });
+  }
+};
+
+// POST /api/chemicals/:id/request-delete
+export const requestDeleteChemical = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const { approverId, reason } = req.body;
+    const userId = (req as any).user?.id;
+
+    if (!approverId) return res.status(400).json({ error: 'Vui lòng chọn người duyệt' });
+
+    const chemical = await prisma.chemical.update({
+      where: { id },
+      data: {
+        isDeleteRequested: true,
+        deleteRequesterId: userId,
+        deleteApproverId: approverId,
+        deleteReason: reason || null,
+      }
+    });
+
+    const requester = await prisma.user.findUnique({ where: { id: userId } });
+
+    await prisma.notification.create({
+      data: {
+        userId: approverId,
+        title: 'Yêu cầu xoá hoá chất',
+        message: `${requester?.name || 'Một người dùng'} yêu cầu xoá hoá chất ${chemical.name}. Lý do: ${reason || 'Không có'}`,
+        type: 'CHEMICAL_WARNING'
+      }
+    });
+
+    getIO().emit('sync_chemicals');
+    res.json({ message: 'Đã gửi yêu cầu xoá hoá chất thành công' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi server khi gửi yêu cầu' });
+  }
+};
+
+// POST /api/chemicals/bulk-request-delete
+export const requestBulkDeleteChemicals = async (req: Request, res: Response) => {
+  try {
+    const { ids, approverId, reason } = req.body;
+    const userId = (req as any).user?.id;
+
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'Danh sách hoá chất rỗng' });
+    if (!approverId) return res.status(400).json({ error: 'Vui lòng chọn người duyệt' });
+
+    await prisma.chemical.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        isDeleteRequested: true,
+        deleteRequesterId: userId,
+        deleteApproverId: approverId,
+        deleteReason: reason || null,
+      }
+    });
+
+    const requester = await prisma.user.findUnique({ where: { id: userId } });
+
+    await prisma.notification.create({
+      data: {
+        userId: approverId,
+        title: 'Yêu cầu xoá hoá chất hàng loạt',
+        message: `${requester?.name || 'Một người dùng'} yêu cầu xoá ${ids.length} hoá chất. Lý do: ${reason || 'Không có'}`,
+        type: 'CHEMICAL_WARNING'
+      }
+    });
+
+    getIO().emit('sync_chemicals');
+    res.json({ message: `Đã gửi yêu cầu xoá ${ids.length} hoá chất thành công` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi server khi gửi yêu cầu' });
+  }
+};
+
+// POST /api/chemicals/:id/approve-delete
+export const approveDeleteChemical = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const userId = (req as any).user?.id;
+    const role = (req as any).user?.role;
+
+    const chemical = await prisma.chemical.findUnique({ where: { id } });
+    if (!chemical) return res.status(404).json({ error: 'Không tìm thấy hoá chất' });
+
+    if (chemical.deleteApproverId !== userId && role !== 'SUPERADMIN') {
+      return res.status(403).json({ error: 'Bạn không có quyền duyệt xoá hoá chất này' });
+    }
+
+    await prisma.chemical.delete({ where: { id } });
+
+    if (chemical.deleteRequesterId) {
+      await prisma.notification.create({
+        data: {
+          userId: chemical.deleteRequesterId,
+          title: 'Yêu cầu xoá hoá chất được duyệt',
+          message: `Yêu cầu xoá hoá chất ${chemical.name} của bạn đã được duyệt.`,
+          type: 'CHEMICAL_WARNING'
+        }
+      });
+    }
+
+    getIO().emit('sync_chemicals');
+    getIO().emit('sync_transactions');
+    res.json({ message: 'Đã duyệt xoá hoá chất thành công' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi server khi duyệt xoá' });
+  }
+};
+
+// POST /api/chemicals/:id/reject-delete
+export const rejectDeleteChemical = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    const userId = (req as any).user?.id;
+    const role = (req as any).user?.role;
+
+    const chemical = await prisma.chemical.findUnique({ where: { id } });
+    if (!chemical) return res.status(404).json({ error: 'Không tìm thấy hoá chất' });
+
+    if (chemical.deleteApproverId !== userId && role !== 'SUPERADMIN') {
+      return res.status(403).json({ error: 'Bạn không có quyền từ chối xoá hoá chất này' });
+    }
+
+    await prisma.chemical.update({
+      where: { id },
+      data: {
+        isDeleteRequested: false,
+        deleteRequesterId: null,
+        deleteApproverId: null,
+        deleteReason: null,
+      }
+    });
+
+    if (chemical.deleteRequesterId) {
+      await prisma.notification.create({
+        data: {
+          userId: chemical.deleteRequesterId,
+          title: 'Yêu cầu xoá hoá chất bị từ chối',
+          message: `Yêu cầu xoá hoá chất ${chemical.name} của bạn đã bị từ chối.`,
+          type: 'CHEMICAL_WARNING'
+        }
+      });
+    }
+
+    getIO().emit('sync_chemicals');
+    res.json({ message: 'Đã từ chối yêu cầu xoá hoá chất' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Lỗi server khi từ chối xoá' });
   }
 };
 

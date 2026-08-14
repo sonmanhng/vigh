@@ -40,6 +40,8 @@ model User {
   notifications           Notification[]    @relation("UserNotifications")
   submittedReports        WeeklyReport[]    @relation("ReportedBy")
   receivedReports         WeeklyReport[]    @relation("ReportedTo")
+  chemicalDeleteRequests  Chemical[]        @relation("ChemicalDeleteRequester")
+  chemicalDeleteApprovals Chemical[]        @relation("ChemicalDeleteApprover")
   researchComments        ResearchContentComment[] @relation("UserResearchComments")
   meetingsCreated         Meeting[]                @relation("MeetingCreator")
   meetingsParticipating   MeetingParticipant[]     @relation("MeetingParticipants")
@@ -141,6 +143,12 @@ model Chemical {
   department     String?               // Phòng ban quản lý hoá chất
   location       String?
   note           String?
+  isDeleteRequested Boolean @default(false)
+  deleteRequesterId Int?
+  deleteRequester   User?   @relation("ChemicalDeleteRequester", fields: [deleteRequesterId], references: [id], onDelete: SetNull)
+  deleteApproverId  Int?
+  deleteApprover    User?   @relation("ChemicalDeleteApprover", fields: [deleteApproverId], references: [id], onDelete: SetNull)
+  deleteReason      String?
   transactions   ChemicalTransaction[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

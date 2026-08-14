@@ -22,6 +22,10 @@ interface Chemical {
   department?: string;
   location?: string;
   note?: string;
+  isDeleteRequested?: boolean;
+  deleteRequesterId?: number | null;
+  deleteApproverId?: number | null;
+  deleteReason?: string | null;
   updatedAt: string;
 }
 
@@ -146,8 +150,12 @@ export const ChemicalManagement: React.FC = () => {
   const { socket } = useSocket();
 
   // Modal state
-  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'proposal'>('none');
+  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'proposal' | 'request_delete'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  // Request Delete state
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'bulk', id?: number, name?: string }>({ type: 'single' });
+  const [deleteForm, setDeleteForm] = useState({ approverId: '', reason: '' });
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -584,26 +592,55 @@ try {
     }
   };
 
-  const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Xoá hoá chất "${name}"? Hành động này không thể hoàn tác.`)) return;
+  const handleDelete = (id: number, name: string) => {
+    setDeleteTarget({ type: 'single', id, name });
+    setDeleteForm({ approverId: '', reason: '' });
+    setModal('request_delete');
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedChemicals.length === 0) return;
+    setDeleteTarget({ type: 'bulk' });
+    setDeleteForm({ approverId: '', reason: '' });
+    setModal('request_delete');
+  };
+
+  const handleRequestDeleteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deleteForm.approverId) return toast.error('Vui lòng chọn người duyệt');
+    
     try {
-      await apiClient.delete(`/chemicals/${id}`);
+      if (deleteTarget.type === 'single') {
+        await apiClient.post(`/chemicals/${deleteTarget.id}/request-delete`, deleteForm);
+        toast.success('Đã gửi yêu cầu xoá hoá chất thành công');
+      } else {
+        await apiClient.post(`/chemicals/bulk-request-delete`, { ids: selectedChemicals, ...deleteForm });
+        toast.success(`Đã gửi yêu cầu xoá ${selectedChemicals.length} hoá chất thành công`);
+        setSelectedChemicals([]);
+      }
+      setModal('none');
       fetchChemicals();
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Lỗi xoá hoá chất');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Lỗi gửi yêu cầu xoá');
     }
   };
 
-  const handleBulkDelete = async () => {
-    if (selectedChemicals.length === 0) return;
-    if (!confirm(`Xoá ${selectedChemicals.length} hoá chất đã chọn? Hành động này không thể hoàn tác.`)) return;
+  const handleApproveDelete = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn duyệt xoá hoá chất này? Hành động này không thể hoàn tác.')) return;
     try {
-      await apiClient.post('/chemicals/bulk-delete', { ids: selectedChemicals });
-      setSelectedChemicals([]);
+      await apiClient.post(`/chemicals/${id}/approve-delete`);
+      toast.success('Đã duyệt xoá hoá chất');
       fetchChemicals();
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Lỗi xoá hoá chất hàng loạt');
-    }
+    } catch(e: any) { toast.error(e.response?.data?.error || 'Lỗi duyệt xoá'); }
+  };
+
+  const handleRejectDelete = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn từ chối yêu cầu xoá hoá chất này?')) return;
+    try {
+      await apiClient.post(`/chemicals/${id}/reject-delete`);
+      toast.success('Đã từ chối yêu cầu xoá');
+      fetchChemicals();
+    } catch(e: any) { toast.error(e.response?.data?.error || 'Lỗi từ chối xoá'); }
   };
 
   const openEdit = (c: Chemical) => {
@@ -872,10 +909,22 @@ try {
                             )}
                           </td>
                           <td style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>
-                            <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                              <button onClick={() => openEdit(c)} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: '#fff', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Sửa</button>
-                              <button onClick={() => handleDelete(c.id, c.name)} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid #FFCCC7', background: '#fff', color: '#FF4D4F', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Xoá</button>
-                            </div>
+                            {c.isDeleteRequested ? (
+                              <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: '#FFF7E6', color: '#FA8C16', borderRadius: '4px', border: '1px solid #FFD591', whiteSpace: 'nowrap' }}>Chờ duyệt xoá</span>
+                                {(user?.id === c.deleteApproverId || user?.role === 'SUPERADMIN' || user?.role === 'SuperAdmin') ? (
+                                  <>
+                                    <button onClick={() => handleApproveDelete(c.id)} style={{ padding: '0.3rem 0.5rem', borderRadius: '4px', border: 'none', background: '#52C41A', color: '#fff', cursor: 'pointer', fontSize: '0.75rem' }}>Duyệt</button>
+                                    <button onClick={() => handleRejectDelete(c.id)} style={{ padding: '0.3rem 0.5rem', borderRadius: '4px', border: 'none', background: '#FF4D4F', color: '#fff', cursor: 'pointer', fontSize: '0.75rem' }}>Từ chối</button>
+                                  </>
+                                ) : null}
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                                <button onClick={() => openEdit(c)} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: '#fff', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Sửa</button>
+                                <button onClick={() => handleDelete(c.id, c.name)} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid #FFCCC7', background: '#fff', color: '#FF4D4F', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Xoá</button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       );
@@ -1094,6 +1143,55 @@ try {
       )}
 
       {/* ══════════ MODALS ══════════ */}
+
+      {/* Modal Yêu Cầu Xoá Hoá Chất */}
+      {modal === 'request_delete' && (
+        <div className="modal-overlay" onClick={() => setModal('none')}>
+          <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Yêu Cầu Phê Duyệt Xoá</div>
+              <button className="modal-close-btn" onClick={() => setModal('none')}>Đóng</button>
+            </div>
+            <form onSubmit={handleRequestDeleteSubmit}>
+              <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                {deleteTarget.type === 'single'
+                  ? <>Bạn đang yêu cầu xoá hoá chất <strong>{deleteTarget.name}</strong>. Hành động này cần được phê duyệt.</>
+                  : <>Bạn đang yêu cầu xoá <strong>{selectedChemicals.length}</strong> hoá chất. Hành động này cần được phê duyệt.</>
+                }
+              </div>
+              <div className="form-group">
+                <label>Người duyệt <span style={{ color: 'red' }}>*</span></label>
+                <select 
+                  required
+                  value={deleteForm.approverId}
+                  onChange={e => setDeleteForm(p => ({ ...p, approverId: e.target.value }))}
+                >
+                  <option value="">-- Chọn người duyệt --</option>
+                  {approvers.level1?.map(u => (
+                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                  ))}
+                  {approvers.level2?.map(u => (
+                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Lý do xoá</label>
+                <textarea 
+                  rows={3} 
+                  placeholder="Nhập lý do xoá hoá chất..."
+                  value={deleteForm.reason}
+                  onChange={e => setDeleteForm(p => ({ ...p, reason: e.target.value }))}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                <button type="button" onClick={() => setModal('none')} className="btn-secondary">Huỷ</button>
+                <button type="submit" className="btn-primary" style={{ background: '#FF4D4F' }}>Gửi Yêu Cầu Xoá</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Import / Edit Modal */}
       {(modal === 'import' || modal === 'edit') && (
