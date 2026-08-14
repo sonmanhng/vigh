@@ -46,7 +46,7 @@ const chemicalSchema = z.object({
   name: z.string().min(1),
   unit: z.string().min(1),
   quantity: z.number().min(0),
-  maxQuantity: z.number().min(0),
+  maxQuantity: z.number().min(0).optional().default(0),
   specification: z.number().min(0).optional().default(1),
   invoicePrice: z.number().min(0).optional().default(0),
   importDate: z.string(),

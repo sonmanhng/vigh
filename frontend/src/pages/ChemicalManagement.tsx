@@ -1272,8 +1272,8 @@ try {
                     <input type="number" step="any" min="0" className="input-field" required value={importForm.quantity} onChange={e => setImportForm(p => ({ ...p, quantity: e.target.value === '' ? '' : Number(e.target.value) }))} />
                   </div>
                   <div className="input-group">
-                    <label className="input-label">Định mức tối đa (*)</label>
-                    <input type="number" step="any" min="0" className="input-field" required value={importForm.maxQuantity} onChange={e => setImportForm(p => ({ ...p, maxQuantity: e.target.value === '' ? '' : Number(e.target.value) }))} />
+                    <label className="input-label">Định mức tối đa</label>
+                    <input type="number" step="any" min="0" className="input-field" value={importForm.maxQuantity} onChange={e => setImportForm(p => ({ ...p, maxQuantity: e.target.value === '' ? '' : Number(e.target.value) }))} />
                   </div>
                 </div>
 
