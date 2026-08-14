@@ -532,6 +532,18 @@ export const rejectDeleteChemical = async (req: Request, res: Response) => {
 };
 
 // POST /api/chemicals/:id/export — Xuất hoá chất
+const parseDate = (dateStr?: string) => {
+  if (!dateStr) return undefined;
+  const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4}),\s*(\d{2}):(\d{2})$/);
+  if (match) {
+    const [_, d, m, y, h, min] = match;
+    const parsed = new Date(`${y}-${m}-${d}T${h}:${min}:00`);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+  const parsed = new Date(dateStr);
+  return isNaN(parsed.getTime()) ? undefined : parsed;
+};
+
 export const exportChemical = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -548,6 +560,7 @@ export const exportChemical = async (req: Request, res: Response) => {
     }
 
     const newQuantity = chemical.quantity - data.quantity;
+    const safeCreatedAt = parseDate(data.exportDate);
 
     // Transaction: cập nhật số lượng + ghi log xuất kho
     const [updated] = await prisma.$transaction([
@@ -563,7 +576,7 @@ export const exportChemical = async (req: Request, res: Response) => {
           projectCode: data.projectCode,
           note: data.note,
           createdById: (req as any).user?.id,
-          createdAt: data.exportDate ? new Date(data.exportDate) : undefined,
+          createdAt: safeCreatedAt,
         },
       }),
     ]);

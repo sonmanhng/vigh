@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
     }
     
     // Global error toast
-    const errorMsg = error.response?.data?.error || 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
     // Ignore 401 unauth errors from toast to avoid spamming on session expire
     if (error.response?.status !== 401) {
       toast.error(errorMsg);

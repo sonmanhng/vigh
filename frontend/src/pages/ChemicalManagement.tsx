@@ -1383,13 +1383,13 @@ try {
                     value={exportForm.projectSearch || exportForm.projectCode} 
                     onChange={e => {
                       const val = e.target.value;
-                      const match = projects.find(p => `${p.code} — ${p.name}` === val);
-                      setExportForm(prev => ({ ...prev, projectSearch: val, projectCode: match ? match.code : val }));
+                      const match = projects.find(p => (p.code ? `${p.code} — ${p.name}` : p.name) === val);
+                      setExportForm(prev => ({ ...prev, projectSearch: val, projectCode: match ? (match.code || match.name) : val }));
                     }} 
                   />
                   <datalist id="export-projects">
                     {projects.map(p => (
-                      <option key={p.id} value={`${p.code} — ${p.name}`} />
+                      <option key={p.id} value={p.code ? `${p.code} — ${p.name}` : p.name} />
                     ))}
                   </datalist>
                 </div>
@@ -1404,7 +1404,7 @@ try {
                 </div>
                 <div className="input-group">
                   <label className="input-label">Thời gian xuất kho (Tuỳ chọn)</label>
-                  <input type="datetime-local" className="input-field" value={exportForm.exportDate} onChange={e => setExportForm(p => ({ ...p, exportDate: e.target.value }))} />
+                  <input type="date" className="input-field" value={exportForm.exportDate} onChange={e => setExportForm(p => ({ ...p, exportDate: e.target.value }))} />
                 </div>
                 <div className="input-group" style={{ marginBottom: 0 }}>
                   <label className="input-label">Ghi Chú</label>
