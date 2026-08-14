@@ -154,7 +154,7 @@ export const ChemicalManagement: React.FC = () => {
   const [importForm, setImportForm] = useState(emptyImport());
 
   // Export form
-  const [exportForm, setExportForm] = useState({ chemicalId: '', chemicalSearch: '', projectCode: '', quantity: '' as number | string, note: '', exportDate: '' });
+  const [exportForm, setExportForm] = useState({ chemicalId: '', chemicalSearch: '', projectCode: '', projectSearch: '', quantity: '' as number | string, note: '', exportDate: '' });
   const [alertForm, setAlertForm] = useState({ chemicalId: '', chemicalSearch: '', threshold: 0 });
 
   // Proposal form
@@ -379,7 +379,7 @@ export const ChemicalManagement: React.FC = () => {
         exportDate: exportForm.exportDate ? exportForm.exportDate : undefined,
       });
       setModal('none');
-      setExportForm({ chemicalId: '', chemicalSearch: '', projectCode: '', quantity: '', note: '', exportDate: '' });
+      setExportForm({ chemicalId: '', chemicalSearch: '', projectCode: '', projectSearch: '', quantity: '', note: '', exportDate: '' });
       fetchChemicals();
       fetchTransactions();
       if (res.data.warning) {
@@ -1276,12 +1276,16 @@ try {
                     list="export-projects" 
                     required 
                     placeholder="Nhập hoặc chọn mã dự án..." 
-                    value={exportForm.projectCode} 
-                    onChange={e => setExportForm(p => ({ ...p, projectCode: e.target.value }))} 
+                    value={exportForm.projectSearch || exportForm.projectCode} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      const match = projects.find(p => `${p.code} — ${p.name}` === val);
+                      setExportForm(prev => ({ ...prev, projectSearch: val, projectCode: match ? match.code : val }));
+                    }} 
                   />
                   <datalist id="export-projects">
                     {projects.map(p => (
-                      <option key={p.id} value={p.code}>{p.name}</option>
+                      <option key={p.id} value={`${p.code} — ${p.name}`} />
                     ))}
                   </datalist>
                 </div>
