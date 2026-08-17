@@ -2121,7 +2121,11 @@ export const ProjectDetail: React.FC = () => {
                 /* SUB-TAB: TÍNH CÔNG & THÙ LAO */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {(() => {
-                    const memberStats = (project.members || []).map((m: any) => {
+                    const allMembers = [...(project.members || [])];
+                    if (project.manager && !allMembers.some(m => m.id === project.manager.id)) {
+                      allMembers.unshift(project.manager);
+                    }
+                    const memberStats = allMembers.map((m: any) => {
                       const mTasks = tasks.filter(t => t.assigneeId === m.id);
                       let totalWorkDays = 0;
                       let totalPaymentPercent = 0;
