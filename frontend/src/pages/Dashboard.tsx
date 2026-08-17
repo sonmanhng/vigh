@@ -33,6 +33,7 @@ export const Dashboard: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [memberFilter, setMemberFilter] = useState<number | ''>('');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // New Project State
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
