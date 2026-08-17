@@ -522,3 +522,112 @@ body {
   box-shadow: var(--shadow-md);
   border-color: var(--primary-light);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  /* Layout */
+  .app-container {
+    flex-direction: column;
+  }
+
+  /* Sidebar behavior on mobile */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -270px;
+    height: 100vh;
+    z-index: 1050;
+    transition: left 0.3s ease;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.mobile-open {
+    left: 0;
+  }
+
+  /* Mobile sidebar overlay */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.5);
+    z-index: 1040;
+    display: none;
+  }
+
+  .sidebar-overlay.mobile-open {
+    display: block;
+  }
+
+  /* Main area */
+  .main-area {
+    width: 100vw;
+  }
+
+  .content-area {
+    padding: 1rem;
+  }
+
+  /* Navbar adjustments */
+  .navbar {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .navbar-title {
+    display: none; /* Hide long title on mobile */
+  }
+
+  /* Mobile hamburger button */
+  .mobile-menu-btn {
+    display: block !important;
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+
+  /* Modals */
+  .modal-content {
+    width: 95%;
+    max-width: 95%;
+    margin: 1rem;
+    max-height: 90vh;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  /* Convert internal grids to single column in modals */
+  .modal-body > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* General elements */
+  .kanban-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Cards */
+  .card {
+    padding: 1rem;
+  }
+
+  /* Make all tables scrollable horizontally on mobile */
+  table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+}
+
+/* Hide mobile menu button on desktop */
+.mobile-menu-btn {
+  display: none;
+}

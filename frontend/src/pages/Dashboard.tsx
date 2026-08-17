@@ -227,8 +227,14 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="app-container">
+      {/* Mobile Sidebar Overlay */}
+      <div 
+        className={`sidebar-overlay ${isMobileSidebarOpen ? 'mobile-open' : ''}`}
+        onClick={() => setIsMobileSidebarOpen(false)}
+      ></div>
+
       {/* Left Sidebar Menu */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header" style={{ backgroundColor: '#FFFFFF', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'center', borderBottom: '1px solid var(--border-color)' }}>
           <img 
             src="/logo.png" 
@@ -313,7 +319,7 @@ export const Dashboard: React.FC = () => {
 
       {/* Main Area */}
       <div className="main-area">
-        <Navbar />
+        <Navbar toggleMobileSidebar={() => setIsMobileSidebarOpen(true)} />
 
         {activeTab === 'home' ? (
           <HomeOverview />

@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 import { notificationService } from '../services/notification.service';
 import type { Notification } from '../services/notification.service';
 import { useAuth } from '../context/AuthContext';
 import { ProfileModal } from './ProfileModal';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  toggleMobileSidebar?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ toggleMobileSidebar }) => {
   const { user } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -65,6 +69,11 @@ export const Navbar: React.FC = () => {
     <>
       <header className="navbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {toggleMobileSidebar && (
+            <button className="mobile-menu-btn" onClick={toggleMobileSidebar}>
+              <Menu size={24} />
+            </button>
+          )}
           <img src="/logo.png" alt="VIGH Logo" style={{ height: '36px', objectFit: 'contain' }} />
           <div className="navbar-title">HỆ THỐNG QUẢN LÝ ĐỀ TÀI & NHÂN SỰ VIGH</div>
 
