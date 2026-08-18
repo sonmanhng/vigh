@@ -6,8 +6,8 @@ const router = Router();
 
 router.use(authenticateToken);
 
-// Create task (Admin, Manager)
-router.post('/', authorizeRoles('ADMIN', 'MANAGER'), createTask);
+// Create task (Admin, Manager, or Project Manager handled in controller)
+router.post('/', createTask);
 
 // Get tasks for a specific project
 router.get('/project/:projectId', getProjectTasks);
@@ -15,7 +15,7 @@ router.get('/project/:projectId', getProjectTasks);
 // Update task (Progress/Status) - Admin, Manager, Assigned User
 router.put('/:id', updateTask);
 
-// Delete task
-router.delete('/:id', authorizeRoles('ADMIN', 'MANAGER'), deleteTask);
+// Delete task (Admin, Manager, or Project Manager handled in controller)
+router.delete('/:id', deleteTask);
 
 export default router;
