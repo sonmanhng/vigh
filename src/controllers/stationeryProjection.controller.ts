@@ -291,3 +291,45 @@ export const exportProjectionExcel = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Lỗi khi xuất Excel', details: error.message });
   }
 };
+
+export const bulkUpdateProjectionItemsStatus = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { ids, status } = req.body;
+    
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Danh sách ID không hợp lệ' });
+    }
+    if (!status) {
+      return res.status(400).json({ error: 'Trạng thái không hợp lệ' });
+    }
+
+    await prisma.stationeryProjectionItem.updateMany({
+      where: { id: { in: ids } },
+      data: { status }
+    });
+
+    return res.json({ message: 'Cập nhật trạng thái thành công' });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: 'Lỗi khi cập nhật trạng thái hàng loạt', details: error.message });
+  }
+};
+
+export const bulkRemoveProjectionItems = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { ids } = req.body;
+    
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Danh sách ID không hợp lệ' });
+    }
+
+    await prisma.stationeryProjectionItem.deleteMany({
+      where: { id: { in: ids } }
+    });
+
+    return res.json({ message: 'Xoá thành công' });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: 'Lỗi khi xoá hàng loạt', details: error.message });
+  }
+};

@@ -124,6 +124,7 @@ export const StationeryManagement: React.FC = () => {
   const [projectionMonth, setProjectionMonth] = useState(new Date().getMonth() + 1);
   const [projectionYear, setProjectionYear] = useState(new Date().getFullYear());
   const [projection, setProjection] = useState<Projection | null>(null);
+  const [selectedProjectionItems, setSelectedProjectionItems] = useState<number[]>([]);
   const [projectionForm, setProjectionForm] = useState({ stationeryId: '', name: '', unit: '', quantity: '', note: '' });
   const [editProjectionForm, setEditProjectionForm] = useState({ id: 0, name: '', unit: '', quantity: '', note: '', status: '' });
 
@@ -406,6 +407,34 @@ export const StationeryManagement: React.FC = () => {
     }
   };
 
+  const handleBulkUpdateProjectionStatus = async (status: string) => {
+    if (selectedProjectionItems.length === 0) return;
+    try {
+      await apiClient.put('/stationeries/projections/items/bulk-status', {
+        ids: selectedProjectionItems,
+        status
+      });
+      setSelectedProjectionItems([]);
+      fetchProjection();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi cập nhật trạng thái hàng loạt');
+    }
+  };
+
+  const handleBulkDeleteProjectionItems = async () => {
+    if (selectedProjectionItems.length === 0) return;
+    if (!confirm(`Xoá ${selectedProjectionItems.length} mục đã chọn? Hành động này không thể hoàn tác.`)) return;
+    try {
+      await apiClient.delete('/stationeries/projections/items/bulk', {
+        data: { ids: selectedProjectionItems }
+      });
+      setSelectedProjectionItems([]);
+      fetchProjection();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi xoá dự trù hàng loạt');
+    }
+  };
+
   const handleExportProjectionExcel = async () => {
     if (!projection) return;
     try {
@@ -654,14 +683,38 @@ export const StationeryManagement: React.FC = () => {
       {/* ── TAB: DỰ TRÙ ── */}
       {activeTab === 'projections' && (
         <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border-color)', background: '#F8FAFC' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border-color)', background: '#F8FAFC', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <div style={{ fontWeight: 600 }}>Tháng:</div>
               <input type="number" min="1" max="12" value={projectionMonth} onChange={e => setProjectionMonth(Number(e.target.value))} className="input-field" style={{ width: '80px' }} />
               <div style={{ fontWeight: 600 }}>Năm:</div>
               <input type="number" value={projectionYear} onChange={e => setProjectionYear(Number(e.target.value))} className="input-field" style={{ width: '100px' }} />
             </div>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              {selectedProjectionItems.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', borderRight: '2px solid #e2e8f0', paddingRight: '1rem', marginRight: '0.25rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Đã chọn: {selectedProjectionItems.length}</span>
+                  <select 
+                    className="input-field" 
+                    style={{ padding: '0.4rem', height: 'auto', minHeight: 'unset', width: '130px', fontSize: '0.85rem' }}
+                    onChange={(e) => {
+                      if(e.target.value) {
+                        handleBulkUpdateProjectionStatus(e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                  >
+                    <option value="">Đổi trạng thái...</option>
+                    <option value="Đang dự trù">Đang dự trù</option>
+                    <option value="Đang đặt">Đang đặt</option>
+                    <option value="Hoàn thành">Hoàn thành</option>
+                  </select>
+                  <button className="btn" onClick={handleBulkDeleteProjectionItems} style={{ background: '#FF4D4F', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                    Xoá
+                  </button>
+                </div>
+              )}
               <button className="btn btn-primary" onClick={() => { setProjectionForm({ stationeryId: '', name: '', unit: '', quantity: '', note: '' }); setModal('projection'); }}>+ Thêm Vào Dự Trù</button>
               <button className="btn btn-primary" onClick={handleExportProjectionExcel}>⬇ Xuất Excel Dự Trù</button>
             </div>
@@ -670,6 +723,20 @@ export const StationeryManagement: React.FC = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ background: '#F8FAFC', borderBottom: '2px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.82rem', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '0.9rem 1rem', width: '40px', textAlign: 'center' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={projection?.items?.length ? selectedProjectionItems.length === projection.items.length : false}
+                      onChange={(e) => {
+                        if (e.target.checked && projection?.items) {
+                          setSelectedProjectionItems(projection.items.map(i => i.id));
+                        } else {
+                          setSelectedProjectionItems([]);
+                        }
+                      }}
+                      style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
+                    />
+                  </th>
                   <th style={{ padding: '0.9rem 1rem' }}>STT</th>
                   <th style={{ padding: '0.9rem 1rem' }}>Mã VPP</th>
                   <th style={{ padding: '0.9rem 1rem' }}>Tên Văn Phòng Phẩm</th>
@@ -684,9 +751,20 @@ export const StationeryManagement: React.FC = () => {
               </thead>
               <tbody>
                 {!projection?.items?.length ? (
-                  <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có dự trù nào cho tháng này.</td></tr>
+                  <tr><td colSpan={11} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Chưa có dự trù nào cho tháng này.</td></tr>
                 ) : projection.items.map((item, idx) => (
                   <tr key={item.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedProjectionItems.includes(item.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedProjectionItems(prev => [...prev, item.id]);
+                          else setSelectedProjectionItems(prev => prev.filter(id => id !== item.id));
+                        }}
+                        style={{ cursor: 'pointer', transform: 'scale(1.2)' }}
+                      />
+                    </td>
                     <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>{idx + 1}</td>
                     <td style={{ padding: '0.85rem 1rem' }}>{item.stationery?.code || '-'}</td>
                     <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>{item.name}</td>
