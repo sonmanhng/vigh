@@ -678,7 +678,13 @@ try {
   const filtered = chemicals.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.code.toLowerCase().includes(search.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const aLow = isLow(a) ? 1 : 0;
+    const bLow = isLow(b) ? 1 : 0;
+    if (aLow !== bLow) return bLow - aLow;
+    // Default sorting can be by name or keeping original order
+    return a.name.localeCompare(b.name);
+  });
   const lowCount = chemicals.filter(isLow).length;
   const totalValue = chemicals.reduce((s, c) => s + c.unitPrice * c.quantity, 0);
 
