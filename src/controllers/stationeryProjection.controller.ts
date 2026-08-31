@@ -203,27 +203,34 @@ export const removeProjectionItem = async (req: Request, res: Response) => {
   }
 };
 
-export const updateProjectionItem = async (req: Request, res: Response) => {
+export const updateProjectionItem = async (req: Request, res: Response): Promise<any> => {
   try {
     const { itemId } = req.params;
-    const { quantity, note } = req.body;
+    const { name, unit, quantity, note, status } = req.body;
     
-    if (quantity <= 0) {
+    if (quantity !== undefined && quantity <= 0) {
       return res.status(400).json({ error: 'Số lượng phải lớn hơn 0' });
     }
 
+    const dataToUpdate: any = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (unit !== undefined) dataToUpdate.unit = unit;
+    if (quantity !== undefined) dataToUpdate.quantity = Number(quantity);
+    if (note !== undefined) dataToUpdate.note = note;
+    if (status !== undefined) dataToUpdate.status = status;
+
     const item = await prisma.stationeryProjectionItem.update({
       where: { id: Number(itemId) },
-      data: { quantity: Number(quantity), note },
+      data: dataToUpdate,
       include: {
         addedBy: { select: { id: true, name: true } },
         stationery: { select: { code: true } }
       }
     });
-    res.json(item);
+    return res.json(item);
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({ error: 'Lỗi khi cập nhật mục dự trù', details: error.message });
+    return res.status(500).json({ error: 'Lỗi khi cập nhật mục dự trù', details: error.message });
   }
 };
 

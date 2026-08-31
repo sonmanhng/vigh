@@ -440,6 +440,7 @@ model StationeryProjectionItem {
   unit         String
   quantity     Float
   note         String?
+  status       String   @default("Đang dự trù") // "Đang dự trù", "Đang đặt", "Hoàn thành"
   addedById    Int?
   addedBy      User?    @relation("StationeryProjectionAdder", fields: [addedById], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())

@@ -50,6 +50,7 @@ interface ProjectionItem {
   unit: string;
   quantity: number;
   note?: string;
+  status: string;
   addedBy?: { id: number; name: string };
   createdAt: string;
 }
@@ -107,7 +108,7 @@ export const StationeryManagement: React.FC = () => {
   const { socket } = useSocket();
 
   // Modal state
-  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'projection'>('none');
+  const [modal, setModal] = useState<'none' | 'import' | 'export' | 'edit' | 'alert' | 'projection' | 'editProjection'>('none');
   const [editingId, setEditingId] = useState<number | null>(null);
   
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -124,6 +125,7 @@ export const StationeryManagement: React.FC = () => {
   const [projectionYear, setProjectionYear] = useState(new Date().getFullYear());
   const [projection, setProjection] = useState<Projection | null>(null);
   const [projectionForm, setProjectionForm] = useState({ stationeryId: '', name: '', unit: '', quantity: '', note: '' });
+  const [editProjectionForm, setEditProjectionForm] = useState({ id: 0, name: '', unit: '', quantity: '', note: '', status: '' });
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   const fetchStationerys = useCallback(async () => {
@@ -384,6 +386,23 @@ export const StationeryManagement: React.FC = () => {
       fetchProjection();
     } catch (e: any) {
       setError(e.response?.data?.error || 'Lỗi thêm dự trù');
+    }
+  };
+
+  const handleEditProjectionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await apiClient.put(`/stationeries/projections/items/${editProjectionForm.id}`, {
+        name: editProjectionForm.name,
+        unit: editProjectionForm.unit,
+        quantity: Number(editProjectionForm.quantity),
+        note: editProjectionForm.note,
+        status: editProjectionForm.status
+      });
+      setModal('none');
+      fetchProjection();
+    } catch (e: any) {
+      setError(e.response?.data?.error || 'Lỗi cập nhật dự trù');
     }
   };
 
@@ -658,6 +677,7 @@ export const StationeryManagement: React.FC = () => {
                   <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Số Lượng</th>
                   <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Tồn Kho</th>
                   <th style={{ padding: '0.9rem 1rem' }}>Người Thêm</th>
+                  <th style={{ padding: '0.9rem 1rem', textAlign: 'center' }}>Trạng Thái</th>
                   <th style={{ padding: '0.9rem 1rem' }}>Ghi Chú</th>
                   <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Thao Tác</th>
                 </tr>
@@ -676,9 +696,31 @@ export const StationeryManagement: React.FC = () => {
                       {item.stationeryId ? stationerys.find(s => s.id === item.stationeryId)?.quantity || '-' : '-'}
                     </td>
                     <td style={{ padding: '0.85rem 1rem' }}>{item.addedBy?.name || 'Hệ thống tự động'}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                      <span style={{
+                        padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600,
+                        backgroundColor: item.status === 'Hoàn thành' ? '#e6f4ea' : item.status === 'Đang đặt' ? '#e8f0fe' : '#fef7e0',
+                        color: item.status === 'Hoàn thành' ? '#137333' : item.status === 'Đang đặt' ? '#1967d2' : '#b06000'
+                      }}>
+                        {item.status || 'Đang dự trù'}
+                      </span>
+                    </td>
                     <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.note || '-'}</td>
                     <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
-                      <button onClick={() => handleDeleteProjectionItem(item.id)} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid #FFCCC7', background: '#fff', color: '#FF4D4F', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Xoá</button>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button onClick={() => {
+                          setEditProjectionForm({
+                            id: item.id,
+                            name: item.name,
+                            unit: item.unit,
+                            quantity: item.quantity.toString(),
+                            note: item.note || '',
+                            status: item.status || 'Đang dự trù'
+                          });
+                          setModal('editProjection');
+                        }} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid #d9d9d9', background: '#fff', color: '#595959', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Sửa</button>
+                        <button onClick={() => handleDeleteProjectionItem(item.id)} style={{ padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid #FFCCC7', background: '#fff', color: '#FF4D4F', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Xoá</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -972,6 +1014,52 @@ export const StationeryManagement: React.FC = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setModal('none')}>Huỷ</button>
                 <button type="submit" className="btn btn-primary">Thêm Vào Dự Trù</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Projection Modal */}
+      {modal === 'editProjection' && (
+        <div className="modal-overlay" onClick={() => setModal('none')}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Sửa Dự Trù VPP</div>
+              <button className="modal-close-btn" onClick={() => setModal('none')}>X</button>
+            </div>
+            <form onSubmit={handleEditProjectionSubmit}>
+              <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
+                <div className="input-group">
+                  <label className="input-label">Tên VPP (*)</label>
+                  <input type="text" required className="input-field" value={editProjectionForm.name} onChange={e => setEditProjectionForm(p => ({ ...p, name: e.target.value }))} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="input-group">
+                    <label className="input-label">Đơn vị (*)</label>
+                    <input type="text" required className="input-field" value={editProjectionForm.unit} onChange={e => setEditProjectionForm(p => ({ ...p, unit: e.target.value }))} />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Số lượng dự trù (*)</label>
+                    <input type="number" required min="1" className="input-field" value={editProjectionForm.quantity} onChange={e => setEditProjectionForm(p => ({ ...p, quantity: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Trạng thái (*)</label>
+                  <select required className="input-field" value={editProjectionForm.status} onChange={e => setEditProjectionForm(p => ({ ...p, status: e.target.value }))}>
+                    <option value="Đang dự trù">Đang dự trù</option>
+                    <option value="Đang đặt">Đang đặt</option>
+                    <option value="Hoàn thành">Hoàn thành</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Ghi chú</label>
+                  <input type="text" className="input-field" value={editProjectionForm.note} onChange={e => setEditProjectionForm(p => ({ ...p, note: e.target.value }))} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setModal('none')}>Huỷ</button>
+                <button type="submit" className="btn btn-primary">Lưu Thay Đổi</button>
               </div>
             </form>
           </div>
