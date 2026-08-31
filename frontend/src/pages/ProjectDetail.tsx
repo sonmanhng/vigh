@@ -41,6 +41,13 @@ export const ProjectDetail: React.FC = () => {
 
   // Comment State
   const [rcComments, setRcComments] = useState<Record<number, string>>({});
+  
+  // Preview State
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewFileName, setPreviewFileName] = useState('');
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
   const [newTaskExpectedResult, setNewTaskExpectedResult] = useState('');
   const [newTaskAssignDate, setNewTaskAssignDate] = useState(new Date().toISOString().slice(0, 10));
   const [newTaskDeadline, setNewTaskDeadline] = useState('');
@@ -157,6 +164,37 @@ export const ProjectDetail: React.FC = () => {
       alert(err.response?.data?.message || 'Lỗi khi cập nhật từ file DOCX');
     } finally {
       e.target.value = ''; // reset file input
+    }
+  };
+
+  const handlePreviewBase64 = async (dataUrl: string, fileName: string) => {
+    try {
+      setIsPreviewLoading(true);
+      setPreviewFileName(fileName);
+      setPreviewModalOpen(true);
+      
+      const response = await apiClient.post('/projects/preview-base64', {
+        dataUrl,
+        fileName
+      }, { responseType: 'blob' });
+      
+      const contentType = response.headers['content-type'] || 'application/pdf';
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      setPreviewUrl(url);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể xem trước file này. Vui lòng tải về.');
+      setPreviewModalOpen(false);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewModalOpen(false);
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl);
+      setPreviewUrl('');
     }
   };
 
@@ -2005,14 +2043,27 @@ export const ProjectDetail: React.FC = () => {
 
                                       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                                         {descObj.reportFile ? (
-                                          <a
-                                            href={descObj.reportFile.dataUrl || `data:text/plain;charset=utf-8,Noi%20dung%20bao%20cao:%20${encodeURIComponent(descObj.reportFile.name)}`}
-                                            download={descObj.reportFile.name}
-                                            className="btn btn-secondary btn-sm"
-                                            style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
-                                          >
-                                            Tải về báo cáo
-                                          </a>
+                                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            {['pdf', 'docx', 'png', 'jpg', 'jpeg'].includes(descObj.reportFile.name.split('.').pop()?.toLowerCase() || '') && (
+                                              <button
+                                                type="button"
+                                                onClick={() => handlePreviewBase64(descObj.reportFile.dataUrl, descObj.reportFile.name)}
+                                                className="btn btn-primary btn-sm"
+                                                style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600 }}
+                                                title="Xem trước file báo cáo"
+                                              >
+                                                Xem trước
+                                              </button>
+                                            )}
+                                            <a
+                                              href={descObj.reportFile.dataUrl || `data:text/plain;charset=utf-8,Noi%20dung%20bao%20cao:%20${encodeURIComponent(descObj.reportFile.name)}`}
+                                              download={descObj.reportFile.name}
+                                              className="btn btn-secondary btn-sm"
+                                              style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
+                                            >
+                                              Tải về báo cáo
+                                            </a>
+                                          </div>
                                         ) : (
                                           <a
                                             href={descObj.reportLink.url}
@@ -2668,6 +2719,37 @@ export const ProjectDetail: React.FC = () => {
                 <button type="submit" className="btn btn-primary">Lưu nội dung</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+
+      {/* Preview Modal */}
+      {previewModalOpen && (
+        <div className="modal-overlay" onClick={closePreview} style={{ zIndex: 1000 }}>
+          <div className="modal-content" style={{ maxWidth: '90vw', width: '1000px', height: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Xem trước: {previewFileName}</div>
+              <button className="modal-close-btn" onClick={closePreview}>Đóng</button>
+            </div>
+            
+            <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden', backgroundColor: '#f0f2f5' }}>
+              {isPreviewLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <span style={{ fontSize: '1.2rem', color: '#666' }}>Đang tải bản xem trước...</span>
+                </div>
+              ) : previewUrl ? (
+                <iframe 
+                  src={previewUrl} 
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  title="File Preview"
+                />
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <span style={{ fontSize: '1.2rem', color: '#dc2626' }}>Không thể tải bản xem trước</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

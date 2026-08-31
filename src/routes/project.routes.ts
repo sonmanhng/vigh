@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createProject, getProjects, getProjectById, updateProject, deleteProject, exportProjectDocx, importProjectDocx, approveProject } from '../controllers/project.controller';
+import { createProject, getProjects, getProjectById, updateProject, deleteProject, exportProjectDocx, importProjectDocx, approveProject, previewBase64File } from '../controllers/project.controller';
 import multer from 'multer';
 import { createResearchContent, updateResearchContent, deleteResearchContent, addComment, deleteComment } from '../controllers/researchContent.controller';
 import { authenticateToken, authorizeRoles } from '../middlewares/auth.middleware';
@@ -8,6 +8,8 @@ const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.use(authenticateToken);
+
+router.post('/preview-base64', previewBase64File);
 
 router.get('/', getProjects);
 router.get('/:id', getProjectById);

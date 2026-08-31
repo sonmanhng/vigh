@@ -681,3 +681,78 @@ export const importProjectDocx = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error importing docx', error: error.message });
   }
 };
+
+export const previewBase64File = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { dataUrl, fileName } = req.body;
+    if (!dataUrl || !fileName) {
+      return res.status(400).json({ message: 'Thiếu dữ liệu file' });
+    }
+
+    const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ message: 'Định dạng base64 không hợp lệ' });
+    }
+
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const buffer = Buffer.from(matches[2], 'base64');
+
+    if (ext === 'pdf') {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="preview.pdf"');
+      return res.send(buffer);
+    } else if (ext === 'docx') {
+      try {
+        const resultHtml = await mammoth.convertToHtml({ buffer });
+        const html = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { 
+                  font-family: Arial, sans-serif; 
+                  line-height: 1.6; 
+                  padding: 20px; 
+                  color: #333;
+                  max-width: 800px;
+                  margin: 0 auto;
+                  background: white;
+                }
+                table { 
+                  border-collapse: collapse; 
+                  width: 100%; 
+                  margin-bottom: 1rem;
+                }
+                th, td { 
+                  border: 1px solid #ccc; 
+                  padding: 8px; 
+                  text-align: left;
+                }
+                img { 
+                  max-width: 100%; 
+                  height: auto; 
+                }
+                p { margin-top: 0; margin-bottom: 1rem; }
+              </style>
+            </head>
+            <body>${resultHtml.value}</body>
+          </html>
+        `;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(html);
+      } catch (err) {
+        return res.status(500).send('Không thể xem trước file DOCX này. Vui lòng tải về để xem.');
+      }
+    } else if (['png', 'jpg', 'jpeg', 'gif'].includes(ext || '')) {
+      res.setHeader('Content-Type', `image/${ext === 'jpg' ? 'jpeg' : ext}`);
+      res.setHeader('Content-Disposition', 'inline');
+      return res.send(buffer);
+    } else {
+      return res.status(400).send('Định dạng file không được hỗ trợ xem trước (chỉ hỗ trợ PDF, DOCX, Hình ảnh). Vui lòng tải về.');
+    }
+  } catch (error: any) {
+    console.error('Error previewing base64 file:', error);
+    return res.status(500).send('Lỗi máy chủ khi xem trước file.');
+  }
+};
