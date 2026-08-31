@@ -141,6 +141,8 @@ export const ChemicalManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [alertBanner, setAlertBanner] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [txSearch, setTxSearch] = useState('');
+  const [txCreatorFilter, setTxCreatorFilter] = useState('');
   
   // Custom Export State
   const [users, setUsers] = useState<UserData[]>([]);
@@ -688,6 +690,19 @@ try {
     { key: 'history', label: 'Lịch Sử' },
   ];
 
+  const filteredTransactions = transactions.filter(t => {
+    if (txCreatorFilter && (t as any).creatorName !== txCreatorFilter) return false;
+    if (txSearch) {
+      const q = txSearch.toLowerCase();
+      const code = t.chemical.code.toLowerCase();
+      const name = t.chemical.name.toLowerCase();
+      const cName = ((t as any).creatorName || '').toLowerCase();
+      const project = (t.projectCode || '').toLowerCase();
+      if (!code.includes(q) && !name.includes(q) && !cName.includes(q) && !project.includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
     <div style={{ padding: '1.5rem', maxWidth: '100%' }}>
       {/* Header */}
@@ -1096,6 +1111,27 @@ try {
       {/* ── TAB: LỊCH SỬ ── */}
       {activeTab === 'history' && (
         <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
+          <div style={{ display: 'flex', gap: '1rem', padding: '1rem', borderBottom: '1px solid var(--border-color)', background: '#F8FAFC', flexWrap: 'wrap' }}>
+            <input 
+              type="text" 
+              className="input-field" 
+              placeholder="Tìm kiếm hoá chất, dự án..." 
+              value={txSearch} 
+              onChange={e => setTxSearch(e.target.value)} 
+              style={{ width: '250px' }}
+            />
+            <select 
+              className="input-field" 
+              value={txCreatorFilter} 
+              onChange={e => setTxCreatorFilter(e.target.value)}
+              style={{ width: '250px' }}
+            >
+              <option value="">Tất cả Người xuất/nhập</option>
+              {Array.from(new Set(transactions.map(t => (t as any).creatorName).filter(Boolean))).map(name => (
+                <option key={name as string} value={name as string}>{name as string}</option>
+              ))}
+            </select>
+          </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
@@ -1111,9 +1147,9 @@ try {
                 </tr>
               </thead>
               <tbody>
-                {transactions.length === 0 ? (
-                  <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>📭 Chưa có lịch sử xuất nhập</td></tr>
-                ) : transactions.map(t => (
+                {filteredTransactions.length === 0 ? (
+                  <tr><td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>📭 Không tìm thấy lịch sử xuất nhập nào</td></tr>
+                ) : filteredTransactions.map(t => (
                   <tr key={t.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                     <td style={{ padding: '0.85rem 1rem' }}>
                       <span style={{ background: t.type === 'IMPORT' ? '#F6FFED' : '#FFF1F0', color: t.type === 'IMPORT' ? '#389E0D' : '#CF1322', border: `1px solid ${t.type === 'IMPORT' ? '#B7EB8F' : '#FFA39E'}`, borderRadius: '10px', padding: '0.15rem 0.65rem', fontSize: '0.8rem', fontWeight: 700 }}>
