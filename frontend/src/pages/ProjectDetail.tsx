@@ -1878,7 +1878,7 @@ export const ProjectDetail: React.FC = () => {
                                 Chuyển về Cần làm
                               </button>
                               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                {canApproveInProject && (
+                                {canApproveInProject && t.status === 'REVIEW' && (
                                   <button type="button" className="btn btn-primary btn-sm" onClick={() => updateTaskStatus(t, 'DONE')} style={{ backgroundColor: 'var(--primary-light)' }}>
                                     Nghiệm thu hoàn thành
                                   </button>
@@ -2076,7 +2076,7 @@ export const ProjectDetail: React.FC = () => {
                                           </a>
                                         )}
 
-                                        {canManageReports && !isDone && (
+                                        {canManageReports && t.status === 'REVIEW' && (
                                           <>
                                             <button
                                               type="button"
@@ -2098,7 +2098,7 @@ export const ProjectDetail: React.FC = () => {
                                         )}
                                       </div>
                                     </div>
-                                  ) : !canManageReports && !isDone ? (
+                                  ) : t.assigneeId === user?.id && !isDone ? (
                                     /* Upload input for specialist / member */
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: '#FFFFFF', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)' }}>
                                       <label style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>
