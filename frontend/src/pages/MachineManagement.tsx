@@ -40,6 +40,7 @@ interface MachineStat {
     projectName: string;
     projectCode: string;
     minutes: number;
+    percent: number;
   }[];
 }
 
@@ -906,7 +907,10 @@ export const MachineManagement: React.FC = () => {
                     ) : s.projects.map(p => (
                       <div key={p.projectId} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                         <span style={{ fontWeight: 600, color: 'var(--text-main)' }} title={p.projectName}>{p.projectCode ? `${p.projectCode} - ${p.projectName}` : p.projectName}</span>
-                        <span style={{ color: '#D46B08', fontWeight: 700 }}>{p.minutes} phút</span>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ color: '#389e0d', fontWeight: 700, marginRight: '0.5rem' }}>{p.percent.toFixed(1)}%</span>
+                          <span style={{ color: '#D46B08', fontSize: '0.8rem' }}>({p.minutes} phút)</span>
+                        </div>
                       </div>
                     ))}
                   </div>
