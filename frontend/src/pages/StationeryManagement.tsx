@@ -465,7 +465,12 @@ export const StationeryManagement: React.FC = () => {
   const filtered = stationerys.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.code.toLowerCase().includes(search.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const aLow = isLow(a) ? 1 : 0;
+    const bLow = isLow(b) ? 1 : 0;
+    if (aLow !== bLow) return bLow - aLow;
+    return a.name.localeCompare(b.name);
+  });
   const lowCount = stationerys.filter(isLow).length;
 
   // ── Styles ────────────────────────────────────────────────────────────────
