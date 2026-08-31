@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import fs from 'fs';
+import mammoth from 'mammoth';
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType, BorderStyle, AlignmentType } from 'docx';
 
 const prisma = new PrismaClient();
@@ -224,6 +225,93 @@ export const downloadResultFile = async (req: Request, res: Response): Promise<a
   } catch (error: any) {
     console.error('Error downloading result file:', error);
     return res.status(500).json({ message: 'Lỗi máy chủ khi tải file', error: error.message });
+  }
+};
+
+export const previewResultFile = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { resultId } = req.params;
+    const result = await prisma.weeklyReportResult.findUnique({
+      where: { id: Number(resultId) }
+    });
+
+    if (!result || (!result.fileUrl && !result.fileData)) {
+      return res.status(404).json({ message: 'Không tìm thấy file kết quả' });
+    }
+
+    let buffer: Buffer;
+    if (result.fileUrl) {
+      const diskPath = path.join(__dirname, '../../', result.fileUrl);
+      if (!fs.existsSync(diskPath)) {
+        return res.status(404).json({ message: 'File không tồn tại trên máy chủ' });
+      }
+      buffer = fs.readFileSync(diskPath);
+    } else if (result.fileData) {
+      buffer = Buffer.from(result.fileData, 'base64');
+    } else {
+      return res.status(404).json({ message: 'Dữ liệu file trống' });
+    }
+
+    const fileName = result.fileName || '';
+    const ext = fileName.split('.').pop()?.toLowerCase();
+
+    if (ext === 'pdf') {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="preview.pdf"');
+      return res.send(buffer);
+    } else if (ext === 'docx') {
+      try {
+        const resultHtml = await mammoth.convertToHtml({ buffer });
+        const html = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { 
+                  font-family: Arial, sans-serif; 
+                  line-height: 1.6; 
+                  padding: 20px; 
+                  color: #333;
+                  max-width: 800px;
+                  margin: 0 auto;
+                  background: white;
+                }
+                table { 
+                  border-collapse: collapse; 
+                  width: 100%; 
+                  margin-bottom: 1rem;
+                }
+                th, td { 
+                  border: 1px solid #ccc; 
+                  padding: 8px; 
+                  text-align: left;
+                }
+                img { 
+                  max-width: 100%; 
+                  height: auto; 
+                }
+                p { margin-top: 0; margin-bottom: 1rem; }
+              </style>
+            </head>
+            <body>${resultHtml.value}</body>
+          </html>
+        `;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(html);
+      } catch (err) {
+        return res.status(500).send('Không thể xem trước file DOCX này. Vui lòng tải về để xem.');
+      }
+    } else if (['png', 'jpg', 'jpeg', 'gif'].includes(ext || '')) {
+      res.setHeader('Content-Type', `image/${ext === 'jpg' ? 'jpeg' : ext}`);
+      res.setHeader('Content-Disposition', 'inline');
+      return res.send(buffer);
+    } else {
+      return res.status(400).send('Định dạng file không được hỗ trợ xem trước (chỉ hỗ trợ PDF, DOCX, Hình ảnh). Vui lòng tải về.');
+    }
+  } catch (error: any) {
+    console.error('Error previewing result file:', error);
+    return res.status(500).send('Lỗi máy chủ khi tải file xem trước.');
   }
 };
 

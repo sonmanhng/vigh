@@ -59,6 +59,12 @@ export const WeeklyReports: React.FC = () => {
   const [synthUser, setSynthUser] = useState<number | 'all'>('all');
   const [isSynthesizing, setIsSynthesizing] = useState(false);
 
+  // Preview State
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewFileName, setPreviewFileName] = useState('');
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
   const filteredAndSortedReports = useMemo(() => {
     let result = [...reports];
 
@@ -297,6 +303,30 @@ export const WeeklyReports: React.FC = () => {
 
   const toggleExpandReport = (id: number) => {
     setExpandedReports(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handlePreview = async (resultId: number, fileName: string) => {
+    try {
+      setIsPreviewLoading(true);
+      setPreviewFileName(fileName);
+      setPreviewModalOpen(true);
+      
+      const { url } = await weeklyReportService.previewFile(resultId);
+      setPreviewUrl(url);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Không thể xem trước file này. Vui lòng tải về.');
+      setPreviewModalOpen(false);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewModalOpen(false);
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl);
+      setPreviewUrl('');
+    }
   };
 
   return (
@@ -1030,24 +1060,46 @@ export const WeeklyReports: React.FC = () => {
                                     <td style={{ padding: '0.85rem 1rem', whiteSpace: 'pre-wrap', color: 'var(--text-main)' }}>{r.description}</td>
                                     <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
                                       {r.fileName && r.id ? (
-                                        <button
-                                          type="button"
-                                          onClick={() => weeklyReportService.downloadFile(r.id!, r.fileName!)}
-                                          style={{
-                                            padding: '0.4rem 0.9rem',
-                                            backgroundColor: '#E6F4EA',
-                                            color: '#137333',
-                                            border: 'none',
-                                            borderRadius: '20px',
-                                            fontWeight: 600,
-                                            fontSize: '0.8rem',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s'
-                                          }}
-                                          title="Tải xuống file kết quả"
-                                        >
-                                          Tải file ({r.fileName.length > 15 ? r.fileName.substring(0, 12) + '...' : r.fileName})
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                          {['pdf', 'docx', 'png', 'jpg', 'jpeg'].includes(r.fileName.split('.').pop()?.toLowerCase() || '') && (
+                                            <button
+                                              type="button"
+                                              onClick={() => handlePreview(r.id!, r.fileName!)}
+                                              style={{
+                                                padding: '0.4rem 0.9rem',
+                                                backgroundColor: '#E6F7FF',
+                                                color: '#096DD9',
+                                                border: 'none',
+                                                borderRadius: '20px',
+                                                fontWeight: 600,
+                                                fontSize: '0.8rem',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s'
+                                              }}
+                                              title="Xem trước file"
+                                            >
+                                              Xem trước
+                                            </button>
+                                          )}
+                                          <button
+                                            type="button"
+                                            onClick={() => weeklyReportService.downloadFile(r.id!, r.fileName!)}
+                                            style={{
+                                              padding: '0.4rem 0.9rem',
+                                              backgroundColor: '#E6F4EA',
+                                              color: '#137333',
+                                              border: 'none',
+                                              borderRadius: '20px',
+                                              fontWeight: 600,
+                                              fontSize: '0.8rem',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.2s'
+                                            }}
+                                            title="Tải xuống file kết quả"
+                                          >
+                                            Tải ({r.fileName.length > 15 ? r.fileName.substring(0, 12) + '...' : r.fileName})
+                                          </button>
+                                        </div>
                                       ) : (
                                         <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.85rem' }}>Không có</span>
                                       )}
@@ -1148,6 +1200,35 @@ export const WeeklyReports: React.FC = () => {
               <button className="btn btn-primary" onClick={handleSynthesisDownload} disabled={isSynthesizing}>
                 {isSynthesizing ? 'Đang xử lý...' : 'Xuất File DOCX'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {previewModalOpen && (
+        <div className="modal-overlay" onClick={closePreview} style={{ zIndex: 1000 }}>
+          <div className="modal-content" style={{ maxWidth: '90vw', width: '1000px', height: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Xem trước: {previewFileName}</div>
+              <button className="modal-close-btn" onClick={closePreview}>Đóng</button>
+            </div>
+            
+            <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden', backgroundColor: '#f0f2f5' }}>
+              {isPreviewLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <span style={{ fontSize: '1.2rem', color: '#666' }}>Đang tải bản xem trước...</span>
+                </div>
+              ) : previewUrl ? (
+                <iframe 
+                  src={previewUrl} 
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  title="File Preview"
+                />
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <span style={{ fontSize: '1.2rem', color: '#dc2626' }}>Không thể tải bản xem trước</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

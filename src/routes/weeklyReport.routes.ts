@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { authenticateToken } from '../middlewares/auth.middleware';
-import { createReport, getReports, deleteReport, downloadReportDocx, downloadResultFile, downloadSynthesisDocx } from '../controllers/weeklyReport.controller';
+import { createReport, getReports, deleteReport, downloadReportDocx, downloadResultFile, previewResultFile, downloadSynthesisDocx } from '../controllers/weeklyReport.controller';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -13,6 +13,7 @@ router.get('/', getReports);
 router.get('/synthesis/docx', downloadSynthesisDocx);
 router.get('/:id/docx', downloadReportDocx);
 router.get('/download-file/:resultId', downloadResultFile);
+router.get('/preview-file/:resultId', previewResultFile);
 router.delete('/:id', deleteReport);
 
 export default router;

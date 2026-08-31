@@ -116,5 +116,13 @@ export const weeklyReportService = {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  },
+
+  previewFile: async (resultId: number) => {
+    const response = await apiClient.get(`/weekly-reports/preview-file/${resultId}`, { responseType: 'blob' });
+    const contentType = response.headers['content-type'] || 'application/pdf';
+    const blob = new Blob([response.data], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+    return { url, contentType };
   }
 };
