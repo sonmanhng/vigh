@@ -11,6 +11,8 @@ import { WeeklyReports } from './WeeklyReports';
 import { HomeOverview } from './HomeOverview';
 import { MeetingManagement } from './MeetingManagement';
 import { StationeryManagement } from './StationeryManagement';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 
 type Tab = 'home' | 'projects' | 'personnel' | 'chemicals' | 'cells' | 'machines' | 'weekly-reports' | 'meetings' | 'stationeries';
 
@@ -350,7 +352,7 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <select 
+                <SearchableSelect 
                   className="input-field" 
                   value={memberFilter} 
                   onChange={(e) => setMemberFilter(e.target.value ? Number(e.target.value) : '')}
@@ -360,7 +362,7 @@ export const Dashboard: React.FC = () => {
                   {usersList.map(u => (
                     <option key={u.id} value={u.id}>{u.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
 
                 <button className="btn btn-primary" onClick={() => setShowCreateProjectModal(true)}>
                   Khởi Tạo Đề Tài Mới
@@ -448,7 +450,7 @@ export const Dashboard: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Chủ nhiệm đề tài (*)</label>
-                  <select 
+                  <SearchableSelect 
                     className="select-field" 
                     value={newProjectManager} 
                     onChange={(e) => setNewProjectManager(e.target.value ? Number(e.target.value) : '')}
@@ -458,12 +460,12 @@ export const Dashboard: React.FC = () => {
                     {usersList.map(u => (
                       <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </div>
 
                 <div className="input-group">
                   <label className="input-label">Người duyệt tạo đề tài (*)</label>
-                  <select 
+                  <SearchableSelect 
                     className="select-field" 
                     value={newProjectApprover} 
                     onChange={(e) => setNewProjectApprover(e.target.value ? Number(e.target.value) : '')}
@@ -473,7 +475,7 @@ export const Dashboard: React.FC = () => {
                     {usersList.filter(u => ['TruongPhong', 'VienPho', 'VienTruong', 'ADMIN', 'MANAGER', 'SuperAdmin'].includes(u.role)).map(u => (
                       <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </div>
 
                 <div className="input-group">

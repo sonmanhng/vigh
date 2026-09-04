@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '../api/client';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 import { 
   weeklyReportService, 
   type WeeklyReport, 
@@ -414,7 +416,7 @@ export const WeeklyReports: React.FC = () => {
             <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
               Chọn người nhận báo cáo (Lãnh đạo / Chủ nhiệm / Quản lý): <span style={{ color: 'var(--accent-red)' }}>*</span>
             </label>
-            <select
+            <SearchableSelect
               className="input-field"
               style={{ maxWidth: '500px', fontWeight: 500, width: '100%' }}
               value={recipientId}
@@ -429,7 +431,7 @@ export const WeeklyReports: React.FC = () => {
                     {u.name} — {u.department || 'Phòng ban chung'} ({u.role || 'Cán bộ'})
                   </option>
                 ))}
-            </select>
+            </SearchableSelect>
           </div>
 
           {/* Section 1: Weekly Results */}
@@ -483,7 +485,7 @@ export const WeeklyReports: React.FC = () => {
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
                       Chọn đề tài liên quan (tùy chọn):
                     </label>
-                    <select
+                    <SearchableSelect
                       className="input-field"
                       style={{ width: '100%' }}
                       value={item.projectId || ''}
@@ -495,7 +497,7 @@ export const WeeklyReports: React.FC = () => {
                           {p.topicCode ? `[${p.topicCode}] ` : ''}{p.name} {p.code ? `(${p.code})` : ''}
                         </option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </div>
 
                   <div>
@@ -633,7 +635,7 @@ export const WeeklyReports: React.FC = () => {
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
                       Chọn đề tài hoặc mục công việc:
                     </label>
-                    <select
+                    <SearchableSelect
                       className="input-field"
                       style={{ width: '100%' }}
                       value={item.projectId !== null && item.projectId !== undefined ? String(item.projectId) : (item.customTitle !== null && item.customTitle !== undefined && item.customTitle !== '' ? '-1' : '')}
@@ -655,7 +657,7 @@ export const WeeklyReports: React.FC = () => {
                         </option>
                       ))}
                       <option value="-1" style={{ fontWeight: 700, color: 'var(--primary)' }}>+ Khác (Nhập tên công việc / mục tiêu ngoài đề tài)</option>
-                    </select>
+                    </SearchableSelect>
                   </div>
 
                   {(item.projectId === null && item.customTitle !== null && item.customTitle !== undefined && item.customTitle !== '') && (
@@ -828,31 +830,31 @@ export const WeeklyReports: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', flex: 1 }}>
               <div className="input-group" style={{ marginBottom: 0 }}>
                 <label className="input-label" style={{ fontSize: '0.85rem' }}>Sắp xếp theo</label>
-              <select className="input-field" value={sortMode} onChange={e => setSortMode(e.target.value as any)}>
+              <SearchableSelect className="input-field" value={sortMode} onChange={e => setSortMode(e.target.value as any)}>
                 <option value="date_desc">Thời gian nộp (Mới nhất trước)</option>
                 <option value="date_asc">Thời gian nộp (Cũ nhất trước)</option>
                 <option value="person">Tên người báo cáo (A-Z)</option>
-              </select>
+              </SearchableSelect>
             </div>
             
             <div className="input-group" style={{ marginBottom: 0 }}>
               <label className="input-label" style={{ fontSize: '0.85rem' }}>Lọc theo Dự án</label>
-              <select className="input-field" value={filterProject} onChange={e => setFilterProject(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+              <SearchableSelect className="input-field" value={filterProject} onChange={e => setFilterProject(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
                 <option value="all">Tất cả dự án</option>
                 {projects.map(p => (
                   <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             
             <div className="input-group" style={{ marginBottom: 0 }}>
               <label className="input-label" style={{ fontSize: '0.85rem' }}>Lọc theo Người gửi</label>
-              <select className="input-field" value={filterPerson} onChange={e => setFilterPerson(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+              <SearchableSelect className="input-field" value={filterPerson} onChange={e => setFilterPerson(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
                 <option value="all">Tất cả thành viên</option>
                 {users.map(u => (
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             </div>
             
@@ -1177,21 +1179,21 @@ export const WeeklyReports: React.FC = () => {
               </div>
               <div>
                 <label className="input-label">Lọc theo Đề tài</label>
-                <select className="input-field" value={synthProject} onChange={e => setSynthProject(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+                <SearchableSelect className="input-field" value={synthProject} onChange={e => setSynthProject(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
                   <option value="all">Tất cả đề tài</option>
                   {projects.map(p => (
                     <option key={p.id} value={p.id}>{p.code ? `${p.code} - ${p.name}` : p.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
               <div>
                 <label className="input-label">Lọc theo Cán bộ / Thành viên</label>
-                <select className="input-field" value={synthUser} onChange={e => setSynthUser(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
+                <SearchableSelect className="input-field" value={synthUser} onChange={e => setSynthUser(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
                   <option value="all">Tất cả cán bộ</option>
                   {users.map(u => (
                     <option key={u.id} value={u.id}>{u.name}</option>
                   ))}
-                </select>
+                </SearchableSelect>
               </div>
             </div>
 

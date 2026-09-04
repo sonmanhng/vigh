@@ -3,6 +3,8 @@ import { apiClient } from '../api/client';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Stationery {
@@ -700,7 +702,7 @@ export const StationeryManagement: React.FC = () => {
               {selectedProjectionItems.length > 0 && (
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', borderRight: '2px solid #e2e8f0', paddingRight: '1rem', marginRight: '0.25rem' }}>
                   <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Đã chọn: {selectedProjectionItems.length}</span>
-                  <select 
+                  <SearchableSelect 
                     className="input-field" 
                     style={{ padding: '0.4rem', height: 'auto', minHeight: 'unset', width: '130px', fontSize: '0.85rem' }}
                     onChange={(e) => {
@@ -714,7 +716,7 @@ export const StationeryManagement: React.FC = () => {
                     <option value="Đang dự trù">Đang dự trù</option>
                     <option value="Đang đặt">Đang đặt</option>
                     <option value="Hoàn thành">Hoàn thành</option>
-                  </select>
+                  </SearchableSelect>
                   <button className="btn" onClick={handleBulkDeleteProjectionItems} style={{ background: '#FF4D4F', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                     Xoá
                   </button>
@@ -1062,7 +1064,7 @@ export const StationeryManagement: React.FC = () => {
               <div className="modal-body" style={{ display: 'grid', gap: '1rem' }}>
                 <div className="input-group">
                   <label className="input-label">Chọn VPP có sẵn (Không bắt buộc)</label>
-                  <select className="input-field" value={projectionForm.stationeryId} onChange={e => {
+                  <SearchableSelect className="input-field" value={projectionForm.stationeryId} onChange={e => {
                     const id = e.target.value;
                     if (id) {
                       const c = stationerys.find(x => x.id === Number(id));
@@ -1073,7 +1075,7 @@ export const StationeryManagement: React.FC = () => {
                   }}>
                     <option value="">-- Nhập mới bên dưới hoặc chọn có sẵn --</option>
                     {stationerys.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
-                  </select>
+                  </SearchableSelect>
                 </div>
                 <div className="input-group">
                   <label className="input-label">Tên VPP (Nếu nhập mới) (*)</label>
@@ -1129,11 +1131,11 @@ export const StationeryManagement: React.FC = () => {
                 </div>
                 <div className="input-group">
                   <label className="input-label">Trạng thái (*)</label>
-                  <select required className="input-field" value={editProjectionForm.status} onChange={e => setEditProjectionForm(p => ({ ...p, status: e.target.value }))}>
+                  <SearchableSelect required className="input-field" value={editProjectionForm.status} onChange={e => setEditProjectionForm(p => ({ ...p, status: e.target.value }))}>
                     <option value="Đang dự trù">Đang dự trù</option>
                     <option value="Đang đặt">Đang đặt</option>
                     <option value="Hoàn thành">Hoàn thành</option>
-                  </select>
+                  </SearchableSelect>
                 </div>
                 <div className="input-group">
                   <label className="input-label">Ghi chú</label>

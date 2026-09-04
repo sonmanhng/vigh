@@ -3,6 +3,8 @@ import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { PersonalProfile } from './PersonalProfile';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 
 const ALL_ROLES = [
   { value: 'VienTruong', label: 'Viện Trưởng - Ban Lãnh Đạo Viện' },
@@ -274,7 +276,7 @@ export const PersonnelManagement: React.FC = () => {
                     <td>{u.phone || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>---</span>}</td>
                     <td>
                       {isTopAdmin ? (
-                        <select
+                        <SearchableSelect
                           className="select-field"
                           style={{ padding: '0.35rem 0.5rem', fontSize: '0.85rem', width: 'auto', fontWeight: 600 }}
                           value={u.role}
@@ -284,7 +286,7 @@ export const PersonnelManagement: React.FC = () => {
                             <option key={r.value} value={r.value}>{r.label.split(' - ')[0]}</option>
                           ))}
                           {!ALL_ROLES.some(r => r.value === u.role) && <option value={u.role}>{u.role}</option>}
-                        </select>
+                        </SearchableSelect>
                       ) : (
                         <span className={getRoleBadgeClass(u.role)}>{u.role}</span>
                       )}
@@ -350,11 +352,11 @@ export const PersonnelManagement: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Chức vụ / Quyền hạn (*)</label>
-                  <select className="select-field" value={role} onChange={(e) => setRole(e.target.value)} disabled={!isTopAdmin}>
+                  <SearchableSelect className="select-field" value={role} onChange={(e) => setRole(e.target.value)} disabled={!isTopAdmin}>
                     {ALL_ROLES.map(r => (
                       <option key={r.value} value={r.value}>{r.label}</option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </div>
 
                 <div className="input-group">
@@ -365,13 +367,13 @@ export const PersonnelManagement: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Phòng ban / Đơn vị</label>
-                  <select className="select-field" value={department} onChange={(e) => setDepartment(e.target.value)}>
+                  <SearchableSelect className="select-field" value={department} onChange={(e) => setDepartment(e.target.value)}>
                     <option value="">-- Chọn phòng ban --</option>
                     <option value="Ban lãnh đạo">Ban lãnh đạo</option>
                     <option value="Phòng Khoa học Công nghệ">Phòng Khoa học Công nghệ</option>
                     <option value="Phòng Sinh học">Phòng Sinh học</option>
                     <option value="Phòng Công nghệ Dược">Phòng Công nghệ Dược</option>
-                  </select>
+                  </SearchableSelect>
                 </div>
 
                 <div className="input-group">

@@ -3,6 +3,8 @@ import { apiClient } from '../api/client';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 
 interface Cell {
   id: number;
@@ -991,9 +993,9 @@ export const CellManagement: React.FC = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Phòng ban quản lý</label>
-                  <select className="input-field" value={importForm.department} onChange={e => setImportForm(p => ({ ...p, department: e.target.value }))}>
+                  <SearchableSelect className="input-field" value={importForm.department} onChange={e => setImportForm(p => ({ ...p, department: e.target.value }))}>
                     {CELL_DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
+                  </SearchableSelect>
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Vị trí lưu trữ (Tủ đông / Nitơ lỏng...)</label>
@@ -1045,10 +1047,10 @@ export const CellManagement: React.FC = () => {
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Đề tài sử dụng *</label>
-                <select className="input-field" required value={exportForm.projectCode} onChange={e => setExportForm(p => ({ ...p, projectCode: e.target.value }))}>
+                <SearchableSelect className="input-field" required value={exportForm.projectCode} onChange={e => setExportForm(p => ({ ...p, projectCode: e.target.value }))}>
                   <option value="">-- Chọn đề tài --</option>
                   {projects.map(p => <option key={p.id} value={p.code}>{p.code} - {p.name}</option>)}
-                </select>
+                </SearchableSelect>
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Số lượng xuất *</label>
@@ -1076,17 +1078,17 @@ export const CellManagement: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Người duyệt Cấp 1 (Phòng KHCN/Admin) *</label>
-                  <select className="input-field" required value={proposalForm.approver1Id} onChange={e => setProposalForm(p => ({ ...p, approver1Id: e.target.value }))}>
+                  <SearchableSelect className="input-field" required value={proposalForm.approver1Id} onChange={e => setProposalForm(p => ({ ...p, approver1Id: e.target.value }))}>
                     <option value="">-- Chọn Trưởng phòng / KHCN --</option>
                     {approvers.approver1?.map(u => <option key={u.id} value={u.id}>{u.name} ({u.department || 'Admin'})</option>)}
-                  </select>
+                  </SearchableSelect>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem' }}>Người duyệt Cấp 2 (Ban Lãnh Đạo) *</label>
-                  <select className="input-field" required value={proposalForm.approver2Id} onChange={e => setProposalForm(p => ({ ...p, approver2Id: e.target.value }))}>
+                  <SearchableSelect className="input-field" required value={proposalForm.approver2Id} onChange={e => setProposalForm(p => ({ ...p, approver2Id: e.target.value }))}>
                     <option value="">-- Chọn Viện Trưởng / Viện Phó --</option>
                     {approvers.approver2?.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role === 'VienTruong' ? 'Viện Trưởng' : 'Viện Phó'})</option>)}
-                  </select>
+                  </SearchableSelect>
                 </div>
               </div>
 
@@ -1131,12 +1133,12 @@ export const CellManagement: React.FC = () => {
                       <input type="number" step="any" min="0.001" placeholder="SL *" required className="input-field" value={item.quantity} onChange={e => {
                         const next = [...proposalItems]; next[idx].quantity = e.target.value; setProposalItems(next);
                       }} />
-                      <select className="input-field" value={item.projectId} onChange={e => {
+                      <SearchableSelect className="input-field" value={item.projectId} onChange={e => {
                         const next = [...proposalItems]; next[idx].projectId = e.target.value; setProposalItems(next);
                       }}>
                         <option value="">-- Đề tài --</option>
                         {projects.map(p => <option key={p.id} value={p.id}>{p.code}</option>)}
-                      </select>
+                      </SearchableSelect>
                       {proposalItems.length > 1 && (
                         <button type="button" onClick={() => setProposalItems(proposalItems.filter((_, i) => i !== idx))} style={{ background: '#FFCCC7', color: '#FF4D4F', border: 'none', borderRadius: '6px', padding: '0.45rem 0.6rem', fontWeight: 700, cursor: 'pointer' }}>X</button>
                       )}

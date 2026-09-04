@@ -6,6 +6,8 @@ import * as XLSX from 'xlsx';
 import { toast } from 'react-hot-toast';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Chemical {
   id: number;
@@ -1060,12 +1062,12 @@ try {
             </div>
             <div style={{ minWidth: '250px' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Nhân viên sử dụng</label>
-              <select className="input-field" value={exportUser} onChange={e => setExportUser(e.target.value)}>
+              <SearchableSelect className="input-field" value={exportUser} onChange={e => setExportUser(e.target.value)}>
                 <option value="all">-- Chọn tất cả --</option>
                 {users.map(u => (
                   <option key={u.id} value={u.id}>{u.name}</option>
                 ))}
-              </select>
+              </SearchableSelect>
             </div>
             <div>
               <button className="btn btn-primary" onClick={handleExportReportExcel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -1126,7 +1128,7 @@ try {
               onChange={e => setTxSearch(e.target.value)} 
               style={{ width: '250px' }}
             />
-            <select 
+            <SearchableSelect 
               className="input-field" 
               value={txCreatorFilter} 
               onChange={e => setTxCreatorFilter(e.target.value)}
@@ -1136,7 +1138,7 @@ try {
               {Array.from(new Set(transactions.map(t => (t as any).creatorName).filter(Boolean))).map(name => (
                 <option key={name as string} value={name as string}>{name as string}</option>
               ))}
-            </select>
+            </SearchableSelect>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -1204,7 +1206,7 @@ try {
                 </div>
                 <div className="input-group">
                   <label className="input-label">Người duyệt <span style={{ color: 'red' }}>*</span></label>
-                  <select 
+                  <SearchableSelect 
                     className="input-field"
                     required
                     value={deleteForm.approverId}
@@ -1217,7 +1219,7 @@ try {
                     {approvers.level2?.map(u => (
                       <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </div>
                 <div className="input-group">
                   <label className="input-label">Lý do xoá</label>
@@ -1351,13 +1353,13 @@ try {
 
                 <div className="input-group">
                   <label className="input-label">Phòng Ban Quản Lý (*)</label>
-                  <select className="select-field" required value={importForm.department} onChange={e => setImportForm(p => ({ ...p, department: e.target.value }))}>
+                  <SearchableSelect className="select-field" required value={importForm.department} onChange={e => setImportForm(p => ({ ...p, department: e.target.value }))}>
                     <option value="">-- Chọn phòng ban quản lý --</option>
                     <option value="Phòng Công nghệ Dược">Phòng Công nghệ Dược</option>
                     <option value="Phòng Thử nghiệm Sinh học">Phòng Thử nghiệm Sinh học</option>
                     <option value="Phòng Tài nguyên và Công nghệ Sinh học">Phòng Tài nguyên và Công nghệ Sinh học</option>
                     <option value="Phòng Khoa học Công nghệ">Phòng Khoa học Công nghệ</option>
-                  </select>
+                  </SearchableSelect>
                 </div>
 
                 <div className="input-group">
@@ -1524,21 +1526,21 @@ try {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="input-group">
                     <label className="input-label">Người duyệt 1 (Trưởng phòng / Viện phó)</label>
-                    <select className="input-field" value={proposalForm.approver1Id} onChange={e => setProposalForm(p => ({ ...p, approver1Id: e.target.value }))}>
+                    <SearchableSelect className="input-field" value={proposalForm.approver1Id} onChange={e => setProposalForm(p => ({ ...p, approver1Id: e.target.value }))}>
                       <option value="">— Không có / Tự duyệt —</option>
                       {approvers.level1.map(u => (
                         <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </div>
                   <div className="input-group">
                     <label className="input-label">Người duyệt 2 (Viện trưởng)</label>
-                    <select className="input-field" required value={proposalForm.approver2Id} onChange={e => setProposalForm(p => ({ ...p, approver2Id: e.target.value }))}>
+                    <SearchableSelect className="input-field" required value={proposalForm.approver2Id} onChange={e => setProposalForm(p => ({ ...p, approver2Id: e.target.value }))}>
                       <option value="">— Chọn người duyệt 2 —</option>
                       {approvers.level2.map(u => (
                         <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                       ))}
-                    </select>
+                    </SearchableSelect>
                   </div>
                 </div>
 
@@ -1591,7 +1593,7 @@ try {
                             }} />
                           </td>
                           <td style={{ padding: '0.5rem' }}>
-                            <select className="input-field" value={item.projectId} onChange={e => {
+                            <SearchableSelect className="input-field" value={item.projectId} onChange={e => {
                               const newItems = [...proposalItems];
                               newItems[idx].projectId = e.target.value;
                               setProposalItems(newItems);
@@ -1600,7 +1602,7 @@ try {
                               {projects.map(p => (
                                 <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
                               ))}
-                            </select>
+                            </SearchableSelect>
                           </td>
                           <td style={{ padding: '0.5rem', textAlign: 'center' }}>
                             <button type="button" onClick={() => {

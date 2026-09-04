@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 
 interface Machine {
   id: number;
@@ -795,18 +797,18 @@ export const MachineManagement: React.FC = () => {
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Loại theo dõi</label>
-              <select className="input-field" value={statType} onChange={e => setStatType(e.target.value as any)}>
+              <SearchableSelect className="input-field" value={statType} onChange={e => setStatType(e.target.value as any)}>
                 <option value="machine">Theo dõi máy móc</option>
                 {isAdmin && <option value="labor">Theo dõi nhân công</option>}
-              </select>
+              </SearchableSelect>
             </div>
             {statType === 'labor' && (
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Chế độ xem</label>
-                <select className="input-field" value={laborViewMode} onChange={e => setLaborViewMode(e.target.value as any)}>
+                <SearchableSelect className="input-field" value={laborViewMode} onChange={e => setLaborViewMode(e.target.value as any)}>
                   <option value="task">Theo công việc (Hành chính/Chuyên môn...)</option>
                   <option value="project">Theo Dự án tham gia</option>
-                </select>
+                </SearchableSelect>
               </div>
             )}
           </div>
@@ -1029,14 +1031,14 @@ export const MachineManagement: React.FC = () => {
                 
                 <div className="input-group">
                   <label className="input-label">Đơn vị sử dụng (*)</label>
-                  <select className="input-field" required value={importForm.department} onChange={e => setImportForm({...importForm, department: e.target.value})}>
+                  <SearchableSelect className="input-field" required value={importForm.department} onChange={e => setImportForm({...importForm, department: e.target.value})}>
                     <option value="Phòng Công nghệ Dược">Phòng Công nghệ Dược</option>
                     <option value="Chung">Chung</option>
                     <option value="Phòng Thử nghiệm Sinh học">Phòng Thử nghiệm Sinh học</option>
                     <option value="Văn phòng Công ty">Văn phòng Công ty</option>
                     <option value="Phòng Tài nguyên và Công nghệ Sinh học">Phòng Tài nguyên và Công nghệ Sinh học</option>
                     <option value="Phòng Khoa học Công nghệ">Phòng Khoa học Công nghệ</option>
-                  </select>
+                  </SearchableSelect>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -1046,10 +1048,10 @@ export const MachineManagement: React.FC = () => {
                   </div>
                   <div className="input-group">
                     <label className="input-label">Tình trạng</label>
-                    <select className="input-field" value={importForm.status} onChange={e => setImportForm({...importForm, status: e.target.value})}>
+                    <SearchableSelect className="input-field" value={importForm.status} onChange={e => setImportForm({...importForm, status: e.target.value})}>
                       <option value="IN_USE">Có sử dụng</option>
                       <option value="NOT_IN_USE">Không sử dụng</option>
-                    </select>
+                    </SearchableSelect>
                   </div>
                 </div>
 
@@ -1257,22 +1259,22 @@ export const MachineManagement: React.FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">Người duyệt 1 (*)</label>
-                  <select className="input-field" required value={overtimeForm.approver1Id} onChange={e => setOvertimeForm({...overtimeForm, approver1Id: e.target.value})}>
+                  <SearchableSelect className="input-field" required value={overtimeForm.approver1Id} onChange={e => setOvertimeForm({...overtimeForm, approver1Id: e.target.value})}>
                     <option value="">-- Chọn Trưởng phòng / Viện phó --</option>
                     {users.filter(u => u.role === 'TruongPhong' || u.role === 'VienPho').map(u => (
                       <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </div>
 
                 <div className="input-group" style={{ marginBottom: 0 }}>
                   <label className="input-label">Người duyệt 2 (Mặc định)</label>
-                  <select className="input-field" value={overtimeForm.approver2Id || users.find(u => u.role === 'VienTruong')?.id || ''} disabled>
+                  <SearchableSelect className="input-field" value={overtimeForm.approver2Id || users.find(u => u.role === 'VienTruong')?.id || ''} disabled>
                     <option value="">-- Viện trưởng --</option>
                     {users.filter(u => u.role === 'VienTruong').map(u => (
                       <option key={u.id} value={u.id}>{u.name} (VienTruong)</option>
                     ))}
-                  </select>
+                  </SearchableSelect>
                 </div>
               </div>
 

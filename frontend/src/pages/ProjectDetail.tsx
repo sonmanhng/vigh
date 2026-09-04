@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { Navbar } from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import { SearchableSelect } from '../components/SearchableSelect';
+
 
 export const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -1645,7 +1647,7 @@ export const ProjectDetail: React.FC = () => {
                               <label style={{ display: 'block', fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)', marginBottom: '0.4rem' }}>
                                 Công việc cần giao (*)
                               </label>
-                              <select
+                              <SearchableSelect
                                 className="select-field"
                                 style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.95rem', fontWeight: 500 }}
                                 value={selectedActivityCode}
@@ -1670,7 +1672,7 @@ export const ProjectDetail: React.FC = () => {
                                     [{act.code}] {act.activity}
                                   </option>
                                 ))}
-                              </select>
+                              </SearchableSelect>
                               <input
                                 type="text"
                                 className="input-field"
@@ -1726,7 +1728,7 @@ export const ProjectDetail: React.FC = () => {
                                   }
 
                                   return (
-                                    <select
+                                    <SearchableSelect
                                       className="select-field"
                                       style={{ width: '100%', padding: '0.65rem 0.85rem', fontSize: '0.95rem' }}
                                       value={newTaskAssignee}
@@ -1739,7 +1741,7 @@ export const ProjectDetail: React.FC = () => {
                                           {u.name} — ({u.labelRole || u.role})
                                         </option>
                                       ))}
-                                    </select>
+                                    </SearchableSelect>
                                   );
                                 })()}
                               </div>
@@ -2624,7 +2626,7 @@ export const ProjectDetail: React.FC = () => {
 
                   <div className="input-group">
                     <label className="input-label">Trạng thái</label>
-                    <select
+                    <SearchableSelect
                       className="select-field"
                       value={researchForm.status || 'Xong 100%'}
                       onChange={(e) => setResearchForm({ ...researchForm, status: e.target.value })}
@@ -2632,7 +2634,7 @@ export const ProjectDetail: React.FC = () => {
                       <option value="Xong 100%">Xong 100%</option>
                       <option value="Đang thực hiện">Đang thực hiện</option>
                       <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                    </select>
+                    </SearchableSelect>
                   </div>
                 </div>
 
