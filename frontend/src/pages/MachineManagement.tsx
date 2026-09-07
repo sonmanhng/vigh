@@ -35,6 +35,7 @@ interface MachineStat {
   machineId: number;
   machineCode: string;
   machineName: string;
+  department?: string;
   totalMinutes: number;
   percentUsage: number;
   projects: {
@@ -171,6 +172,7 @@ export const MachineManagement: React.FC = () => {
   // Statistics filters
   const [statMonth, setStatMonth] = useState(new Date().toISOString().substring(0, 7)); // YYYY-MM
   const [statType, setStatType] = useState<'machine' | 'labor'>('machine');
+  const [statDepartment, setStatDepartment] = useState('');
   const isAdmin = ['SuperAdmin', 'VienTruong', 'VienPho', 'SUPERADMIN', 'VIENTRUONG', 'VIENPHO'].includes(user?.role || '');
 
   const fetchMachines = useCallback(async () => {
@@ -819,6 +821,17 @@ export const MachineManagement: React.FC = () => {
                 {isAdmin && <option value="labor">Theo dõi nhân công</option>}
               </SearchableSelect>
             </div>
+            {statType === 'machine' && (
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Đơn vị sử dụng</label>
+                <SearchableSelect className="input-field" value={statDepartment} onChange={e => setStatDepartment(e.target.value)}>
+                  <option value="">Tất cả đơn vị</option>
+                  {Array.from(new Set(stats.map(s => s.department).filter(Boolean))).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </SearchableSelect>
+              </div>
+            )}
             {statType === 'labor' && (
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Chế độ xem</label>
@@ -900,11 +913,11 @@ export const MachineManagement: React.FC = () => {
             )
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
-              {stats.length === 0 ? (
+              {(statDepartment ? stats.filter(s => s.department === statDepartment) : stats).length === 0 ? (
                 <div style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', background: '#fff', borderRadius: '8px' }}>
                   Không có dữ liệu sử dụng máy móc trong tháng này.
                 </div>
-              ) : stats.map(s => (
+              ) : (statDepartment ? stats.filter(s => s.department === statDepartment) : stats).map(s => (
                 <div key={s.machineId} className="card" style={{ padding: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                     <div>

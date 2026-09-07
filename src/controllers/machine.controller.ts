@@ -157,6 +157,7 @@ export const getMachineStatistics = async (req: Request, res: Response) => {
           machineId: log.machineId,
           machineCode: log.machine.code,
           machineName: log.machine.name,
+          department: log.machine.department,
           totalMinutes: 0,
           percentUsage: 0,
           projectsMap: {}
@@ -195,6 +196,7 @@ export const getMachineStatistics = async (req: Request, res: Response) => {
         machineId: m.machineId,
         machineCode: m.machineCode,
         machineName: m.machineName,
+        department: m.department,
         totalMinutes: m.totalMinutes,
         percentUsage: (m.totalMinutes / totalMinutesInMonth) * 100,
         projects: projectsWithPercent,
