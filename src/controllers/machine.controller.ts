@@ -182,24 +182,12 @@ export const getMachineStatistics = async (req: Request, res: Response) => {
 
     const result = Object.values(machineMap).map((m: any) => {
       const projectsWithPercent = Object.values(m.projectsMap).map((p: any) => {
-        let denomMinutes = totalMinutesInMonth;
-        if (p.startDate && p.endDate) {
-          const s = new Date(p.startDate);
-          const e = new Date(p.endDate);
-          const diffMs = e.getTime() - s.getTime();
-          if (diffMs > 0) {
-            denomMinutes = (diffMs / (1000 * 60 * 60 * 24)) * 24 * 60; // Tổng phút của dự án
-          }
-        }
-        
-        if (denomMinutes <= 0) denomMinutes = totalMinutesInMonth;
-
         return {
           projectId: p.projectId,
           projectName: p.projectName,
           projectCode: p.projectCode,
           minutes: p.minutes,
-          percent: (p.minutes / denomMinutes) * 100
+          percent: m.totalMinutes > 0 ? (p.minutes / m.totalMinutes) * 100 : 0
         };
       });
 
