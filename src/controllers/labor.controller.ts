@@ -198,7 +198,7 @@ export const getMyLaborStats = async (req: Request, res: Response) => {
 export const getAdminLaborStats = async (req: Request, res: Response) => {
   try {
     const role = (req as any).user?.role;
-    if (!['SUPERADMIN', 'VIENTRUONG', 'VIENPHO'].includes(role)) {
+    if (!['SuperAdmin', 'VienTruong', 'VienPho', 'SUPERADMIN', 'VIENTRUONG', 'VIENPHO'].includes(role)) {
       return res.status(403).json({ error: 'Không có quyền truy cập báo cáo nhân công toàn hệ thống' });
     }
 
