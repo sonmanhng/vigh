@@ -164,6 +164,26 @@ export const updateProject = async (req: Request, res: Response) => {
         }
       }
     });
+
+    if (rest.code && project.code && rest.code !== project.code) {
+      await prisma.chemicalTransaction.updateMany({
+        where: { projectCode: project.code },
+        data: { projectCode: rest.code }
+      });
+      await prisma.chemicalProposalItem.updateMany({
+        where: { projectCode: project.code },
+        data: { projectCode: rest.code }
+      });
+      await prisma.cellTransaction.updateMany({
+        where: { projectCode: project.code },
+        data: { projectCode: rest.code }
+      });
+      await prisma.cellProposalItem.updateMany({
+        where: { projectCode: project.code },
+        data: { projectCode: rest.code }
+      });
+    }
+
     res.json(updated);
   } catch (error: any) {
     res.status(400).json({ message: 'Error updating project', error: error.message });
