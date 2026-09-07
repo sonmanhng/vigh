@@ -120,6 +120,7 @@ export const MachineManagement: React.FC = () => {
   const [stats, setStats] = useState<MachineStat[]>([]);
   const [laborLogs, setLaborLogs] = useState<LaborLog[]>([]);
   const [laborStats, setLaborStats] = useState<LaborStatsResponse | null>(null);
+  const [laborPersonalMonth, setLaborPersonalMonth] = useState(new Date().toISOString().substring(0, 7)); // YYYY-MM
   const [adminLaborStats, setAdminLaborStats] = useState<AdminLaborStat[]>([]);
   
   const [users, setUsers] = useState<UserData[]>([]);
@@ -238,14 +239,14 @@ export const MachineManagement: React.FC = () => {
   const fetchLaborStats = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get<LaborStatsResponse>('/labor/my-statistics');
+      const res = await apiClient.get<LaborStatsResponse>(`/labor/my-statistics?date=${laborPersonalMonth}-01`);
       setLaborStats(res.data);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [laborPersonalMonth]);
 
   const fetchAdminLaborStats = useCallback(async () => {
     try {
@@ -633,44 +634,60 @@ export const MachineManagement: React.FC = () => {
       {activeTab === 'labor' && (
         <div style={{ display: 'grid', gap: '2rem' }}>
           {/* STATS */}
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Tháng thống kê:</label>
+            <input 
+              type="month" 
+              className="input-field" 
+              style={{ width: '200px' }}
+              value={laborPersonalMonth} 
+              onChange={e => setLaborPersonalMonth(e.target.value)} 
+            />
+          </div>
           {laborStats && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: laborPersonalMonth === new Date().toISOString().substring(0, 7) ? '1fr 1fr 1fr' : '1fr', gap: '1rem' }}>
+              {laborPersonalMonth === new Date().toISOString().substring(0, 7) && (
+                <>
+                  <div className="card">
+                    <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', textTransform: 'uppercase' }}>Hôm nay</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Hành chính:</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{laborStats.daily.adminPercent.toFixed(1)}%</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Chuyên môn:</span>
+                        <span style={{ color: '#096dd9', fontWeight: 700 }}>{laborStats.daily.proPercent.toFixed(1)}%</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Dọn dẹp:</span>
+                        <span style={{ color: '#d46b08', fontWeight: 700 }}>{laborStats.daily.cleanPercent.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="card">
+                    <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', textTransform: 'uppercase' }}>Tuần này</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Hành chính:</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{laborStats.weekly.adminPercent.toFixed(1)}%</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Chuyên môn:</span>
+                        <span style={{ color: '#096dd9', fontWeight: 700 }}>{laborStats.weekly.proPercent.toFixed(1)}%</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600 }}>Dọn dẹp:</span>
+                        <span style={{ color: '#d46b08', fontWeight: 700 }}>{laborStats.weekly.cleanPercent.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
               <div className="card">
-                <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', textTransform: 'uppercase' }}>Hôm nay</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600 }}>Hành chính:</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{laborStats.daily.adminPercent.toFixed(1)}%</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600 }}>Chuyên môn:</span>
-                    <span style={{ color: '#096dd9', fontWeight: 700 }}>{laborStats.daily.proPercent.toFixed(1)}%</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600 }}>Dọn dẹp:</span>
-                    <span style={{ color: '#d46b08', fontWeight: 700 }}>{laborStats.daily.cleanPercent.toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-              <div className="card">
-                <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', textTransform: 'uppercase' }}>Tuần này</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600 }}>Hành chính:</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{laborStats.weekly.adminPercent.toFixed(1)}%</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600 }}>Chuyên môn:</span>
-                    <span style={{ color: '#096dd9', fontWeight: 700 }}>{laborStats.weekly.proPercent.toFixed(1)}%</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 600 }}>Dọn dẹp:</span>
-                    <span style={{ color: '#d46b08', fontWeight: 700 }}>{laborStats.weekly.cleanPercent.toFixed(1)}%</span>
-                  </div>
-                </div>
-              </div>
-              <div className="card">
-                <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', textTransform: 'uppercase' }}>Tháng này (Theo dự án)</h3>
+                <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', textTransform: 'uppercase' }}>
+                  {laborPersonalMonth === new Date().toISOString().substring(0, 7) ? 'Tháng này (Theo dự án)' : `Tháng ${laborPersonalMonth.split('-')[1]}/${laborPersonalMonth.split('-')[0]} (Theo dự án)`}
+                </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '100px', overflowY: 'auto' }}>
                   {laborStats.projects.length === 0 && <div style={{ color: 'var(--text-muted)' }}>Chưa có dữ liệu</div>}
                   {laborStats.projects.map(p => (
