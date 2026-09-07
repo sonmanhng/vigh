@@ -170,7 +170,7 @@ export const MachineManagement: React.FC = () => {
   // Statistics filters
   const [statMonth, setStatMonth] = useState(new Date().toISOString().substring(0, 7)); // YYYY-MM
   const [statType, setStatType] = useState<'machine' | 'labor'>('machine');
-  const isAdmin = ['SUPERADMIN', 'VIENTRUONG', 'VIENPHO'].includes(user?.role || '');
+  const isAdmin = ['SuperAdmin', 'VienTruong', 'VienPho', 'SUPERADMIN', 'VIENTRUONG', 'VIENPHO'].includes(user?.role || '');
 
   const fetchMachines = useCallback(async () => {
     try {
